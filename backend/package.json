@@ -1,0 +1,21 @@
+{
+  "name": "readwise-backend",
+  "version": "1.0.0",
+  "description": "Backend for ReadWise AI Reading Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.4.1",
+    "multer": "^1.4.5-lts.1",
+    "pdfjs-dist": "^5.6.205"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.3"
+  }
+}
