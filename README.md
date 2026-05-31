@@ -1,178 +1,230 @@
-# 📖 ReadWise – AI Reading Platform (MERN Stack)
+# 📖 ReadWise
 
-A beginner-friendly MERN stack foundation for an AI-powered PDF reading platform.
+> Transform PDFs into an intelligent reading and knowledge workspace.
 
----
+ReadWise is a modern PDF reading platform built with React, Node.js, Express, and MongoDB. It helps users read, search, annotate, bookmark, and organize information from PDFs in a clean and distraction-free environment.
 
-## 📁 Project Structure
-
-```
-readwise/
-├── backend/
-│   ├── config/
-│   │   └── db.js                 # MongoDB connection
-│   ├── controllers/
-│   │   └── pdfController.js      # Upload, list, view logic
-│   ├── middleware/
-│   │   └── upload.js             # Multer file upload config
-│   ├── models/
-│   │   └── PDF.js                # Mongoose PDF schema
-│   ├── routes/
-│   │   ├── testRoutes.js         # GET /api/test
-│   │   └── pdfRoutes.js          # PDF CRUD routes
-│   ├── uploads/                  # Uploaded PDFs stored here
-│   ├── .env                      # Environment variables (don't commit)
-│   ├── .env.example              # Template for .env
-│   ├── server.js                 # Express app entry point
-│   └── package.json
-│
-└── frontend/
-    ├── public/
-    │   └── index.html
-    ├── src/
-    │   ├── components/
-    │   │   ├── Navbar.jsx        # Top navigation bar
-    │   │   ├── PDFUpload.jsx     # File picker + upload button
-    │   │   ├── PDFViewer.jsx     # iframe-based PDF viewer
-    │   │   └── PDFHistory.jsx    # List of past uploads
-    │   ├── pages/
-    │   │   └── Home.jsx          # Main page layout
-    │   ├── utils/
-    │   │   └── api.js            # All axios API calls
-    │   ├── App.js
-    │   ├── index.js
-    │   └── index.css             # Tailwind CSS imports
-    ├── tailwind.config.js
-    └── package.json
-```
+Designed for students, developers, researchers, and lifelong learners, ReadWise combines the simplicity of a PDF reader with the power of a knowledge management tool.
 
 ---
 
-## ⚙️ Prerequisites
+## ✨ Features
 
-Make sure you have these installed:
+### 📄 PDF Management
 
-- [Node.js](https://nodejs.org/) v18 or higher
-- [MongoDB](https://www.mongodb.com/try/download/community) (local) **or** a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster
-- npm (comes with Node.js)
+* Upload PDFs
+* Recent documents panel
+* Delete documents
+* Persistent document library
+* Fast document switching
+
+### 📚 PDF Reading Experience
+
+* Smooth PDF rendering
+* Previous / Next page navigation
+* Jump to page
+* Fit-to-screen mode
+* Fit-to-width mode
+* Zoom controls
+* Reading progress tracking
+* Remember last reading position
+
+### 🔍 Full-Text Search
+
+* Automatic text extraction during upload
+* MongoDB-powered indexing
+* Search entire PDFs instantly
+* Match count per page
+* Context snippets
+* Jump directly to search results
+
+### ✨ Highlight System
+
+* Multi-color highlighting
+* Persistent highlights
+* Highlight manager
+* Highlight navigation
+* Undo / Redo support
+
+### 📝 Notes System
+
+* Margin notes
+* Rich text editing
+* Color-coded notes
+* Auto-save
+* Resizable notes
+* Draggable notes
+* Page-linked annotations
+* Persistent MongoDB storage
+
+### 🔖 Productivity Tools
+
+* Bookmarks
+* Keyboard shortcuts
+* Reading session continuity
+* Quick document navigation
 
 ---
 
-## 🚀 Setup & Installation
+## 🚀 Upcoming Features
 
-### Step 1 — Clone or download this project
+### 🤖 AI-Powered Reading
+
+* PDF Chat
+* Ask questions about documents
+* AI-generated summaries
+* Chapter summaries
+* Concept explanations
+* Semantic search
+
+### 🧠 Learning Tools
+
+* Flashcard generation
+* Quiz generation
+* Revision mode
+* Smart highlights
+* Knowledge graph
+
+### 📂 Knowledge Management
+
+* Cross-document search
+* Document collections
+* Tagging system
+* Workspace organization
+* Export notes and highlights
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+
+* React
+* React PDF
+* JavaScript
+* CSS
+
+### Backend
+
+* Node.js
+* Express.js
+
+### Database
+
+* MongoDB
+* Mongoose
+
+### PDF Processing
+
+* PDF.js
+* Multer
+
+---
+
+## ⚙️ Installation
+
+### Clone Repository
 
 ```bash
-# If using git:
-git clone <your-repo-url>
+git clone https://github.com/your-username/readwise.git
 cd readwise
 ```
 
----
-
-### Step 2 — Set up the Backend
+### Backend Setup
 
 ```bash
-# Navigate into the backend folder
 cd backend
-
-# Install all dependencies
 npm install
+```
 
-# The .env file is already created for you.
-# If you want to use MongoDB Atlas, open .env and update MONGO_URI:
-# MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/readwise
+Create a `.env` file:
 
-# Create the uploads folder (if it doesn't exist)
-mkdir -p uploads
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+```
 
-# Start the backend server (with auto-reload via nodemon)
+Start backend:
+
+```bash
 npm run dev
 ```
 
-✅ You should see:
-```
-🚀 Server running on http://localhost:5000
-✅ MongoDB Connected: localhost
-```
-
----
-
-### Step 3 — Set up the Frontend
-
-Open a **new terminal window**:
+### Frontend Setup
 
 ```bash
-# Navigate into the frontend folder
 cd frontend
-
-# Install all dependencies (this may take a minute)
 npm install
-
-# Start the React development server
 npm start
 ```
 
-✅ Your browser should automatically open: `http://localhost:3000`
-
 ---
 
-## 🧪 Test the API
+## 🌐 Environment Variables
 
-Once the backend is running, test it in your browser or with curl:
+Backend:
 
+```env
+PORT=5000
+MONGO_URI=
 ```
-GET http://localhost:5000/api/test
-```
 
-Expected response:
-```json
-{
-  "success": true,
-  "message": "✅ ReadWise API is running!",
-  "timestamp": "..."
-}
+Frontend:
+
+```env
+VITE_API_URL=http://localhost:5000
 ```
 
 ---
 
-## 📡 API Endpoints
+## 🎯 Vision
 
-| Method | Endpoint                       | Description                  |
-|--------|--------------------------------|------------------------------|
-| GET    | `/api/test`                    | Health check                 |
-| POST   | `/api/pdfs/upload`             | Upload a PDF file            |
-| GET    | `/api/pdfs`                    | Get all uploaded PDFs        |
-| GET    | `/api/pdfs/view/:filename`     | Serve a PDF for the browser  |
+Most PDF readers focus only on displaying documents.
 
----
+ReadWise aims to become a complete learning and knowledge platform where users can:
 
-## 🔧 Environment Variables (backend/.env)
+* Read
+* Search
+* Highlight
+* Annotate
+* Summarize
+* Learn
+* Revisit knowledge
 
-| Variable    | Description                        | Default                                    |
-|-------------|------------------------------------|--------------------------------------------|
-| `PORT`      | Port the Express server runs on    | `5000`                                     |
-| `MONGO_URI` | MongoDB connection string          | `mongodb://localhost:27017/readwise`        |
+all from a single workspace.
 
 ---
 
-## 🛠️ Technologies Used
+## 📌 Current Status
 
-| Layer     | Technology               |
-|-----------|--------------------------|
-| Frontend  | React, Tailwind CSS, Axios |
-| Backend   | Node.js, Express          |
-| Database  | MongoDB, Mongoose         |
-| File Upload | Multer                  |
-| Dev Tool  | Nodemon                   |
+Active development.
+
+Recently completed:
+
+* PDF Search Engine
+* Highlight Manager
+* Keyboard Shortcuts
+* Bookmarks
+* Reading Progress Tracking
+* MongoDB Text Indexing
+
+Currently building:
+
+* Advanced Notes System
+
+Next:
+
+* AI Summaries
+* PDF Chat
+* Flashcards
+* Semantic Search
 
 ---
 
-## 🔮 Future Extensions (Ideas)
+## 📜 License
 
-- AI summarization using Claude API or OpenAI
-- Highlight and annotation system
-- User authentication (JWT)
-- Cloud storage for PDFs (AWS S3 / Cloudinary)
-- Full-text search across uploaded PDFs
-- Reading progress tracking
+MIT License
+
+---
+
+Built with ❤️ for readers, learners, developers, and knowledge workers.
