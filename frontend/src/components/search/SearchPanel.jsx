@@ -1,7 +1,7 @@
 import React from "react";
 import SearchResultItem from "./SearchResultItem";
 
-const SearchPanel = ({ pageNumber, onJump, inputRef, searchState }) => {
+const SearchPanel = ({ pageNumber, onJump, inputRef, searchState, mobileMode }) => {
   const {
     query,
     setQuery,
@@ -15,11 +15,13 @@ const SearchPanel = ({ pageNumber, onJump, inputRef, searchState }) => {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", color: "#e8d8b8", boxSizing: "border-box" }}>
       {/* Header */}
-      <div style={{ padding: "20px 16px 12px 16px", borderBottom: "1px solid rgba(255, 255, 255, 0.05)" }}>
-        <h3 style={{ margin: 0, fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 500, color: "#e8d8b8" }}>
-          Search Document
-        </h3>
-      </div>
+      {!mobileMode && (
+        <div style={{ padding: "20px 16px 12px 16px", borderBottom: "1px solid rgba(255, 255, 255, 0.05)" }}>
+          <h3 style={{ margin: 0, fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 500, color: "#e8d8b8" }}>
+            Search Document
+          </h3>
+        </div>
+      )}
 
       {/* Search Input Container */}
       <div style={{ padding: 16 }}>

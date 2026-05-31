@@ -17,13 +17,17 @@
 import React, { useRef, useEffect, useState } from "react";
 import SearchPanel from "./SearchPanel";
 import BookmarkPanel from "../BookmarkPanel";
+import HighlightPanel from "../highlights/HighlightPanel";
+import { useMediaQuery } from "../hooks/useMediaQuery";
+import MobileBottomSheet from "../MobileBottomSheet";
+import NotesPanel from "../../features/notes/components/NotesPanel";
 
 // ── Tab registry ─────────────────────────────────────────────────────────────
 const TABS = [
   { id: "search", icon: "⌕", label: "Search", soon: false },
+  { id: "highlights", icon: "✦", label: "Highlights", soon: false },
   { id: "bookmarks", icon: "🔖", label: "Bookmarks", soon: false },
-  { id: "highlights", icon: "✦", label: "Highlights", soon: true },
-  { id: "notes", icon: "✎", label: "Notes", soon: true },
+  { id: "notes", icon: "✎", label: "Notes", soon: false },
   { id: "ai", icon: "◈", label: "AI Chat", soon: true },
 ];
 
@@ -158,9 +162,18 @@ const SidePanelShell = ({
   setActiveTab,
   searchState,
   bookmarkState,
+  highlightState,
+  onHighlightFocus,
+  onBottomSheetHeightChange,
+  notesState,
+  activeNoteId,
+  onSetActiveNote,
+  hoveredNoteId,
+  onHoverNoteChange,
 }) => {
   const searchInputRef = useRef(null);
   const isOpen = activeTab !== null;
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   // Autofocus the search input whenever the search tab opens.
   useEffect(() => {
@@ -187,6 +200,7 @@ const SidePanelShell = ({
             onJump={onJump}
             inputRef={searchInputRef}
             searchState={searchState}
+            mobileMode={isMobile}
           />
         );
       case "bookmarks":
@@ -198,10 +212,36 @@ const SidePanelShell = ({
             onDelete={bookmarkState.deleteBookmark}
             isLoading={bookmarkState.isLoading}
             error={bookmarkState.error}
+            mobileMode={isMobile}
           />
         );
       case "highlights":
+        return (
+          <HighlightPanel
+            highlights={highlightState.highlights}
+            onJump={onJump}
+            onDelete={highlightState.removeHighlight}
+            onFocus={onHighlightFocus}
+            mobileMode={isMobile}
+          />
+        );
       case "notes":
+        return (
+          <NotesPanel
+            notes={notesState.notes}
+            createNote={notesState.createNote}
+            updateNote={notesState.updateNote}
+            deleteNote={notesState.deleteNote}
+            loading={notesState.loading}
+            error={notesState.error}
+            pageNumber={pageNumber}
+            onJump={onJump}
+            activeNoteId={activeNoteId}
+            onSetActiveNote={onSetActiveNote}
+            hoveredNoteId={hoveredNoteId}
+            onHoverNoteChange={onHoverNoteChange}
+          />
+        );
       case "ai": {
         const tab = TABS.find((t) => t.id === activeTab);
         return <SoonPanel label={tab?.label ?? activeTab} />;
@@ -220,30 +260,23 @@ const SidePanelShell = ({
         flexShrink: 0,
       }}
     >
-      {/* ── Collapsible panel ─────────────────────────────────────── */}
-      <div
-        style={{
-          width: isOpen ? PANEL_WIDTH : 0,
-          minWidth: 0,
-          overflow: "hidden",
-          transition: "width 0.28s cubic-bezier(0.4,0,0.2,1)",
-          background: "#0e0c0a",
-          borderLeft: isOpen ? "1px solid rgba(255,255,255,0.06)" : "none",
-          flexShrink: 0,
-          position: "relative",
-        }}
-      >
-        {/* Inner wrapper keeps content at full width even while animating */}
-        <div
-          style={{
-            width: PANEL_WIDTH,
-            height: "100%",
-            overflow: "hidden",
-          }}
+      {/* ── Collapsible panel / Bottom Sheet ────────────────────── */}
+      {isMobile ? (
+        <MobileBottomSheet
+          isOpen={isOpen}
+          onClose={() => setActiveTab(null)}
+          title={TABS.find((t) => t.id === activeTab)?.label || "Panel"}
+          onHeightChange={onBottomSheetHeightChange}
         >
           {renderPanel()}
+        </MobileBottomSheet>
+      ) : (
+        <div className={`side-panel ${isOpen ? "open" : ""}`}>
+          <div className="side-panel-inner">
+            {renderPanel()}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Always-visible icon rail ───────────────────────────────── */}
       <div

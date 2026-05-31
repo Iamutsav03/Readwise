@@ -8,6 +8,8 @@ export function useKeyboardShortcuts({
   onNext,
   onToggleBookmark,
   setActiveTab,
+  undoHighlight,
+  redoHighlight,
 }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -60,6 +62,19 @@ export function useKeyboardShortcuts({
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
         e.preventDefault();
         onToggleBookmark();
+        return;
+      }
+      // Ctrl+Z: Undo highlight
+      if (e.ctrlKey && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        undoHighlight?.();
+        return;
+      }
+
+      // Ctrl+Y: Redo highlight
+      if (e.ctrlKey && e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        redoHighlight?.();
         return;
       }
     };

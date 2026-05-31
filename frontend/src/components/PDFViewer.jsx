@@ -11,6 +11,8 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import { getPDFViewURL } from "../utils/api";
+import HighlightOverlayLayer from "./highlights/HighlightOverlayLayer";
+import NoteMarker from "../features/notes/components/NoteMarker";
 
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
@@ -38,6 +40,15 @@ const PDFViewer = forwardRef(function PDFViewer(
     onNumPagesChange,
     customTextRenderer,
     searchQuery,
+    pageHighlights,
+    focusedHighlightId,
+    bottomSheetHeightPct = 0,
+    pageNotes = [],
+    activeNoteId = null,
+    hoveredNoteId = null,
+    onNoteMarkerClick = () => {},
+    onHoverNoteChange = () => {},
+    onUpdateNote = () => {},
   },
   ref
 ) {
@@ -59,14 +70,23 @@ const PDFViewer = forwardRef(function PDFViewer(
     const scrollHost = containerRef.current?.parentElement;
     if (!scrollHost) return;
 
-    const availH = scrollHost.clientHeight - 4; // sub-pixel safety margin
+    // scrollHost.clientHeight is already the correct available height
+    // (window.innerHeight minus the actual rendered footer).
+    // On mobile, the bottom sheet is an absolute overlay ON TOP of the scroll host,
+    // so we subtract its pixel height so Fit Page fits in the visible area above the sheet.
+    const isMobile = window.innerWidth <= 768;
+    const sheetPx = isMobile
+      ? (bottomSheetHeightPct / 100) * window.innerHeight
+      : 0;
+
+    const availH = scrollHost.clientHeight - sheetPx - 4; // 4px sub-pixel margin
     const availW = scrollHost.clientWidth * 0.95; // breathing margin
 
     const heightScale = availH / pageHeightRef.current;
     const widthScale = availW / pageWidthRef.current;
     const newScale = Math.min(heightScale, widthScale);
     onScaleChange(Math.max(0.5, Math.min(parseFloat(newScale.toFixed(3)), 3.0)));
-  }, [onScaleChange]);
+  }, [onScaleChange, bottomSheetHeightPct]);
 
   // ── Fit Width (width-only constrained) ───────────────────────────────────
   const fitToWidth = useCallback(() => {
@@ -183,6 +203,35 @@ const PDFViewer = forwardRef(function PDFViewer(
             onRenderSuccess={onPageRenderSuccess}
             customTextRenderer={customTextRenderer}
           />
+          <HighlightOverlayLayer
+            highlights={pageHighlights}
+            scale={scale}
+            focusedHighlightId={focusedHighlightId}
+          />
+          {/* Note markers overlay — container is pointer-events:none, each marker overrides to auto */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              pointerEvents: "none",
+              zIndex: 30,
+            }}
+          >
+            {pageNotes.map((note) => (
+              <NoteMarker
+                key={note._id}
+                note={note}
+                isActive={activeNoteId === note._id}
+                isHovered={hoveredNoteId === note._id}
+                onClick={onNoteMarkerClick}
+                onHoverChange={onHoverNoteChange}
+                onUpdateNote={onUpdateNote}
+              />
+            ))}
+          </div>
         </div>
       </Document>
     </div>

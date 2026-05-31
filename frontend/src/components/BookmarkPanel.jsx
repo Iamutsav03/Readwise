@@ -11,6 +11,7 @@ const BookmarkPanel = ({
   onDelete,
   isLoading,
   error,
+  mobileMode,
 }) => {
   return (
     <div
@@ -23,26 +24,28 @@ const BookmarkPanel = ({
       }}
     >
       {/* Header */}
-      <div
-        style={{
-          padding: "20px 16px 12px 16px",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
-        }}
-      >
-        <h3
+      {!mobileMode && (
+        <div
           style={{
-            margin: 0,
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 16,
-            fontWeight: 500,
-            color: "#e8d8b8",
+            padding: "20px 16px 12px 16px",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
           }}
         >
-          Bookmarks
-        </h3>
-      </div>
+          <h3
+            style={{
+              margin: 0,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 16,
+              fontWeight: 500,
+              color: "#e8d8b8",
+            }}
+          >
+            Bookmarks
+          </h3>
+        </div>
+      )}
 
-      {/* Bookmarks List */}
+      {/* Highlights List */}
       <div
         style={{
           flex: 1,

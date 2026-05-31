@@ -42,28 +42,81 @@ html {
   inset: 0;
 }
 
-/* Beautiful dark-mode custom scrollbar for horizontal zoom scrolling */
+/* Beautiful dark-mode custom scrollbar matching site palette */
 div.custom-scrollbar {
   scrollbar-width: thin !important;
-  scrollbar-color: rgba(255, 255, 255, 0.35) rgba(0, 0, 0, 0.4) !important;
+  scrollbar-color: rgba(184, 150, 106, 0.4) transparent !important;
 }
 
 div.custom-scrollbar::-webkit-scrollbar {
   display: block !important;
-  height: 10px !important;
-  width: 10px !important;
+  height: 6px !important;
+  width: 6px !important;
 }
 
 div.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.4) !important;
+  background: transparent !important;
 }
 
 div.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.35) !important;
+  background: rgba(184, 150, 106, 0.4) !important;
   border-radius: 9999px !important;
-  border: 2px solid rgba(0, 0, 0, 0.4) !important;
 }
 
 div.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.6) !important;
+  background: rgba(184, 150, 106, 0.8) !important;
+}
+
+/* ── Responsive Sidebar Classes ── */
+.side-panel {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #0e0c0a;
+  flex-shrink: 0;
+  position: relative;
+  border-left: none;
+}
+
+.side-panel.open {
+  width: 300px;
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.side-panel-inner {
+  width: 300px;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+  .side-panel.open {
+    /* 40px is the width of the icon rail */
+    width: calc(100vw - 40px);
+  }
+  .side-panel-inner {
+    width: calc(100vw - 40px);
+  }
+  
+  .toolbar-container {
+    overflow-x: auto !important;
+    justify-content: flex-start !important;
+  }
+  .toolbar-container::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Note Marker Pulse Animation */
+@keyframes marker-pulse {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
 }
