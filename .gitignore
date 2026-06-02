@@ -27,9 +27,6 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Uploads and runtime artifacts
-/backend/uploads
-
 # Dependency directories
 /.pnp
 .pnp.js
