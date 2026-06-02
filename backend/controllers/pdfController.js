@@ -7,6 +7,8 @@ const fs = require("fs");
 const PDF = require("../models/PDF");
 const PDFPage = require("../models/PDFPage");
 const Bookmark = require("../models/Bookmark");
+const Highlight = require("../models/Highlight");
+const Note = require("../models/Note");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPER: Extract page-wise text from a PDF file on disk
@@ -162,6 +164,14 @@ const deletePDF = async (req, res) => {
     // Cascade delete: remove all bookmarks for this PDF
     const { deletedCount: deletedBookmarksCount } = await Bookmark.deleteMany({ pdfId: pdf._id });
     console.log(`🗑️  Removed ${deletedBookmarksCount} bookmark(s) for "${pdf.originalName}"`);
+
+    // Cascade delete: remove all highlights for this PDF
+    const { deletedCount: deletedHighlightsCount } = await Highlight.deleteMany({ pdfId: pdf._id });
+    console.log(`🗑️  Removed ${deletedHighlightsCount} highlight(s) for "${pdf.originalName}"`);
+
+    // Cascade delete: remove all notes for this PDF
+    const { deletedCount: deletedNotesCount } = await Note.deleteMany({ pdfId: pdf._id });
+    console.log(`🗑️  Removed ${deletedNotesCount} note(s) for "${pdf.originalName}"`);
 
     // 3. Remove the PDF metadata document
     await PDF.findByIdAndDelete(req.params.id);

@@ -1,13 +1,14 @@
 import axios from "axios";
+import { BASE_URL } from "../../../utils/api";
 
-const BASE_URL = "http://localhost:5000/api/notes";
+const NOTES_URL = `${BASE_URL}/notes`;
 
 /**
  * Fetch all notes for a specific PDF
  * @param {string} pdfId
  */
 export const getNotesForPdf = async (pdfId) => {
-  const response = await axios.get(`${BASE_URL}/${pdfId}`);
+  const response = await axios.get(`${NOTES_URL}/${pdfId}`);
   return response.data;
 };
 
@@ -16,7 +17,7 @@ export const getNotesForPdf = async (pdfId) => {
  * @param {object} payload - pdfId, pageNumber, content, color, width, height, x, y
  */
 export const createNote = async (payload) => {
-  const response = await axios.post(BASE_URL, payload);
+  const response = await axios.post(NOTES_URL, payload);
   return response.data;
 };
 
@@ -26,7 +27,7 @@ export const createNote = async (payload) => {
  * @param {object} updateFields - fields to update
  */
 export const updateNote = async (id, updateFields) => {
-  const response = await axios.put(`${BASE_URL}/${id}`, updateFields);
+  const response = await axios.put(`${NOTES_URL}/${id}`, updateFields);
   return response.data;
 };
 
@@ -35,6 +36,6 @@ export const updateNote = async (id, updateFields) => {
  * @param {string} id
  */
 export const deleteNote = async (id) => {
-  const response = await axios.delete(`${BASE_URL}/${id}`);
+  const response = await axios.delete(`${NOTES_URL}/${id}`);
   return response.data;
 };

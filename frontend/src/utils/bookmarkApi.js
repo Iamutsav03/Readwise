@@ -2,8 +2,9 @@
 // API helpers for bookmark operations.
 
 import axios from "axios";
+import { BASE_URL } from "./api";
 
-const BASE_URL = "http://localhost:5000/api/bookmarks";
+const BOOKMARKS_URL = `${BASE_URL}/bookmarks`;
 
 /**
  * Creates/saves a bookmark on the backend.
@@ -12,7 +13,7 @@ const BASE_URL = "http://localhost:5000/api/bookmarks";
  * @returns {Promise<object>} The saved bookmark object
  */
 export const createBookmark = async (pdfId, pageNumber) => {
-  const response = await axios.post(BASE_URL, { pdfId, pageNumber });
+  const response = await axios.post(BOOKMARKS_URL, { pdfId, pageNumber });
   return response.data;
 };
 
@@ -22,7 +23,7 @@ export const createBookmark = async (pdfId, pageNumber) => {
  * @returns {Promise<object[]>} Array of bookmark objects
  */
 export const getBookmarksForPdf = async (pdfId) => {
-  const response = await axios.get(`${BASE_URL}/${pdfId}`);
+  const response = await axios.get(`${BOOKMARKS_URL}/${pdfId}`);
   return response.data;
 };
 
@@ -33,6 +34,6 @@ export const getBookmarksForPdf = async (pdfId) => {
  * @returns {Promise<object>} Confirmation message
  */
 export const removeBookmark = async (pdfId, pageNumber) => {
-  const response = await axios.delete(`${BASE_URL}/${pdfId}/${pageNumber}`);
+  const response = await axios.delete(`${BOOKMARKS_URL}/${pdfId}/${pageNumber}`);
   return response.data;
 };

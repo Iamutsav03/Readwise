@@ -16,10 +16,23 @@ connectDB();
 const app = express();
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-app.use(cors({
-  origin: "http://localhost:3000",
-  methods: ["GET", "POST", "DELETE"],
-}));
+const allowedOrigins = [
+  "http://localhost:3000",
+  ...(process.env.CORS_ORIGIN || "").split(",").map((origin) => origin.trim()).filter(Boolean),
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked by origin: ${origin}`));
+      }
+    },
+    methods: ["GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS"],
+  })
+);
 
 app.use(express.json());
 
@@ -30,8 +43,10 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use("/api/test", require("./routes/testRoutes"));
 app.use("/api/pdfs", require("./routes/pdfRoutes"));
-app.use("/api/search", require("./routes/searchRoutes")); // NEW: search inside PDF
+app.use("/api/search", require("./routes/searchRoutes"));
 app.use("/api/bookmarks", require("./routes/bookmarkRoutes"));
+app.use("/api/highlights", require("./routes/highlightRoutes"));
+app.use("/api/notes", require("./routes/noteRoutes"));
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use((req, res) => {

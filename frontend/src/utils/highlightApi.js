@@ -1,7 +1,8 @@
 // src/utils/highlightApi.js
 import axios from "axios";
+import { BASE_URL } from "./api";
 
-const BASE_URL = "http://localhost:5000/api/highlights";
+const HIGHLIGHTS_URL = `${BASE_URL}/highlights`;
 
 /**
  * Create a new highlight
@@ -12,7 +13,7 @@ const BASE_URL = "http://localhost:5000/api/highlights";
  * @param {Array<{x, y, w, h}>} rects - fractions of page dimensions
  */
 export const createHighlight = async (pdfId, pageNumber, selectedText, color, rects) => {
-  const response = await axios.post(BASE_URL, {
+  const response = await axios.post(HIGHLIGHTS_URL, {
     pdfId,
     pageNumber,
     selectedText,
@@ -27,7 +28,7 @@ export const createHighlight = async (pdfId, pageNumber, selectedText, color, re
  * @param {string} pdfId
  */
 export const getHighlightsForPdf = async (pdfId) => {
-  const response = await axios.get(`${BASE_URL}/${pdfId}`);
+  const response = await axios.get(`${HIGHLIGHTS_URL}/${pdfId}`);
   return response.data;
 };
 
@@ -36,6 +37,6 @@ export const getHighlightsForPdf = async (pdfId) => {
  * @param {string} id
  */
 export const deleteHighlight = async (id) => {
-  const response = await axios.delete(`${BASE_URL}/${id}`);
+  const response = await axios.delete(`${HIGHLIGHTS_URL}/${id}`);
   return response.data;
 };

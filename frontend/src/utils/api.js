@@ -4,12 +4,13 @@
 
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000/api";
+export const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
+const apiClient = axios.create({ baseURL: BASE_URL });
 
 // Upload a PDF file to the backend
 // Accepts a FormData object containing the file
 export const uploadPDF = async (formData) => {
-  const response = await axios.post(`${BASE_URL}/pdfs/upload`, formData, {
+  const response = await apiClient.post("/pdfs/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
@@ -17,25 +18,21 @@ export const uploadPDF = async (formData) => {
 
 // Fetch the list of all previously uploaded PDFs
 export const fetchAllPDFs = async () => {
-  const response = await axios.get(`${BASE_URL}/pdfs`);
+  const response = await apiClient.get("/pdfs");
   return response.data;
 };
 
 // Build the URL to view a specific PDF by filename
 export const getPDFViewURL = (filename) => {
-  return `http://localhost:5000/api/pdfs/view/${filename}`;
+  return `${BASE_URL}/pdfs/view/${filename}`;
 };
 
 export const deletePDF = async (id) => {
-  const res = await axios.delete(`${BASE_URL}/pdfs/${id}`);
+  const res = await apiClient.delete(`/pdfs/${id}`);
   return res.data;
 };
 
 export const searchPDF = async (pdfId, query) => {
-  const response = await axios.post(
-    `${BASE_URL}/search/${pdfId}`,
-    { query }
-  );
-
+  const response = await apiClient.post(`/search/${pdfId}`, { query });
   return response.data;
 };
