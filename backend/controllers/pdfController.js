@@ -105,17 +105,100 @@ const uploadPDF = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// @desc    Get all uploaded PDFs (newest first)
+// @desc    Get all uploaded PDFs — sorted by lastOpenedAt desc, then createdAt
 // @route   GET /api/pdfs
 // @access  Public
 // ─────────────────────────────────────────────────────────────────────────────
 const getAllPDFs = async (req, res) => {
   try {
-    const pdfs = await PDF.find().sort({ createdAt: -1 });
+    // Most-recently-opened first; never-opened PDFs fall back to upload date
+    const pdfs = await PDF.aggregate([
+      {
+        $addFields: {
+          sortKey: { $ifNull: ["$lastOpenedAt", "$createdAt"] },
+        },
+      },
+      { $sort: { sortKey: -1 } },
+    ]);
     res.status(200).json(pdfs);
   } catch (error) {
     console.error("Fetch error:", error.message);
     res.status(500).json({ message: "Server error fetching PDFs." });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Toggle isFavorite on a PDF
+// @route   PATCH /api/pdfs/:id/favorite
+// @access  Public
+// ─────────────────────────────────────────────────────────────────────────────
+const toggleFavorite = async (req, res) => {
+  try {
+    const pdf = await PDF.findById(req.params.id);
+    if (!pdf) return res.status(404).json({ message: "PDF not found." });
+
+    pdf.isFavorite = !pdf.isFavorite;
+    await pdf.save();
+
+    res.status(200).json({ pdf });
+  } catch (error) {
+    console.error("Toggle favorite error:", error.message);
+    res.status(500).json({ message: "Server error toggling favorite." });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Rename a PDF (update originalName)
+// @route   PATCH /api/pdfs/:id/rename
+// @access  Public
+// ─────────────────────────────────────────────────────────────────────────────
+const renamePDF = async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || typeof name !== "string") {
+      return res.status(400).json({ message: "name is required." });
+    }
+
+    const trimmed = name.trim();
+    if (trimmed.length < 1 || trimmed.length > 120) {
+      return res.status(400).json({ message: "Name must be 1–120 characters." });
+    }
+
+    const pdf = await PDF.findByIdAndUpdate(
+      req.params.id,
+      { originalName: trimmed },
+      { new: true }
+    );
+
+    if (!pdf) return res.status(404).json({ message: "PDF not found." });
+
+    res.status(200).json({ pdf });
+  } catch (error) {
+    console.error("Rename error:", error.message);
+    res.status(500).json({ message: "Server error renaming PDF." });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Record that a user opened a PDF (updates lastOpenedAt)
+// @route   PATCH /api/pdfs/:id/open
+// @access  Public
+// ─────────────────────────────────────────────────────────────────────────────
+const updateLastOpened = async (req, res) => {
+  try {
+    const pdf = await PDF.findByIdAndUpdate(
+      req.params.id,
+      { lastOpenedAt: new Date() },
+      { new: true }
+    );
+
+    if (!pdf) return res.status(404).json({ message: "PDF not found." });
+
+    res.status(200).json({ pdf });
+  } catch (error) {
+    console.error("Update lastOpened error:", error.message);
+    res.status(500).json({ message: "Server error updating lastOpenedAt." });
   }
 };
 
@@ -185,4 +268,4 @@ const deletePDF = async (req, res) => {
   }
 };
 
-module.exports = { uploadPDF, getAllPDFs, viewPDF, deletePDF };
+module.exports = { uploadPDF, getAllPDFs, viewPDF, deletePDF, toggleFavorite, renamePDF, updateLastOpened };

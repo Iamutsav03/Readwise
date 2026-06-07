@@ -55,12 +55,38 @@ const PDFViewer = forwardRef(function PDFViewer(
   const containerRef = useRef(null);
   const pageWidthRef = useRef(0);
   const pageHeightRef = useRef(0);
-  const [pageVisible, setPageVisible] = useState(false);
   const isInitialLoad = useRef(true);
+
+  // ── Page Stack for Flip Animation ─────────────────────────────────────────
+  const [pageStack, setPageStack] = useState([
+    { page: pageNumber, id: Date.now(), dir: 0, rendered: false }
+  ]);
 
   useEffect(() => {
     isInitialLoad.current = true;
+    setPageStack([{ page: pageNumber, id: Date.now(), dir: 0, rendered: false }]);
   }, [pdf.fileName]);
+
+  useEffect(() => {
+    setPageStack(prev => {
+      const curr = prev[prev.length - 1];
+      if (curr.page === pageNumber) return prev;
+      
+      const dir = pageNumber > curr.page ? 1 : -1;
+      return [...prev.slice(-1), { page: pageNumber, id: Date.now(), dir, rendered: false }];
+    });
+  }, [pageNumber]);
+
+  const handleAnimationEnd = (id) => {
+    setPageStack(prev => {
+      const isCurrent = prev[prev.length - 1].id === id;
+      if (isCurrent) {
+        // Reset dir to 0 so we don't re-trigger animation, and keep only current
+        return [{ ...prev[prev.length - 1], dir: 0 }];
+      }
+      return prev;
+    });
+  };
 
   const pdfURL = getPDFViewURL(pdf.fileName);
 
@@ -119,7 +145,7 @@ const PDFViewer = forwardRef(function PDFViewer(
   };
 
   // ── Page render success ───────────────────────────────────────────────────
-  const onPageRenderSuccess = (page) => {
+  const onPageRenderSuccess = (page, id) => {
     const vp = page.getViewport({ scale: 1 });
     pageWidthRef.current = vp.width;
     pageHeightRef.current = vp.height;
@@ -129,8 +155,7 @@ const PDFViewer = forwardRef(function PDFViewer(
       fitToScreen();
     }
 
-    setPageVisible(false);
-    requestAnimationFrame(() => setPageVisible(true));
+    setPageStack(prev => prev.map(p => p.id === id ? { ...p, rendered: true } : p));
   };
 
   // ── Zoom wheel shortcut (ctrl/meta + scroll) ──────────────────────────────
@@ -163,6 +188,30 @@ const PDFViewer = forwardRef(function PDFViewer(
         padding: "16px 0 18px 0",
       }}
     >
+      <style>{`
+        .pdf-page-layer {
+          background: #fff;
+          transition: opacity 0.2s;
+        }
+        .pdf-page-layer.on-top {
+          box-shadow: 4px 0 16px rgba(0,0,0,0.15);
+        }
+        .slide-out-left {
+          animation: slideOutLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .slide-in-left {
+          animation: slideInLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        @keyframes slideOutLeft {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-102%); }
+        }
+        @keyframes slideInLeft {
+          0% { transform: translateX(-102%); }
+          100% { transform: translateX(0); }
+        }
+      `}</style>
+
       <Document
         file={pdfURL}
         onLoadSuccess={onDocumentLoadSuccess}
@@ -185,53 +234,91 @@ const PDFViewer = forwardRef(function PDFViewer(
       >
         <div
           style={{
-            opacity: pageVisible ? 1 : 0,
-            transition: "opacity 0.3s ease-in-out",
             display: "block",
             width: "fit-content",
             minWidth: "fit-content",
             margin: "0 auto",
             position: "relative",
+            overflowX: "hidden", // Prevents horizontal flicker during animation
           }}
         >
-          <Page
-            key={`page-${pageNumber}__q-${(searchQuery || "").trim().toLowerCase()}`}
-            pageNumber={pageNumber}
-            scale={scale}
-            renderAnnotationLayer={false}
-            renderTextLayer={true}
-            onRenderSuccess={onPageRenderSuccess}
-            customTextRenderer={customTextRenderer}
-          />
-          <HighlightOverlayLayer
-            highlights={pageHighlights}
-            scale={scale}
-            focusedHighlightId={focusedHighlightId}
-          />
-          {/* Note markers overlay — container is pointer-events:none, each marker overrides to auto */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              pointerEvents: "none",
-              zIndex: 30,
-            }}
-          >
-            {pageNotes.map((note) => (
-              <NoteMarker
-                key={note._id}
-                note={note}
-                isActive={activeNoteId === note._id}
-                isHovered={hoveredNoteId === note._id}
-                onClick={onNoteMarkerClick}
-                onHoverChange={onHoverNoteChange}
-                onUpdateNote={onUpdateNote}
-              />
-            ))}
-          </div>
+          {pageStack.map((p, i) => {
+            const isCurrent = i === pageStack.length - 1;
+            const isPrev = i === pageStack.length - 2;
+            const currentDir = pageStack[pageStack.length - 1].dir;
+            const newPageRendered = pageStack[pageStack.length - 1].rendered;
+
+            let className = "pdf-page-layer";
+            let style = {
+              position: isCurrent ? "relative" : "absolute",
+              top: 0, left: 0, width: "100%", height: "100%",
+              opacity: p.rendered ? 1 : 0,
+            };
+
+            if (isPrev && currentDir === 1 && newPageRendered) {
+              // Going next: old page slides out to the left
+              className += " on-top slide-out-left";
+              style.zIndex = 2;
+            } else if (isCurrent && currentDir === 1) {
+              // Going next: new page static beneath
+              style.zIndex = 1;
+            } else if (isPrev && currentDir === -1) {
+              // Going prev: old page static beneath
+              style.zIndex = 1;
+              style.opacity = 1; // Keep visible even if new page not ready
+            } else if (isCurrent && currentDir === -1 && newPageRendered) {
+              // Going prev: new page slides in from the left
+              className += " on-top slide-in-left";
+              style.zIndex = 2;
+            } else {
+              // Default (no animation or waiting)
+              style.zIndex = 1;
+            }
+
+            return (
+              <div
+                key={p.id}
+                className={className}
+                style={style}
+                onAnimationEnd={() => isCurrent && handleAnimationEnd(p.id)}
+              >
+                <Page
+                  key={`pdf-page-${p.id}__q-${(searchQuery || "").trim().toLowerCase()}`}
+                  pageNumber={p.page}
+                  scale={scale}
+                  renderAnnotationLayer={false}
+                  renderTextLayer={true}
+                  onRenderSuccess={(page) => onPageRenderSuccess(page, p.id)}
+                  customTextRenderer={customTextRenderer}
+                />
+                <HighlightOverlayLayer
+                  highlights={pageHighlights}
+                  scale={scale}
+                  focusedHighlightId={focusedHighlightId}
+                />
+                {/* Note markers overlay */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    pointerEvents: "none", zIndex: 30,
+                  }}
+                >
+                  {pageNotes.map((note) => (
+                    <NoteMarker
+                      key={note._id}
+                      note={note}
+                      isActive={activeNoteId === note._id}
+                      isHovered={hoveredNoteId === note._id}
+                      onClick={onNoteMarkerClick}
+                      onHoverChange={onHoverNoteChange}
+                      onUpdateNote={onUpdateNote}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Document>
     </div>

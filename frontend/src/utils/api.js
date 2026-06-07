@@ -36,3 +36,9 @@ export const searchPDF = async (pdfId, query) => {
   const response = await apiClient.post(`/search/${pdfId}`, { query });
   return response.data;
 };
+
+// Record that the user opened a PDF (updates lastOpenedAt)
+export const updatePdfLastOpened = async (id) => {
+  const res = await apiClient.patch(`/pdfs/${id}/open`);
+  return res.data;
+};

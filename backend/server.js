@@ -48,6 +48,8 @@ app.use("/api/search", require("./routes/searchRoutes"));
 app.use("/api/bookmarks", require("./routes/bookmarkRoutes"));
 app.use("/api/highlights", require("./routes/highlightRoutes"));
 app.use("/api/notes", require("./routes/noteRoutes"));
+app.use("/api/ai", require("./routes/aiRoutes"));
+app.use("/api/dictionary", require("./routes/dictionaryRoutes"));
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use((req, res) => {

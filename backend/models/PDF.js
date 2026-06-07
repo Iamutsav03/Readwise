@@ -28,6 +28,18 @@ const pdfSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    // Whether the user has starred this PDF
+    isFavorite: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Timestamp of the last time the user opened this PDF
+    lastOpenedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     // Automatically adds createdAt and updatedAt fields

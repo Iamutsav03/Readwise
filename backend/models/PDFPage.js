@@ -35,4 +35,8 @@ const pdfPageSchema = new mongoose.Schema(
 // Compound index: all pages for a PDF, ordered by page number
 pdfPageSchema.index({ pdfId: 1, pageNumber: 1 });
 
+// Full-text index on page content for MongoDB $text search
+// This enables fast keyword-based relevance search per PDF
+pdfPageSchema.index({ text: "text" });
+
 module.exports = mongoose.model("PDFPage", pdfPageSchema);

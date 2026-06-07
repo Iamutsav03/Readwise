@@ -702,8 +702,8 @@ const BookContainer = ({ onUploadClick }) => {
         z-index: 20;
         cursor: pointer;
         }
-        .rw-zone-left  { left: 7px;  justify-content: flex-start; border-radius: 14px 0 0 14px; }
-        .rw-zone-right { right: 7px; justify-content: flex-end;   border-radius: 0 14px 14px 0; }
+        .rw-zone-left  { left: 7px;  justify-content: flex-start; border-radius: 0; }
+        .rw-zone-right { right: 7px; justify-content: flex-end;   border-radius: 0; }
         .rw-zone-left:hover  { background: rgba(26,21,16,0.035); }
         .rw-zone-right:hover { background: rgba(26,21,16,0.035); }
         .rw-zone-left.dark:hover  { background: rgba(255,255,255,0.04); }
@@ -734,15 +734,15 @@ const BookContainer = ({ onUploadClick }) => {
                 onTouchEnd={handleTouchEnd}
             >
                 {/* Depth shadow layers */}
-                <div style={{ position: "absolute", inset: 0, transform: "translateX(6px) translateY(9px)", background: "rgba(26,21,16,0.09)", borderRadius: 14, filter: "blur(6px)", pointerEvents: "none" }} />
-                <div style={{ position: "absolute", inset: 0, transform: "translateX(3px) translateY(4px)", background: "rgba(26,21,16,0.05)", borderRadius: 14, pointerEvents: "none" }} />
+                <div style={{ position: "absolute", inset: 0, transform: "translateX(6px) translateY(9px)", background: "rgba(26,21,16,0.09)", borderRadius: 0, filter: "blur(6px)", pointerEvents: "none" }} />
+                <div style={{ position: "absolute", inset: 0, transform: "translateX(3px) translateY(4px)", background: "rgba(26,21,16,0.05)", borderRadius: 0, pointerEvents: "none" }} />
                 {/* Stacked pages peaking at bottom-right */}
-                <div style={{ position: "absolute", inset: 0, background: "#ece6da", borderRadius: 14, border: "1px solid #d4ccbf", transform: "translate(2px, 2px)", pointerEvents: "none" }} />
-                <div style={{ position: "absolute", inset: 0, background: "#f2ece2", borderRadius: 14, border: "1px solid #ddd5c8", transform: "translate(1px, 1px)", pointerEvents: "none" }} />
+                <div style={{ position: "absolute", inset: 0, background: "#ece6da", borderRadius: 0, border: "1px solid #d4ccbf", transform: "translate(2px, 2px)", pointerEvents: "none" }} />
+                <div style={{ position: "absolute", inset: 0, background: "#f2ece2", borderRadius: 0, border: "1px solid #ddd5c8", transform: "translate(1px, 1px)", pointerEvents: "none" }} />
 
                 {/* Main page surface */}
                 <div style={{
-                    position: "absolute", inset: 0, borderRadius: 14,
+                    position: "absolute", inset: 0, borderRadius: 0,
                     background: isDark ? "#1a1510" : "#fdf8f2",
                     border: `1px solid ${isDark ? "#2e2519" : "#e2dbd0"}`,
                     overflow: "hidden",

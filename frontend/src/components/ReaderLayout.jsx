@@ -13,9 +13,11 @@ import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useSearchHighlight } from "./hooks/useSearchHighlight";
 import { useHighlights } from "./hooks/useHighlights";
 import { useHighlightHistory } from "./hooks/useHighlightHistory";
-import { useTextSelection } from "./hooks/useTextSelection";
+import { useTextSelection } from "../features/ai/hooks/useTextSelection";
 import { useNotes } from "../features/notes/hooks/useNotes";
-import HighlightToolbar from "./highlights/HighlightToolbar";
+import SelectionToolbar from "../features/ai/components/SelectionToolbar";
+import DictionaryPopup from "../features/dictionary/components/DictionaryPopup";
+import { useDictionary } from "../features/dictionary/hooks/useDictionary";
 import { getSelectionRects } from "../utils/highlightHelpers";
 import { BookmarkIcon as BookmarkOutline, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
@@ -66,6 +68,18 @@ const ReaderLayout = ({
   const highlightState = useHighlights(pdf?._id);
   const history = useHighlightHistory(pdf?._id, highlightState.setHighlights);
   const { selectionInfo, clearSelection } = useTextSelection(scrollHostRef);
+  const [dictPopupOpen, setDictPopupOpen] = useState(false);
+  const dictionary = useDictionary(pdf?._id);
+
+  // Clear stale dictionary state when selection changes
+  useEffect(() => {
+    if (selectionInfo) {
+      setDictPopupOpen(false);
+      dictionary.clear();
+    } else {
+      setDictPopupOpen(false);
+    }
+  }, [selectionInfo?.text]); // Only trigger when the selected TEXT changes
 
   // ── Search State & Highlighting ──────────────────────────────────────────
   const searchState = usePdfSearch(pdf?._id);
@@ -96,13 +110,15 @@ const ReaderLayout = ({
     redoHighlight: history.redo,
   });
 
-  // ── Last read position ─────────────────────────────────────────────────
   const { positionLoaded } = useLastReadPosition({
     pdfId: pdf?._id,
     pageNumber,
+    numPages,
     scale,
+    activeTab,
     onPageChange,
     onScaleChange,
+    onActiveTabChange: setActiveTab,
   });
 
   // ── Reading progress ───────────────────────────────────────────────────
@@ -157,6 +173,48 @@ const ReaderLayout = ({
     }
     clearSelection();
   };
+
+  const handleToolbarAction = useCallback((action) => {
+    if (!selectionInfo) return;
+
+    if (action === "explain") {
+      setActiveTab("ai");
+      const event = new CustomEvent("ai:explain", {
+        detail: { text: selectionInfo.text, pageNumber: selectionInfo.pageNumber },
+      });
+      window.dispatchEvent(event);
+      clearSelection();
+      setDictPopupOpen(false);
+    }
+
+    if (action === "meaning") {
+      // Lookup word but keep toolbar visible
+      dictionary.lookup(selectionInfo.text, selectionInfo.pageNumber);
+      setDictPopupOpen(true);
+    }
+  }, [selectionInfo, clearSelection, setActiveTab, dictionary]);
+
+  const handleDictClose = useCallback(() => {
+    setDictPopupOpen(false);
+    dictionary.clear();
+  }, [dictionary]);
+
+  const handleDictSave = useCallback(() => {
+    if (!dictionary.result) return;
+    dictionary.save(dictionary.result);
+  }, [dictionary]);
+
+  const handleDictExplainFurther = useCallback(() => {
+    if (!selectionInfo && !dictionary.result) return;
+    const word = dictionary.result?.word || selectionInfo?.text;
+    setActiveTab("ai");
+    const event = new CustomEvent("ai:explain", {
+      detail: { text: word, pageNumber: selectionInfo?.pageNumber },
+    });
+    window.dispatchEvent(event);
+    setDictPopupOpen(false);
+    clearSelection();
+  }, [selectionInfo, dictionary, clearSelection, setActiveTab]);
 
   const handleHighlightFocus = useCallback((id) => {
     setFocusedHighlightId(id);
@@ -221,10 +279,27 @@ const ReaderLayout = ({
           className="custom-scrollbar"
         >
           {selectionInfo && (
-            <HighlightToolbar
+            <SelectionToolbar
               position={selectionInfo.toolbarPosition}
+              selectionText={selectionInfo.text}
               onColorPick={handleColorPick}
-              onClose={clearSelection}
+              onAction={handleToolbarAction}
+              onClose={() => { clearSelection(); handleDictClose(); }}
+            />
+          )}
+
+          {/* Dictionary Popup — rendered alongside toolbar when active */}
+          {dictPopupOpen && selectionInfo && (
+            <DictionaryPopup
+              result={dictionary.result}
+              error={dictionary.error}
+              isLoading={dictionary.isLoading}
+              isSaved={dictionary.isSaved}
+              isSaving={dictionary.isSaving}
+              onSave={handleDictSave}
+              onExplainFurther={handleDictExplainFurther}
+              onClose={handleDictClose}
+              position={selectionInfo.toolbarPosition}
             />
           )}
 
@@ -260,6 +335,7 @@ const ReaderLayout = ({
         <SidePanelShell
           pdfId={pdf?._id}
           pageNumber={pageNumber}
+          numPages={pdf?.numPages}
           onJump={handleJumpToPage}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -365,7 +441,6 @@ const ReaderLayout = ({
                   {bookmarkState.isPageBookmarked(pageNumber) ? <BookmarkSolid style={{ width: 16, height: 16 }} /> : <BookmarkOutline style={{ width: 16, height: 16 }} />}
                 </ToolbarIconBtn>
                 <ToolbarIconBtn onClick={onUploadClick} title="Upload new PDF">↑</ToolbarIconBtn>
-                <ToolbarIconBtn onClick={onRemove} title="Remove this PDF" danger>✕</ToolbarIconBtn>
               </div>
             </>
           )}

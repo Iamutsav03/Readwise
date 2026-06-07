@@ -7,10 +7,14 @@
  * Storage schema (keyed by pdf._id):
  * {
  *   pageNumber : number,   // last visited page
+ *   numPages   : number,   // total pages
  *   scale      : number,   // last zoom level
+ *   activeTab  : string,   // active side panel tab
  *   savedAt    : string,   // ISO timestamp for debugging / future TTL
  * }
  */
+
+import readingProgressStore from "./readingProgressStore";
 
 const STORAGE_PREFIX = "readwise:position:";
 
@@ -19,13 +23,15 @@ const key = (pdfId) => `${STORAGE_PREFIX}${pdfId}`;
 /**
  * Save reading position for a PDF.
  * @param {string} pdfId
- * @param {{ pageNumber: number, scale: number }} state
+ * @param {{ pageNumber: number, numPages: number, scale: number, activeTab: string }} state
  */
-export function savePosition(pdfId, { pageNumber, scale }) {
+export function savePosition(pdfId, { pageNumber, numPages, scale, activeTab }) {
     if (!pdfId) return;
     try {
-        const payload = JSON.stringify({ pageNumber, scale, savedAt: new Date().toISOString() });
+        const payload = JSON.stringify({ pageNumber, numPages, scale, activeTab, savedAt: new Date().toISOString() });
         localStorage.setItem(key(pdfId), payload);
+        // Notify all in-process subscribers immediately (no round-trip through DOM events)
+        readingProgressStore.set({ pdfId, pageNumber, numPages });
     } catch {
         // Quota exceeded or private browsing — fail silently.
     }
@@ -34,7 +40,7 @@ export function savePosition(pdfId, { pageNumber, scale }) {
 /**
  * Load saved reading position for a PDF.
  * @param {string} pdfId
- * @returns {{ pageNumber: number, scale: number } | null}
+ * @returns {{ pageNumber: number, numPages: number, scale: number, activeTab: string } | null}
  */
 export function loadPosition(pdfId) {
     if (!pdfId) return null;
@@ -49,7 +55,12 @@ export function loadPosition(pdfId) {
             parsed.pageNumber >= 1 &&
             parsed.scale > 0
         ) {
-            return { pageNumber: parsed.pageNumber, scale: parsed.scale };
+            return { 
+                pageNumber: parsed.pageNumber, 
+                numPages: parsed.numPages || 0,
+                scale: parsed.scale, 
+                activeTab: parsed.activeTab || null 
+            };
         }
         return null;
     } catch {

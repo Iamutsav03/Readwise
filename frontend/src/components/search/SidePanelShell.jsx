@@ -21,6 +21,7 @@ import HighlightPanel from "../highlights/HighlightPanel";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import MobileBottomSheet from "../MobileBottomSheet";
 import NotesPanel from "../../features/notes/components/NotesPanel";
+import AiPanel from "../../features/ai/components/AiPanel";
 
 // ── Tab registry ─────────────────────────────────────────────────────────────
 const TABS = [
@@ -28,7 +29,7 @@ const TABS = [
   { id: "highlights", icon: "✦", label: "Highlights", soon: false },
   { id: "bookmarks", icon: "🔖", label: "Bookmarks", soon: false },
   { id: "notes", icon: "✎", label: "Notes", soon: false },
-  { id: "ai", icon: "◈", label: "AI Chat", soon: true },
+  { id: "ai", icon: "◈", label: "AI Chat", soon: false },
 ];
 
 const PANEL_WIDTH = 300; // px — also used for transition
@@ -157,6 +158,7 @@ const RailBtn = ({ tab, isActive, onClick }) => {
 const SidePanelShell = ({
   pdfId,
   pageNumber,
+  numPages,
   onJump,
   activeTab,
   setActiveTab,
@@ -242,10 +244,15 @@ const SidePanelShell = ({
             onHoverNoteChange={onHoverNoteChange}
           />
         );
-      case "ai": {
-        const tab = TABS.find((t) => t.id === activeTab);
-        return <SoonPanel label={tab?.label ?? activeTab} />;
-      }
+      case "ai":
+        return (
+          <AiPanel
+            pdfId={pdfId}
+            pageNumber={pageNumber}
+            numPages={numPages}
+            mobileMode={isMobile}
+          />
+        );
       default:
         return null;
     }

@@ -22,9 +22,12 @@ const SAVE_DEBOUNCE_MS = 800;
 export function useLastReadPosition({
     pdfId,
     pageNumber,
+    numPages,
     scale,
+    activeTab,
     onPageChange,
     onScaleChange,
+    onActiveTabChange,
 }) {
     const [positionLoaded, setPositionLoaded] = useState(false);
     const saveTimer = useRef(null);
@@ -41,6 +44,9 @@ export function useLastReadPosition({
         if (saved) {
             onPageChange(saved.pageNumber);
             onScaleChange(saved.scale);
+            if (saved.activeTab && onActiveTabChange) {
+                onActiveTabChange(saved.activeTab);
+            }
         }
         // Mark as loaded whether or not there was saved state.
         // (A short rAF gives state setters time to flush before the viewer renders.)
@@ -52,10 +58,10 @@ export function useLastReadPosition({
         if (!pdfId || !positionLoaded) return;
         clearTimeout(saveTimer.current);
         saveTimer.current = setTimeout(() => {
-            savePosition(pdfId, { pageNumber, scale });
+            savePosition(pdfId, { pageNumber, numPages, scale, activeTab });
         }, SAVE_DEBOUNCE_MS);
         return () => clearTimeout(saveTimer.current);
-    }, [pdfId, pageNumber, scale, positionLoaded]);
+    }, [pdfId, pageNumber, numPages, scale, activeTab, positionLoaded]);
 
     return { positionLoaded };
 }
