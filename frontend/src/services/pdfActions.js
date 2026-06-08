@@ -2,8 +2,9 @@
 // Centralises all mutating PDF API calls so components stay thin.
 
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
-const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
+const BASE_URL = `${API_BASE_URL}/api`;
 const api = axios.create({ baseURL: BASE_URL });
 
 /**

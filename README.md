@@ -172,7 +172,7 @@ MONGO_URI=
 Frontend:
 
 ```env
-VITE_API_URL=http://localhost:5000
+REACT_APP_API_BASE_URL=your_api_url
 ```
 
 ---

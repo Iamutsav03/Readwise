@@ -1,4 +1,6 @@
-const BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
+import { API_BASE_URL } from "../../../config";
+
+const BASE = API_BASE_URL;
 
 /**
  * Look up a word in the dictionary.

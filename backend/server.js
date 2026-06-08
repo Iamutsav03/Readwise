@@ -38,7 +38,7 @@ app.use(
 app.use(express.json());
 
 // Serve uploaded files statically
-// e.g. http://localhost:5000/uploads/filename.pdf
+// e.g. /uploads/filename.pdf
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ── Routes ────────────────────────────────────────────────────────────────────

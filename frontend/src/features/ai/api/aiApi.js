@@ -2,7 +2,9 @@
 // API functions for AI-related backend endpoints.
 // Designed to be extended with summaries, flashcards, quizzes, etc.
 
-const BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
+import { API_BASE_URL } from "../../../config";
+
+const BASE = API_BASE_URL;
 
 /**
  * Send a chat message for a specific PDF and receive an AI response.
