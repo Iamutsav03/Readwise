@@ -1,4 +1,5 @@
 import React from "react";
+import { Sparkles } from "lucide-react";
 
 export default function ExplainSelectionButton({ onClick }) {
   return (
@@ -9,11 +10,11 @@ export default function ExplainSelectionButton({ onClick }) {
         display: "flex",
         alignItems: "center",
         gap: "4px",
-        background: "linear-gradient(135deg, #2a221d, #3a2e24)",
-        border: "1px solid rgba(200,164,106,0.3)",
+        background: "linear-gradient(135deg, var(--rw-hover-bg), var(--rw-border))",
+        border: "1px solid var(--rw-border)",
         borderRadius: "4px",
         padding: "4px 8px",
-        color: "#C8A46A",
+        color: "var(--rw-accent)",
         fontFamily: "'DM Sans', sans-serif",
         fontSize: "12px",
         fontWeight: 600,
@@ -21,15 +22,15 @@ export default function ExplainSelectionButton({ onClick }) {
         transition: "background 0.2s, transform 0.1s",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = "#3a2e24";
+        e.currentTarget.style.background = "var(--rw-border)";
         e.currentTarget.style.transform = "translateY(-1px)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = "linear-gradient(135deg, #2a221d, #3a2e24)";
+        e.currentTarget.style.background = "linear-gradient(135deg, var(--rw-hover-bg), var(--rw-border))";
         e.currentTarget.style.transform = "translateY(0)";
       }}
     >
-      <span style={{ fontSize: "14px" }}>◈</span> Explain
+      <span style={{ display: "flex", alignItems: "center" }}><Sparkles size={14} /></span> Explain
     </button>
   );
 }

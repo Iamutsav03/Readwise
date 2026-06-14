@@ -31,19 +31,19 @@ const BTN_BASE = {
 
 const BTN_ACTIVE = {
     background: "rgba(184,150,106,0.18)",
-    color: "#c8a870",
+    color: "var(--rw-accent)",
     borderColor: "rgba(184,150,106,0.35)",
 };
 
 const BTN_IDLE = {
-    background: "rgba(255,255,255,0.06)",
+    background: "var(--rw-hover-bg)",
     color: "#9a8a72",
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "var(--rw-border)",
 };
 
 const BTN_HOVER = {
-    background: "rgba(255,255,255,0.1)",
-    color: "#c8b898",
+    background: "var(--rw-border-strong)",
+    color: "var(--rw-text-secondary)",
     borderColor: "rgba(255,255,255,0.14)",
 };
 

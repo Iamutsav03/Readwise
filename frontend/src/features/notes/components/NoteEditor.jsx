@@ -97,11 +97,11 @@ export default function NoteEditor({
       style={{
         display: "flex",
         flexDirection: "column",
-        border: isFocused ? "1px solid #b8966a" : "1px solid rgba(255,255,255,0.08)",
+        border: isFocused ? "1px solid var(--rw-accent)" : "1px solid var(--rw-border)",
         borderRadius: 6,
-        background: "#181614",
+        background: "var(--rw-panel-bg)",
         overflow: "hidden",
-        boxShadow: isFocused ? "0 4px 16px rgba(0, 0, 0, 0.4)" : "none",
+        boxShadow: isFocused ? "0 4px 16px var(--rw-hover-bg)" : "none",
         transition: "border-color 0.2s, box-shadow 0.2s",
         height: "100%",
         minHeight: 130,
@@ -139,14 +139,14 @@ export default function NoteEditor({
               width: "100%",
               background: "transparent",
               border: "none",
-              borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
-              color: "#e8d8b8",
+              borderBottom: "1px solid var(--rw-border)",
+              color: "var(--rw-text-primary)",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: "12.5px",
               fontWeight: 600,
               padding: "4px 0 6px 0",
               outline: "none",
-              caretColor: "#b8966a",
+              caretColor: "var(--rw-accent)",
             }}
           />
         ) : (
@@ -156,7 +156,7 @@ export default function NoteEditor({
               background: "transparent",
               border: "none",
               cursor: "pointer",
-              color: "#b8966a",
+              color: "var(--rw-accent)",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: "11px",
               fontWeight: 500,
@@ -188,13 +188,13 @@ export default function NoteEditor({
           outline: "none",
           fontSize: "13px",
           lineHeight: "1.6",
-          color: "#e8d8b8",
+          color: "var(--rw-text-primary)",
           fontFamily: "'DM Sans', sans-serif",
           overflowY: "auto",
           minHeight: "80px",
           maxHeight: "100%",
           cursor: "text",
-          caretColor: "#b8966a",
+          caretColor: "var(--rw-accent)",
         }}
       />
     </div>

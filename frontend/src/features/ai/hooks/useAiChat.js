@@ -25,7 +25,13 @@ export default function useAiChat(pdfId) {
     setIsHistoryLoading(true);
 
     fetchChatHistory(pdfId)
-      .then((msgs) => setMessages(msgs))
+      .then((msgs) => {
+        setMessages((prev) => {
+          // Preserve any optimistic messages that were added while history was loading
+          const newMsgs = prev.filter(p => !msgs.some(m => m._id === p._id));
+          return [...msgs, ...newMsgs];
+        });
+      })
       .catch((err) => {
         console.error("useAiChat: failed to load history", err);
         setError("Could not load chat history.");

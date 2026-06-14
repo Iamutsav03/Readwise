@@ -31,7 +31,7 @@ const ReadingProgress = ({ progressPct, showBadge = true }) => {
                     left: 0,
                     right: 0,
                     height: 2,
-                    background: "rgba(255,255,255,0.05)",
+                    background: "var(--rw-border)",
                     pointerEvents: "none",
                     zIndex: 10,
                 }}
@@ -40,7 +40,7 @@ const ReadingProgress = ({ progressPct, showBadge = true }) => {
                     style={{
                         height: "100%",
                         width: `${pct}%`,
-                        background: "linear-gradient(90deg, #b8966a 0%, #d4b896 100%)",
+                        background: "linear-gradient(90deg, var(--rw-accent) 0%, var(--rw-accent) 100%)",
                         transition: "width 0.35s cubic-bezier(0.4,0,0.2,1)",
                         borderRadius: "0 1px 1px 0",
                     }}
@@ -57,7 +57,7 @@ const ReadingProgress = ({ progressPct, showBadge = true }) => {
                         gap: 5,
                         padding: "4px 9px",
                         borderRadius: 7,
-                        background: "rgba(255,255,255,0.05)",
+                        background: "var(--rw-border)",
                         border: "1px solid rgba(255,255,255,0.07)",
                         cursor: "default",
                         userSelect: "none",
@@ -68,11 +68,11 @@ const ReadingProgress = ({ progressPct, showBadge = true }) => {
                         width="14" height="14" viewBox="0 0 14 14"
                         style={{ flexShrink: 0 }}
                     >
-                        <circle cx="7" cy="7" r="5.5" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" />
+                        <circle cx="7" cy="7" r="5.5" fill="none" stroke="var(--rw-border-strong)" strokeWidth="2" />
                         <circle
                             cx="7" cy="7" r="5.5"
                             fill="none"
-                            stroke="#b8966a"
+                            stroke="var(--rw-accent)"
                             strokeWidth="2"
                             strokeDasharray={`${2 * Math.PI * 5.5}`}
                             strokeDashoffset={`${2 * Math.PI * 5.5 * (1 - pct / 100)}`}
@@ -86,7 +86,7 @@ const ReadingProgress = ({ progressPct, showBadge = true }) => {
                             fontFamily: "'DM Sans', sans-serif",
                             fontSize: 12,
                             fontWeight: 500,
-                            color: pct === 100 ? "#c8a870" : "#9a8a72",
+                            color: pct === 100 ? "var(--rw-accent)" : "#9a8a72",
                             letterSpacing: "0.02em",
                             minWidth: 30,
                             textAlign: "right",

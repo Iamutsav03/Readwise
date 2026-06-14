@@ -1,4 +1,5 @@
 import React from "react";
+import { Zap, BookOpen } from "lucide-react";
 
 export default function MeaningButton({ onClick, label = "Meaning" }) {
   const isQuickExplain = label !== "Meaning";
@@ -11,14 +12,12 @@ export default function MeaningButton({ onClick, label = "Meaning" }) {
         alignItems: "center",
         gap: "4px",
         background: isQuickExplain
-          ? "linear-gradient(135deg, #2a1e3a, #342443)"
-          : "linear-gradient(135deg, #1e2d3a, #243342)",
-        border: isQuickExplain
-          ? "1px solid rgba(180,130,220,0.35)"
-          : "1px solid rgba(100,170,220,0.3)",
+          ? "linear-gradient(135deg, var(--rw-hover-bg), var(--rw-card-bg))"
+          : "linear-gradient(135deg, var(--rw-card-bg), var(--rw-hover-bg))",
+        border: "1px solid var(--rw-border)",
         borderRadius: "4px",
         padding: "4px 8px",
-        color: isQuickExplain ? "#c49de0" : "#7bbde0",
+        color: "var(--rw-text-primary)",
         fontFamily: "'DM Sans', sans-serif",
         fontSize: "12px",
         fontWeight: 600,
@@ -32,7 +31,7 @@ export default function MeaningButton({ onClick, label = "Meaning" }) {
         e.currentTarget.style.transform = "translateY(0)";
       }}
     >
-      <span style={{ fontSize: "14px" }}>{isQuickExplain ? "⚡" : "📖"}</span>{" "}
+      <span style={{ display: "flex", alignItems: "center" }}>{isQuickExplain ? <Zap size={14} /> : <BookOpen size={14} />}</span>{" "}
       {label}
     </button>
   );

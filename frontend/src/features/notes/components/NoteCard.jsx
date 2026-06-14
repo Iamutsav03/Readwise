@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import NoteEditor from "./NoteEditor";
 import { NOTE_COLORS, stripHtml } from "../utils/noteHelpers";
+import { GripVertical, X, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function NoteCard({
   note,
@@ -82,18 +83,18 @@ export default function NoteCard({
       style={{
         display: "flex",
         flexDirection: "column",
-        background: isCardHighlighted ? "rgba(255, 255, 255, 0.03)" : "rgba(255, 255, 255, 0.01)",
+        background: isCardHighlighted ? "var(--rw-hover-bg)" : "var(--rw-card-bg)",
         border: isEditing
           ? `1px solid ${colors.accent}`
           : isHovered
           ? `1px solid ${colors.borderHover}`
-          : "1px solid rgba(255, 255, 255, 0.06)",
+          : "1px solid var(--rw-hover-bg)",
         borderRadius: 8,
         padding: "12px",
         boxShadow: isEditing
-          ? "0 4px 20px rgba(0, 0, 0, 0.3)"
+          ? "0 4px 20px var(--rw-hover-bg)"
           : isHovered
-          ? "0 2px 8px rgba(0, 0, 0, 0.15)"
+          ? "0 2px 8px var(--rw-hover-bg)"
           : "none",
         transition: "border 0.2s, background 0.2s, box-shadow 0.2s",
         cursor: "pointer",
@@ -129,7 +130,7 @@ export default function NoteCard({
               transition: "opacity 0.2s",
             }}
           >
-            ⋮⋮
+            <GripVertical size={12} />
           </div>
 
           {/* Color Dot indicator */}
@@ -153,15 +154,15 @@ export default function NoteCard({
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 11,
               fontWeight: 500,
-              color: "#e8d8b8",
-              background: "rgba(255,255,255,0.05)",
+              color: "var(--rw-text-primary)",
+              background: "var(--rw-border)",
               padding: "2px 6px",
               borderRadius: 4,
               cursor: "pointer",
               transition: "background 0.2s",
             }}
-            onMouseEnter={(e) => (e.target.style.background = "rgba(255,255,255,0.1)")}
-            onMouseLeave={(e) => (e.target.style.background = "rgba(255,255,255,0.05)")}
+            onMouseEnter={(e) => (e.target.style.background = "var(--rw-border-strong)")}
+            onMouseLeave={(e) => (e.target.style.background = "var(--rw-border)")}
           >
             Page {note.pageNumber} {note.title ? `(${note.title})` : ""}
           </span>
@@ -175,10 +176,10 @@ export default function NoteCard({
               onClick={handleDeleteClick}
               title={pendingDelete ? "Click again to confirm deletion" : "Delete Note"}
               style={{
-                background: pendingDelete ? "rgba(224, 112, 96, 0.15)" : "transparent",
-                border: pendingDelete ? "1px solid rgba(224, 112, 96, 0.4)" : "none",
+                background: pendingDelete ? "var(--rw-accent-muted)" : "transparent",
+                border: pendingDelete ? "1px solid var(--rw-border-strong)" : "none",
                 cursor: "pointer",
-                color: pendingDelete ? "#e07060" : "#8a7a62",
+                color: pendingDelete ? "var(--rw-danger)" : "var(--rw-text-muted)",
                 transition: "color 0.15s, background 0.15s, border 0.15s",
                 fontSize: pendingDelete ? 10 : 11,
                 fontWeight: pendingDelete ? 600 : 400,
@@ -192,18 +193,18 @@ export default function NoteCard({
               }}
               onMouseEnter={(e) => {
                 if (!pendingDelete) {
-                  e.currentTarget.style.color = "#e07060";
-                  e.currentTarget.style.background = "rgba(224, 112, 96, 0.1)";
+                  e.currentTarget.style.color = "var(--rw-danger)";
+                  e.currentTarget.style.background = "var(--rw-accent-muted)";
                 }
               }}
               onMouseLeave={(e) => {
                 if (!pendingDelete) {
-                  e.currentTarget.style.color = "#8a7a62";
+                  e.currentTarget.style.color = "var(--rw-text-muted)";
                   e.currentTarget.style.background = "transparent";
                 }
               }}
             >
-              {pendingDelete ? "Delete?" : "✕"}
+              {pendingDelete ? "Delete?" : <X size={12} />}
             </button>
           )}
 
@@ -215,7 +216,7 @@ export default function NoteCard({
               background: "transparent",
               border: "none",
               cursor: "pointer",
-              color: "#7a6a58",
+              color: "var(--rw-text-secondary)",
               fontSize: 8,
               padding: "4px",
               display: "flex",
@@ -223,10 +224,10 @@ export default function NoteCard({
               justifyContent: "center",
               borderRadius: 4,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#e8d8b8")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#7a6a58")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--rw-text-primary)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--rw-text-secondary)")}
           >
-            {isCollapsed ? "▼" : "▲"}
+            {isCollapsed ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
           </button>
         </div>
       </div>
@@ -238,7 +239,7 @@ export default function NoteCard({
             fontFamily: "'DM Sans', sans-serif",
             fontSize: "12.5px",
             lineHeight: "1.5",
-            color: "#a89b88",
+            color: "var(--rw-text-muted)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -280,11 +281,11 @@ export default function NoteCard({
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: "13px",
                 lineHeight: "1.6",
-                color: "#e8d8b8",
+                color: "var(--rw-text-primary)",
                 padding: "10px",
-                background: "rgba(0, 0, 0, 0.2)",
+                background: "var(--rw-card-bg)",
                 borderRadius: 6,
-                border: "1px solid rgba(255, 255, 255, 0.05)",
+                border: "1px solid var(--rw-border)",
                 overflowY: "auto",
                 maxHeight: "220px",
                 minHeight: "60px",

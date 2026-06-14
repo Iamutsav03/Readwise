@@ -76,11 +76,11 @@ const PageJumpInput = ({ pageNumber, numPages, onChange }) => {
                     borderRadius: 6,
                     border: focused
                         ? "1px solid rgba(184,150,106,0.5)"
-                        : "1px solid rgba(255,255,255,0.1)",
+                        : "1px solid var(--rw-border-strong)",
                     background: focused
                         ? "rgba(184,150,106,0.1)"
                         : "rgba(255,255,255,0.07)",
-                    color: focused ? "#e8d8b8" : "#c8b898",
+                    color: focused ? "var(--rw-text-primary)" : "var(--rw-text-secondary)",
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: 13,
                     fontWeight: 500,
@@ -91,7 +91,7 @@ const PageJumpInput = ({ pageNumber, numPages, onChange }) => {
                 }}
             />
             <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 12 }}>/</span>
-            <span style={{ color: "#7a6a52", fontWeight: 400 }}>{numPages}</span>
+            <span style={{ color: "var(--rw-text-secondary)", fontWeight: 400 }}>{numPages}</span>
         </div>
     );
 };

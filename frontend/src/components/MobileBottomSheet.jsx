@@ -4,14 +4,15 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 /**
  * A bottom sheet for mobile that slides up and can be dismissed via drag or tap.
  */
-const MobileBottomSheet = ({ isOpen, onClose, title, children, onHeightChange }) => {
-  const [heightPct, setHeightPct] = useState(50);
+const MobileBottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScreen = false }) => {
+  const initialHeight = fullScreen ? 95 : 50;
+  const [heightPct, setHeightPct] = useState(initialHeight);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(isOpen);
 
   const startY = useRef(0);
-  const startHeightRef = useRef(50);
+  const startHeightRef = useRef(initialHeight);
 
   // Mount/Unmount logic with animation
   useEffect(() => {
@@ -24,7 +25,7 @@ const MobileBottomSheet = ({ isOpen, onClose, title, children, onHeightChange })
       setIsAnimating(false);
       const timer = setTimeout(() => {
         setShouldRender(false);
-        setHeightPct(50); // reset
+        setHeightPct(initialHeight); // reset
       }, 300); // match CSS duration
       if (onHeightChange) onHeightChange(0);
       return () => clearTimeout(timer);
@@ -54,7 +55,7 @@ const MobileBottomSheet = ({ isOpen, onClose, title, children, onHeightChange })
     const deltaPct = (deltaY / vh) * 100;
 
     let newHeight = startHeightRef.current + deltaPct;
-    newHeight = Math.max(15, Math.min(newHeight, 88));
+    newHeight = Math.max(15, Math.min(newHeight, fullScreen ? 98 : 88));
     setHeightPct(newHeight);
   };
 
@@ -65,8 +66,8 @@ const MobileBottomSheet = ({ isOpen, onClose, title, children, onHeightChange })
       onClose();
       return;
     }
-    // Snap to nearest of 50, 85
-    const snaps = [50, 85];
+    // Snap to nearest of 50, 85 (or 95 if fullscreen)
+    const snaps = fullScreen ? [50, 95] : [50, 85];
     const closest = snaps.reduce((prev, curr) =>
       Math.abs(curr - heightPct) < Math.abs(prev - heightPct) ? curr : prev
     );
@@ -78,7 +79,7 @@ const MobileBottomSheet = ({ isOpen, onClose, title, children, onHeightChange })
   return (
     <div
       style={{
-        position: "absolute",
+        position: "fixed",
         top: 0,
         left: 0,
         right: 0,
@@ -89,25 +90,27 @@ const MobileBottomSheet = ({ isOpen, onClose, title, children, onHeightChange })
     >
       {/* Backdrop visually */}
       <div
+        onClick={onClose}
         style={{
-          position: "absolute",
+          position: "fixed",
           inset: 0,
           background: "rgba(0,0,0,0.5)",
           opacity: isAnimating ? 1 : 0,
           transition: "opacity 0.3s ease",
-          pointerEvents: "none", // PDF scrollable behind
+          zIndex: 9999,
+          pointerEvents: "auto",
         }}
       />
 
       {/* Sheet */}
       <div
         style={{
-          position: "absolute",
+          position: "fixed",
           bottom: 0,
           left: 0,
           right: 0,
           height: `${heightPct}%`,
-          background: "#0e0c0a",
+          background: "var(--rw-panel-bg)",
           borderTopLeftRadius: 16,
           borderTopRightRadius: 16,
           boxShadow: "0 -4px 20px rgba(0,0,0,0.3)",
@@ -116,6 +119,7 @@ const MobileBottomSheet = ({ isOpen, onClose, title, children, onHeightChange })
           transform: isAnimating ? "translateY(0)" : "translateY(100%)",
           transition: isDragging ? "none" : "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           overflow: "hidden",
+          zIndex: 10000,
         }}
       >
         {/* Drag Handle Area */}
@@ -151,7 +155,7 @@ const MobileBottomSheet = ({ isOpen, onClose, title, children, onHeightChange })
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0 20px 12px",
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            borderBottom: "1px solid var(--rw-border)",
             flexShrink: 0,
           }}
         >
@@ -160,7 +164,7 @@ const MobileBottomSheet = ({ isOpen, onClose, title, children, onHeightChange })
               margin: 0,
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 16,
-              color: "#e8d8b8",
+              color: "var(--rw-text-primary)",
             }}
           >
             {title}
@@ -170,7 +174,7 @@ const MobileBottomSheet = ({ isOpen, onClose, title, children, onHeightChange })
             style={{
               background: "transparent",
               border: "none",
-              color: "#8a7a62",
+              color: "var(--rw-text-muted)",
               padding: 4,
             }}
           >

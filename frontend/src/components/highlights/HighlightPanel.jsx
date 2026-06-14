@@ -17,7 +17,7 @@ const HighlightPanel = ({ highlights = [], onJump, onDelete, onFocus, mobileMode
         <div
           style={{
             padding: "16px 20px",
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            borderBottom: "1px solid var(--rw-border)",
             flexShrink: 0,
           }}
         >
@@ -26,7 +26,7 @@ const HighlightPanel = ({ highlights = [], onJump, onDelete, onFocus, mobileMode
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 14,
               fontWeight: 500,
-              color: "#e8d8b8",
+              color: "var(--rw-text-primary)",
               margin: 0,
               textTransform: "uppercase",
               letterSpacing: "0.05em",
@@ -51,7 +51,7 @@ const HighlightPanel = ({ highlights = [], onJump, onDelete, onFocus, mobileMode
               padding: 32,
               textAlign: "center",
               fontFamily: "'DM Sans', sans-serif",
-              color: "#6a5a4a",
+              color: "var(--rw-text-muted)",
               fontSize: 13,
             }}
           >

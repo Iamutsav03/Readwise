@@ -1,5 +1,6 @@
 import React from "react";
 import { NOTE_COLORS } from "../utils/noteHelpers";
+import { Bold, Italic, Underline, List } from "lucide-react";
 
 export default function NoteToolbar({ currentColor, onColorChange, onBold, onItalic, onUnderline, onList }) {
   return (
@@ -9,24 +10,24 @@ export default function NoteToolbar({ currentColor, onColorChange, onBold, onIta
         alignItems: "center",
         justifyContent: "space-between",
         padding: "6px 8px",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
-        background: "rgba(255, 255, 255, 0.02)",
+        borderBottom: "1px solid var(--rw-border)",
+        background: "var(--rw-card-bg)",
         gap: 8,
       }}
     >
       {/* Rich Text Format Options */}
       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
         <FormatBtn onClick={onBold} title="Bold (Ctrl+B)">
-          <b>B</b>
+          <Bold size={14} />
         </FormatBtn>
         <FormatBtn onClick={onItalic} title="Italic (Ctrl+I)">
-          <i>I</i>
+          <Italic size={14} />
         </FormatBtn>
         <FormatBtn onClick={onUnderline} title="Underline (Ctrl+U)">
-          <u>U</u>
+          <Underline size={14} />
         </FormatBtn>
         <FormatBtn onClick={onList} title="Bulleted List">
-          • List
+          <List size={14} />
         </FormatBtn>
       </div>
 
@@ -44,10 +45,10 @@ export default function NoteToolbar({ currentColor, onColorChange, onBold, onIta
                 height: 12,
                 borderRadius: "50%",
                 background: config.accent,
-                border: isSelected ? "1.5px solid #fff" : "1px solid rgba(255,255,255,0.15)",
+                border: isSelected ? "1.5px solid var(--rw-text-primary)" : "1px solid var(--rw-border-strong)",
                 cursor: "pointer",
                 padding: 0,
-                boxShadow: isSelected ? "0 0 0 2px #111" : "none",
+                boxShadow: isSelected ? "0 0 0 2px var(--rw-panel-bg)" : "none",
                 transform: isSelected ? "scale(1.15)" : "scale(1)",
                 transition: "transform 0.15s, border 0.15s",
               }}
@@ -74,11 +75,11 @@ const FormatBtn = ({ children, onClick, title }) => {
       style={{
         padding: "2px 6px",
         borderRadius: 4,
-        background: hovered ? "rgba(255, 255, 255, 0.06)" : "transparent",
+        background: hovered ? "var(--rw-hover-bg)" : "transparent",
         border: "none",
         fontFamily: "'DM Sans', sans-serif",
         fontSize: 11,
-        color: hovered ? "#e8d8b8" : "#8a7a62",
+        color: hovered ? "var(--rw-text-primary)" : "var(--rw-text-muted)",
         cursor: "pointer",
         transition: "background 0.1s, color 0.1s",
         display: "flex",

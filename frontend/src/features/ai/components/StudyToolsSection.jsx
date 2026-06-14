@@ -3,44 +3,45 @@
 // Auto-collapses after first AI interaction. Can be manually re-expanded.
 
 import React, { useState } from "react";
+import { ClipboardList, Lightbulb, Target, Layers, Sparkles, ChevronUp, ChevronDown } from "lucide-react";
 
 // Tool registry — extend this to add future tools (Practice Test, Mind Map, etc.)
 const STUDY_TOOLS = [
   {
     id: "summary",
-    icon: "📋",
+    icon: <ClipboardList size={16} />,
     label: "Summarize",
     description: "Key points & revision notes",
-    accent: "#5a8fd4",
-    accentBg: "rgba(90,143,212,0.08)",
-    accentBorder: "rgba(90,143,212,0.2)",
+    accent: "var(--rw-accent)",
+    accentBg: "var(--rw-accent-muted)",
+    accentBorder: "var(--rw-border-strong)",
   },
   {
     id: "concepts",
-    icon: "💡",
+    icon: <Lightbulb size={16} />,
     label: "Key Concepts",
     description: "Important ideas explained",
-    accent: "#c8a46a",
-    accentBg: "rgba(200,164,106,0.08)",
-    accentBorder: "rgba(200,164,106,0.2)",
+    accent: "var(--rw-accent)",
+    accentBg: "var(--rw-accent-muted)",
+    accentBorder: "var(--rw-border-strong)",
   },
   {
     id: "interview",
-    icon: "🎯",
+    icon: <Target size={16} />,
     label: "Interview Questions",
     description: "Q&A for exam prep",
-    accent: "#7ac9a0",
-    accentBg: "rgba(122,201,160,0.08)",
-    accentBorder: "rgba(122,201,160,0.2)",
+    accent: "var(--rw-accent)",
+    accentBg: "var(--rw-accent-muted)",
+    accentBorder: "var(--rw-border-strong)",
   },
   {
     id: "flashcards",
-    icon: "🃏",
+    icon: <Layers size={16} />,
     label: "Flashcards",
     description: "Quick revision cards",
-    accent: "#c49de0",
-    accentBg: "rgba(196,157,224,0.08)",
-    accentBorder: "rgba(196,157,224,0.2)",
+    accent: "var(--rw-accent)",
+    accentBg: "var(--rw-accent-muted)",
+    accentBorder: "var(--rw-border-strong)",
   },
 ];
 
@@ -59,7 +60,7 @@ export default function StudyToolsSection({
   return (
     <div
       style={{
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid var(--rw-hover-bg)",
         flexShrink: 0,
       }}
     >
@@ -75,7 +76,7 @@ export default function StudyToolsSection({
           background: "transparent",
           border: "none",
           cursor: "pointer",
-          color: "rgba(200,164,106,0.8)",
+          color: "var(--rw-accent)",
           fontFamily: "'DM Sans', sans-serif",
           fontSize: 10,
           fontWeight: 600,
@@ -83,24 +84,22 @@ export default function StudyToolsSection({
           letterSpacing: "0.1em",
         }}
         onMouseEnter={(e) =>
-          (e.currentTarget.style.color = "rgba(200,164,106,1)")
+          (e.currentTarget.style.color = "var(--rw-accent-hover)")
         }
         onMouseLeave={(e) =>
-          (e.currentTarget.style.color = "rgba(200,164,106,0.8)")
+          (e.currentTarget.style.color = "var(--rw-accent)")
         }
       >
         <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{ fontSize: 11 }}>✨</span> Study Tools
+          <span style={{ display: "flex", alignItems: "center" }}><Sparkles size={14} /></span> Study Tools
         </span>
         <span
           style={{
-            fontSize: 9,
-            transition: "transform 0.2s",
-            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-            display: "inline-block",
+            display: "flex",
+            alignItems: "center",
           }}
         >
-          ▲
+          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </span>
       </button>
 
@@ -122,8 +121,8 @@ export default function StudyToolsSection({
                 disabled={disabled}
                 onClick={() => onSelectTool(isActive ? null : tool.id)}
                 style={{
-                  background: isActive ? tool.accentBg : "#1e1a17",
-                  border: `1px solid ${isActive ? tool.accent : "rgba(255,255,255,0.07)"}`,
+                  background: isActive ? tool.accentBg : "var(--rw-card-bg)",
+                  border: `1px solid ${isActive ? tool.accentBorder : "var(--rw-border)"}`,  
                   borderRadius: 8,
                   padding: "8px 10px",
                   cursor: disabled ? "not-allowed" : "pointer",
@@ -139,12 +138,12 @@ export default function StudyToolsSection({
                 }}
                 onMouseLeave={(e) => {
                   if (!disabled && !isActive) {
-                    e.currentTarget.style.background = "#1e1a17";
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
+                    e.currentTarget.style.background = "var(--rw-card-bg)";
+                    e.currentTarget.style.borderColor = "var(--rw-border)";
                   }
                 }}
               >
-                <span style={{ fontSize: 14, display: "block", marginBottom: 2 }}>
+                <span style={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
                   {tool.icon}
                 </span>
                 <span
@@ -152,7 +151,7 @@ export default function StudyToolsSection({
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: 11,
                     fontWeight: 600,
-                    color: isActive ? tool.accent : "#F5EEE4",
+                    color: isActive ? tool.accent : "var(--rw-text-primary)",
                     display: "block",
                     lineHeight: 1.3,
                     marginBottom: 2,
@@ -164,7 +163,7 @@ export default function StudyToolsSection({
                   style={{
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: 9.5,
-                    color: "rgba(245,238,228,0.4)",
+                    color: "var(--rw-text-muted)",
                     display: "block",
                     lineHeight: 1.3,
                   }}

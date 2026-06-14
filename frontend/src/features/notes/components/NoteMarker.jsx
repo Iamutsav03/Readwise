@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NOTE_COLORS } from "../utils/noteHelpers";
+import { Edit2 } from "lucide-react";
 
 export default function NoteMarker({
   note,
@@ -161,10 +162,10 @@ export default function NoteMarker({
           borderRadius: "50% 50% 50% 0",
           transform: "rotate(-45deg)",
           background: colors.accent,
-          border: showHighlight ? "2px solid #fff" : "1.5px solid #fff",
+          border: showHighlight ? "2px solid var(--rw-text-primary)" : "1.5px solid var(--rw-text-primary)",
           boxShadow: showHighlight
-            ? `0 4px 12px rgba(0,0,0,0.35), 0 0 0 2px ${colors.accent}`
-            : "0 2px 6px rgba(0,0,0,0.2)",
+            ? `0 4px 12px var(--rw-hover-bg), 0 0 0 2px ${colors.accent}`
+            : "0 2px 6px var(--rw-hover-bg)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -174,14 +175,15 @@ export default function NoteMarker({
         <span
           style={{
             transform: "rotate(45deg)",
-            fontSize: showHighlight ? 12 : 9,
-            color: "#fff",
+            display: "flex",
+            alignItems: "center",
+            color: "var(--rw-text-primary)",
             fontWeight: "bold",
             lineHeight: 1,
             userSelect: "none",
           }}
         >
-          ✎
+          <Edit2 size={showHighlight ? 12 : 9} />
         </span>
       </div>
 

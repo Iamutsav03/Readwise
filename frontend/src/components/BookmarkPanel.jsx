@@ -19,7 +19,7 @@ const BookmarkPanel = ({
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        color: "#e8d8b8",
+        color: "var(--rw-text-primary)",
         boxSizing: "border-box",
       }}
     >
@@ -28,7 +28,7 @@ const BookmarkPanel = ({
         <div
           style={{
             padding: "20px 16px 12px 16px",
-            borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+            borderBottom: "1px solid var(--rw-border)",
           }}
         >
           <h3
@@ -37,7 +37,7 @@ const BookmarkPanel = ({
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 16,
               fontWeight: 500,
-              color: "#e8d8b8",
+              color: "var(--rw-text-primary)",
             }}
           >
             Bookmarks
@@ -59,7 +59,7 @@ const BookmarkPanel = ({
             style={{
               textAlign: "center",
               padding: "20px 0",
-              color: "#7a6a58",
+              color: "var(--rw-text-secondary)",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 13,
             }}
@@ -83,7 +83,7 @@ const BookmarkPanel = ({
               style={{
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 11,
-                color: "#7a6a58",
+                color: "var(--rw-text-secondary)",
                 marginBottom: 12,
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
@@ -106,7 +106,7 @@ const BookmarkPanel = ({
             style={{
               textAlign: "center",
               padding: "40px 16px",
-              color: "#7a6a58",
+              color: "var(--rw-text-secondary)",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 13,
               fontWeight: 300,
@@ -116,8 +116,8 @@ const BookmarkPanel = ({
             No bookmarks saved for this PDF. Click the bookmark icon in the toolbar or press{" "}
             <kbd
               style={{
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: "var(--rw-hover-bg)",
+                border: "1px solid var(--rw-border-strong)",
                 borderRadius: 4,
                 padding: "2px 4px",
                 fontSize: 11,

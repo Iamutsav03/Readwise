@@ -13,6 +13,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import { getPDFViewURL } from "../utils/api";
 import HighlightOverlayLayer from "./highlights/HighlightOverlayLayer";
 import NoteMarker from "../features/notes/components/NoteMarker";
+import { useBreakpoints } from "../hooks/useBreakpoints";
 
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
@@ -43,18 +44,22 @@ const PDFViewer = forwardRef(function PDFViewer(
     pageHighlights,
     focusedHighlightId,
     bottomSheetHeightPct = 0,
+    scrollHostRef,
+    fitMode = "page",
     pageNotes = [],
     activeNoteId = null,
     hoveredNoteId = null,
     onNoteMarkerClick = () => {},
     onHoverNoteChange = () => {},
     onUpdateNote = () => {},
+    isFocusMode = false,
   },
   ref
 ) {
   const containerRef = useRef(null);
   const pageWidthRef = useRef(0);
   const pageHeightRef = useRef(0);
+  const { isMobileOrSmaller: isMobile } = useBreakpoints();
   const isInitialLoad = useRef(true);
 
   // ── Page Stack for Flip Animation ─────────────────────────────────────────
@@ -93,38 +98,31 @@ const PDFViewer = forwardRef(function PDFViewer(
   // ── Fit Page (height + width constrained) ────────────────────────────────
   const fitToScreen = useCallback(() => {
     if (!pageWidthRef.current || !pageHeightRef.current) return;
-    const scrollHost = containerRef.current?.parentElement;
+    const scrollHost = scrollHostRef?.current;
     if (!scrollHost) return;
 
     // scrollHost.clientHeight is already the correct available height
-    // (window.innerHeight minus the actual rendered footer).
-    // On mobile, the bottom sheet is an absolute overlay ON TOP of the scroll host,
-    // so we subtract its pixel height so Fit Page fits in the visible area above the sheet.
-    const isMobile = window.innerWidth <= 768;
-    const sheetPx = isMobile
-      ? (bottomSheetHeightPct / 100) * window.innerHeight
-      : 0;
-
-    const availH = scrollHost.clientHeight - sheetPx - 4; // 4px sub-pixel margin
-    const availW = scrollHost.clientWidth * 0.95; // breathing margin
+    // Remove assumptions that footer bars, side rails, or desktop panels exist on mobile
+    const availH = scrollHost.clientHeight; 
+    const availW = scrollHost.clientWidth; // No breathing margin to maximize width
 
     const heightScale = availH / pageHeightRef.current;
     const widthScale = availW / pageWidthRef.current;
     const newScale = Math.min(heightScale, widthScale);
     onScaleChange(Math.max(0.5, Math.min(parseFloat(newScale.toFixed(3)), 3.0)));
-  }, [onScaleChange, bottomSheetHeightPct]);
+  }, [onScaleChange, scrollHostRef]);
 
   // ── Fit Width (width-only constrained) ───────────────────────────────────
   const fitToWidth = useCallback(() => {
     if (!pageWidthRef.current) return;
-    const scrollHost = containerRef.current?.parentElement;
+    const scrollHost = scrollHostRef?.current;
     if (!scrollHost) return;
 
-    // Use 98% of the scroll-host's client width for a small breathing margin.
-    const availW = scrollHost.clientWidth * 0.98;
+    // Cap width at 1600px to prevent excessive stretching on ultrawide monitors
+    const availW = Math.min(scrollHost.clientWidth, 1600);
     const newScale = availW / pageWidthRef.current;
     onScaleChange(Math.max(0.5, Math.min(parseFloat(newScale.toFixed(3)), 3.0)));
-  }, [onScaleChange]);
+  }, [onScaleChange, scrollHostRef]);
 
   // ── Expose both methods via ref ───────────────────────────────────────────
   useImperativeHandle(ref, () => ({ fitToScreen, fitToWidth }), [
@@ -134,9 +132,16 @@ const PDFViewer = forwardRef(function PDFViewer(
 
   // Re-fit on window resize (respects whichever mode the toolbar last set)
   useEffect(() => {
-    window.addEventListener("resize", fitToScreen);
-    return () => window.removeEventListener("resize", fitToScreen);
-  }, [fitToScreen]);
+    const handleResize = () => {
+      if (fitMode === "width") {
+        fitToWidth();
+      } else {
+        fitToScreen();
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [fitToScreen, fitToWidth, fitMode]);
 
   // ── Document load ─────────────────────────────────────────────────────────
   const onDocumentLoadSuccess = ({ numPages }) => {
@@ -152,7 +157,11 @@ const PDFViewer = forwardRef(function PDFViewer(
 
     if (isInitialLoad.current) {
       isInitialLoad.current = false;
-      fitToScreen();
+      if (fitMode === "width") {
+        fitToWidth();
+      } else {
+        fitToScreen();
+      }
     }
 
     setPageStack(prev => prev.map(p => p.id === id ? { ...p, rendered: true } : p));
@@ -182,33 +191,41 @@ const PDFViewer = forwardRef(function PDFViewer(
       ref={containerRef}
       style={{
         width: "fit-content",
-        minWidth: "fit-content",
-        margin: "0 auto",
+        minWidth: "100%", /* changed from fit-content to allow it to expand fully */
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
         backgroundColor: "#000",
-        padding: "16px 0 18px 0",
+        padding: isFocusMode || isMobile ? "0" : "8px 0",
       }}
     >
       <style>{`
         .pdf-page-layer {
-          background: #fff;
+          background: var(--rw-text-primary);
           transition: opacity 0.2s;
         }
         .pdf-page-layer.on-top {
           box-shadow: 4px 0 16px rgba(0,0,0,0.15);
         }
         .slide-out-left {
-          animation: slideOutLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          animation: slideOutLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          transform: translateZ(0); /* Hardware acceleration */
         }
         .slide-in-left {
-          animation: slideInLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          animation: slideInLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          transform: translateZ(0);
         }
         @keyframes slideOutLeft {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-102%); }
+          0% { transform: translateX(0) translateZ(0); }
+          100% { transform: translateX(-102%) translateZ(0); }
         }
         @keyframes slideInLeft {
-          0% { transform: translateX(-102%); }
-          100% { transform: translateX(0); }
+          0% { transform: translateX(-102%) translateZ(0); }
+          100% { transform: translateX(0) translateZ(0); }
+        }
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
         }
       `}</style>
 
@@ -218,7 +235,7 @@ const PDFViewer = forwardRef(function PDFViewer(
         loading={
           <div
             className="flex items-center justify-center"
-            style={{ width: "100vw", height: "calc(100vh - 56px)" }}
+            style={{ width: "100%", height: "100%" }}
           >
             <div className="animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600 w-12 h-12" />
           </div>
@@ -226,7 +243,7 @@ const PDFViewer = forwardRef(function PDFViewer(
         error={
           <div
             className="flex items-center justify-center text-red-500 text-sm"
-            style={{ width: "100vw", height: "calc(100vh - 56px)" }}
+            style={{ width: "100%", height: "100%" }}
           >
             Failed to load PDF.
           </div>
@@ -235,9 +252,9 @@ const PDFViewer = forwardRef(function PDFViewer(
         <div
           style={{
             display: "block",
-            width: "fit-content",
+            width: isMobile ? "100%" : "fit-content",
             minWidth: "fit-content",
-            margin: "0 auto",
+            margin: isMobile ? "0" : "0 auto",
             position: "relative",
             overflowX: "hidden", // Prevents horizontal flicker during animation
           }}
@@ -252,11 +269,11 @@ const PDFViewer = forwardRef(function PDFViewer(
             let style = {
               position: isCurrent ? "relative" : "absolute",
               top: 0, left: 0, width: "100%", height: "100%",
-              opacity: p.rendered ? 1 : 0,
+              opacity: 1, // Keep visible to show loading state
             };
 
-            if (isPrev && currentDir === 1 && newPageRendered) {
-              // Going next: old page slides out to the left
+            if (isPrev && currentDir === 1) {
+              // Going next: old page slides out to the left immediately
               className += " on-top slide-out-left";
               style.zIndex = 2;
             } else if (isCurrent && currentDir === 1) {
@@ -265,9 +282,8 @@ const PDFViewer = forwardRef(function PDFViewer(
             } else if (isPrev && currentDir === -1) {
               // Going prev: old page static beneath
               style.zIndex = 1;
-              style.opacity = 1; // Keep visible even if new page not ready
-            } else if (isCurrent && currentDir === -1 && newPageRendered) {
-              // Going prev: new page slides in from the left
+            } else if (isCurrent && currentDir === -1) {
+              // Going prev: new page slides in from the left immediately
               className += " on-top slide-in-left";
               style.zIndex = 2;
             } else {
@@ -290,6 +306,18 @@ const PDFViewer = forwardRef(function PDFViewer(
                   renderTextLayer={true}
                   onRenderSuccess={(page) => onPageRenderSuccess(page, p.id)}
                   customTextRenderer={customTextRenderer}
+                  loading={
+                    <div style={{
+                      position: "absolute", inset: 0,
+                      background: "linear-gradient(90deg, var(--rw-app-bg) 0%, var(--rw-card-bg) 50%, var(--rw-app-bg) 100%)",
+                      backgroundSize: "200% 100%",
+                      animation: "shimmer 1.5s infinite linear",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      zIndex: 10
+                    }}>
+                      <div className="animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600 w-8 h-8" />
+                    </div>
+                  }
                 />
                 <HighlightOverlayLayer
                   highlights={pageHighlights}

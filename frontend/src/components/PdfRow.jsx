@@ -46,27 +46,27 @@ const CSS = `
   .rwpr-icon {
     width: 32px; height: 36px;
     border-radius: 6px; flex-shrink: 0;
-    background: #241D19; border: 1px solid rgba(255,255,255,0.05);
+    background: var(--rw-card-bg); border: 1px solid var(--rw-border);
     display: flex; align-items: center; justify-content: center;
     font-size: 13px; position: relative;
     transition: background 0.15s;
   }
   .rwpr-row.active .rwpr-icon {
     background: rgba(200,164,106,0.18);
-    border-color: rgba(200,164,106,0.3);
+    border-color: var(--rw-border);
   }
 
   /* Text block */
   .rwpr-text { flex: 1; min-width: 0; overflow: hidden; }
 
   .rwpr-name {
-    font-size: 13px; font-weight: 500; color: #F5EEE4;
+    font-size: 13px; font-weight: 500; color: var(--rw-text-primary);
     margin: 0;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     line-height: 1.3; transition: color 0.15s;
     font-family: 'DM Sans', sans-serif;
   }
-  .rwpr-row.active .rwpr-name { color: #C8A46A; font-weight: 600; }
+  .rwpr-row.active .rwpr-name { color: var(--rw-accent); font-weight: 600; }
 
   .rwpr-meta {
     font-size: 11px; color: rgba(245,238,228,0.5); margin: 2px 0 0;
@@ -91,8 +91,8 @@ const CSS = `
   .rwpr-rename-input {
     font-size: 13px; font-weight: 500;
     font-family: 'DM Sans', sans-serif;
-    color: #1A1512; background: #F5EEE4;
-    border: 1.5px solid #C8A46A; border-radius: 5px;
+    color: var(--rw-panel-bg); background: var(--rw-text-primary);
+    border: 1.5px solid var(--rw-accent); border-radius: 5px;
     padding: 2px 6px; width: 100%; outline: none;
     line-height: 1.4;
   }
@@ -107,9 +107,13 @@ function injectStyle() {
   document.head.appendChild(tag);
 }
 
+import { useBreakpoints } from "../hooks/useBreakpoints";
+import { FileText } from "lucide-react";
+
 // ── Component ─────────────────────────────────────────────────────────────────
 const PdfRow = ({ pdf, active, onSelect, onFavorite, onRename, onDelete }) => {
   injectStyle();
+  const { isTablet } = useBreakpoints();
 
   const [renaming, setRenaming] = useState(false);
   const [renameVal, setRenameVal] = useState("");
@@ -173,48 +177,52 @@ const PdfRow = ({ pdf, active, onSelect, onFavorite, onRename, onDelete }) => {
         onClick={() => !renaming && onSelect(pdf)}
       >
         {/* Icon */}
-        <div className="rwpr-icon">
-          <span style={{ fontSize: 13, lineHeight: 1 }}>📄</span>
+        <div className="rwpr-icon" style={{ color: active ? "var(--rw-accent)" : "var(--rw-text-secondary)" }}>
+          <FileText size={16} />
           {active && (
             <div style={{
               position: "absolute", top: 3, right: 3,
-              width: 5, height: 5, borderRadius: "50%", background: "#C8A46A",
+              width: 5, height: 5, borderRadius: "50%", background: "var(--rw-accent)",
             }} />
           )}
         </div>
 
         {/* Name + meta */}
-        <div className="rwpr-text">
-          {renaming ? (
-            <input
-              ref={inputRef}
-              className="rwpr-rename-input"
-              value={renameVal}
-              onChange={(e) => setRenameVal(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={commitRename}
-              onClick={(e) => e.stopPropagation()}
-              maxLength={120}
-            />
-          ) : (
-            <p className="rwpr-name" title={displayName}>{displayName}</p>
-          )}
-          <p className="rwpr-meta">
-            {pageProgress || "Not started"}
-          </p>
-          {opened && <p className="rwpr-opened">{opened}</p>}
-        </div>
+        {!isTablet && (
+          <div className="rwpr-text">
+            {renaming ? (
+              <input
+                ref={inputRef}
+                className="rwpr-rename-input"
+                value={renameVal}
+                onChange={(e) => setRenameVal(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onBlur={commitRename}
+                onClick={(e) => e.stopPropagation()}
+                maxLength={120}
+              />
+            ) : (
+              <p className="rwpr-name" title={displayName}>{displayName}</p>
+            )}
+            <p className="rwpr-meta">
+              {pageProgress || "Not started"}
+            </p>
+            {opened && <p className="rwpr-opened">{opened}</p>}
+          </div>
+        )}
 
         {/* Action Menu */}
-        <div className="rwpr-actions">
-          <PdfActionsMenu
-            onOpen={handleOpenClick}
-            onRename={startRename}
-            onFavorite={handleFavClick}
-            onDelete={handleDeleteClick}
-            isFavorite={pdf.isFavorite}
-          />
-        </div>
+        {!isTablet && (
+          <div className="rwpr-actions">
+            <PdfActionsMenu
+              onOpen={handleOpenClick}
+              onRename={startRename}
+              onFavorite={handleFavClick}
+              onDelete={handleDeleteClick}
+              isFavorite={pdf.isFavorite}
+            />
+          </div>
+        )}
       </div>
     </li>
   );

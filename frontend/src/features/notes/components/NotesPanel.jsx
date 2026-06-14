@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import NoteCard from "./NoteCard";
 import { stripHtml } from "../utils/noteHelpers";
+import { Search, X, AlertTriangle, Edit2 } from "lucide-react";
 
 export default function NotesPanel({
   notes,
@@ -118,7 +119,7 @@ export default function NotesPanel({
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        background: "#0e0c0a",
+        background: "var(--rw-panel-bg)",
         fontFamily: "'DM Sans', sans-serif",
       }}
     >
@@ -126,7 +127,7 @@ export default function NotesPanel({
       <div
         style={{
           padding: "20px 16px 12px 16px",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+          borderBottom: "1px solid var(--rw-border)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -138,7 +139,7 @@ export default function NotesPanel({
             margin: 0,
             fontSize: "14px",
             fontWeight: 500,
-            color: "#e8d8b8",
+            color: "var(--rw-text-primary)",
             textTransform: "uppercase",
             letterSpacing: "0.05em",
           }}
@@ -149,8 +150,8 @@ export default function NotesPanel({
           style={{
             fontSize: "11px",
             fontWeight: 500,
-            color: "#7a6a58",
-            background: "rgba(255,255,255,0.05)",
+            color: "var(--rw-text-secondary)",
+            background: "var(--rw-border)",
             padding: "2px 6px",
             borderRadius: "4px",
           }}
@@ -175,8 +176,8 @@ export default function NotesPanel({
           style={{
             width: "100%",
             padding: "10px 12px",
-            background: "#b8966a",
-            color: "#0f0d0b",
+            background: "var(--rw-accent)",
+            color: "var(--rw-accent-text)",
             border: "none",
             borderRadius: "6px",
             fontSize: "12px",
@@ -187,12 +188,12 @@ export default function NotesPanel({
             justifyContent: "center",
             gap: "6px",
             transition: "background 0.2s, transform 0.1s",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+            boxShadow: "0 2px 8px var(--rw-hover-bg)",
             textTransform: "uppercase",
             letterSpacing: "0.03em",
           }}
-          onMouseEnter={(e) => (e.target.style.background = "#c8a87a")}
-          onMouseLeave={(e) => (e.target.style.background = "#b8966a")}
+          onMouseEnter={(e) => (e.target.style.background = "var(--rw-accent-hover)")}
+          onMouseLeave={(e) => (e.target.style.background = "var(--rw-accent)")}
         >
           <span style={{ fontSize: "14px", fontWeight: "bold" }}>+</span> New Note on Page {pageNumber}
         </button>
@@ -208,16 +209,16 @@ export default function NotesPanel({
               width: "100%",
               padding: "8px 12px 8px 30px",
               fontSize: "12px",
-              background: "rgba(255, 255, 255, 0.05)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
+              background: "var(--rw-border)",
+              border: "1px solid var(--rw-border)",
               borderRadius: "6px",
-              color: "#e8d8b8",
+              color: "var(--rw-text-primary)",
               outline: "none",
               boxSizing: "border-box",
               transition: "border 0.2s",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#b8966a")}
-            onBlur={(e) => (e.target.style.borderColor = "rgba(255, 255, 255, 0.08)")}
+            onFocus={(e) => (e.target.style.borderColor = "var(--rw-accent)")}
+            onBlur={(e) => (e.target.style.borderColor = "var(--rw-border)")}
           />
           <span
             style={{
@@ -226,11 +227,11 @@ export default function NotesPanel({
               top: "50%",
               transform: "translateY(-50%)",
               fontSize: "13px",
-              color: "#7a6a58",
+              color: "var(--rw-text-secondary)",
               pointerEvents: "none",
             }}
           >
-            ⌕
+            <Search size={14} />
           </span>
           {searchQuery && (
             <button
@@ -243,11 +244,11 @@ export default function NotesPanel({
                 background: "transparent",
                 border: "none",
                 fontSize: "10px",
-                color: "#7a6a58",
+                color: "var(--rw-text-secondary)",
                 cursor: "pointer",
               }}
             >
-              ✕
+              <X size={12} />
             </button>
           )}
         </div>
@@ -260,14 +261,14 @@ export default function NotesPanel({
             margin: "0 16px 12px 16px",
             padding: "10px",
             borderRadius: "6px",
-            background: "rgba(224, 112, 96, 0.1)",
-            border: "1px solid rgba(224, 112, 96, 0.2)",
-            color: "#e07060",
+            background: "var(--rw-accent-muted)",
+            border: "1px solid var(--rw-border-strong)",
+            color: "var(--rw-danger)",
             fontSize: "12px",
             flexShrink: 0,
           }}
         >
-          ⚠️ {error}
+          <AlertTriangle size={14} style={{ marginRight: 6 }} /> {error}
         </div>
       )}
 
@@ -289,7 +290,7 @@ export default function NotesPanel({
               display: "flex",
               justifyContent: "center",
               padding: "40px 0",
-              color: "#7a6a58",
+              color: "var(--rw-text-secondary)",
               fontSize: "13px",
             }}
           >
@@ -304,11 +305,12 @@ export default function NotesPanel({
               justifyContent: "center",
               padding: "60px 16px",
               textAlign: "center",
-              color: "#6a5a4a",
+              color: "var(--rw-text-muted)",
             }}
           >
-            <span style={{ fontSize: "24px", marginBottom: "8px" }}>📝</span>
-            <p style={{ margin: 0, fontSize: "13px", fontWeight: 300, color: "#7a6a58" }}>
+          >
+            <span style={{ marginBottom: "8px", color: "var(--rw-accent)" }}><Edit2 size={24} /></span>
+            <p style={{ margin: 0, fontSize: "13px", fontWeight: 300, color: "var(--rw-text-secondary)" }}>
               {searchQuery ? "No matching notes found" : "No notes saved yet"}
             </p>
             <p style={{ margin: "4px 0 0 0", fontSize: "11px", opacity: 0.6 }}>
@@ -323,10 +325,10 @@ export default function NotesPanel({
                 style={{
                   fontSize: "10.5px",
                   fontWeight: 600,
-                  color: "#7a6a58",
+                  color: "var(--rw-text-secondary)",
                   letterSpacing: "0.05em",
                   textTransform: "uppercase",
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+                  borderBottom: "1px solid var(--rw-border)",
                   paddingBottom: "4px",
                   display: "flex",
                   alignItems: "center",

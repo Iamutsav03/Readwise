@@ -3,24 +3,25 @@
 // Allows scope, importance, and feature-specific settings before generating.
 
 import React, { useState } from "react";
+import { ClipboardList, Lightbulb, Target, Layers, Sparkles, X } from "lucide-react";
 
 const IMPORTANCE_OPTIONS = [
   {
     id: "high",
     label: "High",
-    color: "#e07060",
+    color: "var(--rw-danger)",
     description: "Definitions, key concepts & exam topics only",
   },
   {
     id: "medium",
     label: "Medium",
-    color: "#c8a46a",
+    color: "var(--rw-accent)",
     description: "Key ideas + supporting examples",
   },
   {
     id: "low",
     label: "Low",
-    color: "#7ac9a0",
+    color: "var(--rw-success)",
     description: "Everything — concepts, examples & side notes",
   },
 ];
@@ -54,14 +55,14 @@ const QUESTION_COUNTS = [10, 20, 30];
 const CARD_COUNTS = [20, 40, 60];
 
 // ── Reusable pill button ────────────────────────────────────────────────────
-function PillOption({ label, desc, isSelected, onClick, color = "#C8A46A" }) {
+function PillOption({ label, desc, isSelected, onClick, color = "var(--rw-accent)" }) {
   return (
     <button
       onClick={onClick}
       style={{
         flex: "1 1 auto",
         padding: "4px 8px",
-        border: `1px solid ${isSelected ? color : "rgba(255,255,255,0.08)"}`,
+        border: `1px solid ${isSelected ? color : "var(--rw-border)"}`,
         borderRadius: 6,
         background: isSelected ? `rgba(${hexToRgb(color)},0.12)` : "transparent",
         color: isSelected ? color : "rgba(245,238,228,0.6)",
@@ -99,7 +100,7 @@ function ConfigLabel({ children }) {
         fontFamily: "'DM Sans', sans-serif",
         fontSize: 9.5,
         fontWeight: 600,
-        color: "rgba(245,238,228,0.4)",
+        color: "var(--rw-text-muted)",
         textTransform: "uppercase",
         letterSpacing: "0.08em",
         margin: "0 0 5px",
@@ -143,10 +144,10 @@ function PageRangeInput({ fromPage, toPage, numPages, onChange }) {
 const inputStyle = {
   width: 54,
   padding: "4px 8px",
-  border: "1px solid rgba(255,255,255,0.1)",
+  border: "1px solid var(--rw-border-strong)",
   borderRadius: 5,
-  background: "#241D19",
-  color: "#F5EEE4",
+  background: "var(--rw-card-bg)",
+  color: "var(--rw-text-primary)",
   fontFamily: "'DM Sans', sans-serif",
   fontSize: 12,
   textAlign: "center",
@@ -155,10 +156,10 @@ const inputStyle = {
 
 // ── TOOL ICONS ────────────────────────────────────────────────────────────
 const TOOL_META = {
-  summary: { icon: "📋", label: "Summarize", accent: "#5a8fd4" },
-  concepts: { icon: "💡", label: "Key Concepts", accent: "#c8a46a" },
-  interview: { icon: "🎯", label: "Interview Questions", accent: "#7ac9a0" },
-  flashcards: { icon: "🃏", label: "Flashcards", accent: "#c49de0" },
+  summary: { icon: <ClipboardList size={14} />, label: "Summarize", accent: "#5a8fd4" },
+  concepts: { icon: <Lightbulb size={14} />, label: "Key Concepts", accent: "var(--rw-accent)" },
+  interview: { icon: <Target size={14} />, label: "Interview Questions", accent: "var(--rw-success)" },
+  flashcards: { icon: <Layers size={14} />, label: "Flashcards", accent: "#c49de0" },
 };
 
 // ── Main Component ────────────────────────────────────────────────────────────
@@ -183,7 +184,7 @@ export default function StudyToolConfig({
   const [cardCount, setCardCount] = useState(20);
   const [flashcardStyle, setFlashcardStyle] = useState("exam");
 
-  const meta = TOOL_META[toolId] || { icon: "◈", label: "Generate", accent: "#C8A46A" };
+  const meta = TOOL_META[toolId] || { icon: <Sparkles size={14} />, label: "Generate", accent: "var(--rw-accent)" };
 
   const handlePageRange = (field, val) => {
     if (field === "from") setFromPage(val);
@@ -227,28 +228,28 @@ export default function StudyToolConfig({
   let costBadge = null;
   let wordEstimate = "";
   if (pageScope === "current") {
-    costBadge = { label: "🟢 Fast", color: "#7ac9a0" };
+    costBadge = { label: "🟢 Fast", color: "var(--rw-success)" };
     wordEstimate = "~500 words";
   } else if (pageScope === "chapter") {
-    costBadge = { label: "🟡 Medium", color: "#c8a46a" };
+    costBadge = { label: "🟡 Medium", color: "var(--rw-accent)" };
     wordEstimate = "~2,000 words";
   } else if (pageScope === "all") {
-    costBadge = { label: "🔴 Expensive", color: "#e07060" };
+    costBadge = { label: "🔴 Expensive", color: "var(--rw-danger)" };
     wordEstimate = "~18,000 words";
   } else if (pageScope === "range") {
     const pCount = Math.max(1, toPage - fromPage + 1);
     wordEstimate = `~${pCount * 500} words`;
-    if (pCount <= 3) costBadge = { label: "🟢 Fast", color: "#7ac9a0" };
-    else if (pCount <= 10) costBadge = { label: "🟡 Medium", color: "#c8a46a" };
-    else costBadge = { label: "🔴 Expensive", color: "#e07060" };
+    if (pCount <= 3) costBadge = { label: "🟢 Fast", color: "var(--rw-success)" };
+    else if (pCount <= 10) costBadge = { label: "🟡 Medium", color: "var(--rw-accent)" };
+    else costBadge = { label: "🔴 Expensive", color: "var(--rw-danger)" };
   }
 
   return (
     <div
       style={{
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid var(--rw-hover-bg)",
         padding: "12px 12px 14px",
-        background: "#1c1714",
+        background: "var(--rw-panel-bg)",
         animation: "slideDown 0.15s ease",
         flexShrink: 0,
       }}
@@ -268,11 +269,11 @@ export default function StudyToolConfig({
         <button
           onClick={onClose}
           style={{
-            background: "transparent", border: "none", color: "rgba(245,238,228,0.35)",
+            background: "transparent", border: "none", color: "var(--rw-text-muted)",
             cursor: "pointer", fontSize: 13, padding: "1px 4px", lineHeight: 1,
           }}
         >
-          ✕
+          <X size={14} />
         </button>
       </div>
 
@@ -285,7 +286,7 @@ export default function StudyToolConfig({
           paddingRight: 4,
           marginBottom: 12,
           scrollbarWidth: "thin",
-          scrollbarColor: "rgba(255,255,255,0.08) transparent",
+          scrollbarColor: "var(--rw-border) transparent",
         }}
       >
         {/* PAGE SCOPE */}
@@ -325,14 +326,14 @@ export default function StudyToolConfig({
               {costBadge.label}
             </span>
           )}
-          <span style={{ fontSize: 10, fontFamily: "'DM Sans', sans-serif", color: "rgba(245,238,228,0.4)" }}>
+          <span style={{ fontSize: 10, fontFamily: "'DM Sans', sans-serif", color: "var(--rw-text-muted)" }}>
             Context: {wordEstimate}
           </span>
         </div>
 
         {pageScope === "all" && numPages > 50 && (
           <div style={{ marginTop: 8, padding: "6px 8px", background: "rgba(224,112,96,0.1)", border: "1px solid rgba(224,112,96,0.2)", borderRadius: 6 }}>
-            <span style={{ fontSize: 10, fontFamily: "'DM Sans', sans-serif", color: "#e07060" }}>
+            <span style={{ fontSize: 10, fontFamily: "'DM Sans', sans-serif", color: "var(--rw-danger)" }}>
               <strong>Note:</strong> Generating from a {numPages}-page PDF uses significantly more AI resources. Consider using Current Chapter or a Custom Range for better precision.
             </span>
           </div>
@@ -487,11 +488,11 @@ export default function StudyToolConfig({
           width: "100%",
           padding: "8px 0",
           background: isLoading
-            ? "rgba(255,255,255,0.06)"
+            ? "var(--rw-hover-bg)"
             : `linear-gradient(135deg, ${meta.accent}, ${meta.accent}cc)`,
           border: "none",
           borderRadius: 8,
-          color: isLoading ? "rgba(255,255,255,0.3)" : "#1A1512",
+          color: isLoading ? "rgba(255,255,255,0.3)" : "var(--rw-panel-bg)",
           fontFamily: "'DM Sans', sans-serif",
           fontSize: 12,
           fontWeight: 700,

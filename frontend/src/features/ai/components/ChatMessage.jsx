@@ -27,7 +27,7 @@ function renderInlineMarkdown(text) {
         <code
           key={match.index}
           style={{
-            background: "rgba(255,255,255,0.08)",
+            background: "var(--rw-border)",
             borderRadius: 3,
             padding: "1px 5px",
             fontSize: "0.9em",
@@ -69,7 +69,7 @@ function AssistantContent({ content }) {
                 style={{
                   position: "absolute",
                   left: 0,
-                  color: "#C8A46A",
+                  color: "var(--rw-accent)",
                   fontWeight: 700,
                 }}
               >
@@ -107,10 +107,10 @@ export default function ChatMessage({ message, onRetry }) {
         <div
           style={{
             maxWidth: "82%",
-            background: "linear-gradient(135deg, #C8A46A, #a8843a)",
+            background: "linear-gradient(135deg, var(--rw-accent), var(--rw-accent-hover))",
             borderRadius: "16px 16px 4px 16px",
             padding: "10px 14px",
-            boxShadow: "0 2px 8px rgba(200,164,106,0.2)",
+            boxShadow: "0 2px 8px var(--rw-accent-muted)",
           }}
         >
           {message.featureType === "explain-selection" ? (
@@ -119,9 +119,9 @@ export default function ChatMessage({ message, onRetry }) {
                 Explaining Selected Text:
               </span>
               <div style={{
-                background: "rgba(26,21,18,0.2)",
+                background: "var(--rw-panel-bg)",
                 padding: "8px 10px",
-                borderLeft: "2px solid rgba(26,21,18,0.4)",
+                borderLeft: "2px solid var(--rw-border-strong)",
                 borderRadius: 4,
                 fontStyle: "italic",
                 marginBottom: 4
@@ -135,7 +135,7 @@ export default function ChatMessage({ message, onRetry }) {
                 margin: 0,
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 13,
-                color: "#1A1512",
+                color: "var(--rw-panel-bg)",
                 fontWeight: 500,
                 lineHeight: 1.55,
               }}
@@ -148,7 +148,7 @@ export default function ChatMessage({ message, onRetry }) {
               margin: "5px 0 0",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 10,
-              color: "rgba(26,21,18,0.6)",
+              color: "var(--rw-accent-text)",
               textAlign: "right",
             }}
           >
@@ -175,8 +175,8 @@ export default function ChatMessage({ message, onRetry }) {
           width: 26,
           height: 26,
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #2a221d, #3a2e24)",
-          border: "1px solid rgba(200,164,106,0.3)",
+          background: "linear-gradient(135deg, var(--rw-hover-bg), var(--rw-border))",
+          border: "1px solid var(--rw-border)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -191,8 +191,8 @@ export default function ChatMessage({ message, onRetry }) {
       <div
         style={{
           maxWidth: "88%",
-          background: message.status === "failed" ? "rgba(220, 53, 69, 0.1)" : "#241D19",
-          border: message.status === "failed" ? "1px solid rgba(220, 53, 69, 0.3)" : "1px solid rgba(255,255,255,0.06)",
+          background: message.status === "failed" ? "rgba(220, 53, 69, 0.1)" : "var(--rw-card-bg)",
+          border: message.status === "failed" ? "1px solid rgba(220, 53, 69, 0.3)" : "1px solid var(--rw-hover-bg)",
           borderRadius: "4px 16px 16px 16px",
           padding: "10px 14px",
           boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
@@ -202,7 +202,7 @@ export default function ChatMessage({ message, onRetry }) {
           style={{
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 13,
-            color: message.status === "failed" ? "#ff8b8b" : "#F5EEE4",
+            color: message.status === "failed" ? "var(--rw-danger)" : "var(--rw-text-primary)",
             lineHeight: 1.6,
           }}
         >
@@ -214,7 +214,7 @@ export default function ChatMessage({ message, onRetry }) {
                 style={{
                   background: "transparent",
                   border: "1px solid rgba(220, 53, 69, 0.5)",
-                  color: "#ff8b8b",
+                  color: "var(--rw-danger)",
                   borderRadius: 4,
                   padding: "4px 12px",
                   fontSize: 12,
@@ -238,7 +238,7 @@ export default function ChatMessage({ message, onRetry }) {
               margin: "7px 0 0",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 10,
-              color: "rgba(200,164,106,0.6)",
+              color: "var(--rw-text-muted)",
             }}
           >
             📄 Pages Used: {message.contextPages.join(", ")}
@@ -252,7 +252,7 @@ export default function ChatMessage({ message, onRetry }) {
               margin: "5px 0 0",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 10,
-              color: "rgba(245,238,228,0.3)",
+              color: "var(--rw-text-muted)",
             }}
           >
             {formatTime(message.createdAt)}

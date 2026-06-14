@@ -18,8 +18,8 @@ const HighlightToolbar = ({ position, onColorPick, onClose }) => {
     display: "flex",
     gap: "8px",
     padding: "6px 8px",
-    background: "#1a1a1a",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "var(--rw-card-bg)",
+    border: "1px solid var(--rw-border-strong)",
     borderRadius: "8px",
     boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
     alignItems: "center",
@@ -53,7 +53,7 @@ const HighlightToolbar = ({ position, onColorPick, onClose }) => {
         />
       ))}
       
-      <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.1)", margin: "0 4px" }} />
+      <div style={{ width: 1, height: 20, background: "var(--rw-border-strong)", margin: "0 4px" }} />
       
       <button
         onClick={(e) => {
@@ -64,7 +64,7 @@ const HighlightToolbar = ({ position, onColorPick, onClose }) => {
         style={{
           background: "transparent",
           border: "none",
-          color: "#aaa",
+          color: "var(--rw-text-secondary)",
           cursor: "pointer",
           fontSize: 18,
           lineHeight: 1,
@@ -73,8 +73,8 @@ const HighlightToolbar = ({ position, onColorPick, onClose }) => {
           alignItems: "center",
           justifyContent: "center",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "#aaa")}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--rw-text-primary)")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--rw-text-secondary)")}
       >
         ×
       </button>

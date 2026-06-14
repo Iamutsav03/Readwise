@@ -12,8 +12,8 @@ const MobileZoomPopover = ({ scale, onZoomIn, onZoomOut, onClose }) => {
         bottom: 60, // Above the footer
         left: "50%",
         transform: "translateX(-50%)",
-        background: "#1a1a1a",
-        border: "1px solid rgba(255,255,255,0.1)",
+        background: "var(--rw-card-bg)",
+        border: "1px solid var(--rw-border-strong)",
         borderRadius: 8,
         padding: "8px 12px",
         display: "flex",
@@ -28,7 +28,7 @@ const MobileZoomPopover = ({ scale, onZoomIn, onZoomOut, onClose }) => {
         style={{
           background: "transparent",
           border: "none",
-          color: "#e8d8b8",
+          color: "var(--rw-text-primary)",
           padding: 8,
           cursor: "pointer",
         }}
@@ -40,7 +40,7 @@ const MobileZoomPopover = ({ scale, onZoomIn, onZoomOut, onClose }) => {
         style={{
           fontFamily: "'DM Sans', sans-serif",
           fontSize: 14,
-          color: "#b8966a",
+          color: "var(--rw-accent)",
           minWidth: 40,
           textAlign: "center",
         }}
@@ -53,7 +53,7 @@ const MobileZoomPopover = ({ scale, onZoomIn, onZoomOut, onClose }) => {
         style={{
           background: "transparent",
           border: "none",
-          color: "#e8d8b8",
+          color: "var(--rw-text-primary)",
           padding: 8,
           cursor: "pointer",
         }}

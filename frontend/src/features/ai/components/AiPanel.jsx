@@ -7,6 +7,7 @@ import useAiChat from "../hooks/useAiChat";
 import ChatMessage from "./ChatMessage";
 import StudyToolsSection from "./StudyToolsSection";
 import StudyToolConfig from "./StudyToolConfig";
+import { Sparkles, Trash2, AlertTriangle, Send } from "lucide-react";
 
 // ── Loading dots animation ────────────────────────────────────────────────────
 function ThinkingIndicator() {
@@ -16,18 +17,18 @@ function ThinkingIndicator() {
       <div
         style={{
           width: 26, height: 26, borderRadius: "50%",
-          background: "linear-gradient(135deg, #2a221d, #3a2e24)",
-          border: "1px solid rgba(200,164,106,0.3)",
+          background: "linear-gradient(135deg, var(--rw-hover-bg), var(--rw-border))",
+          border: "1px solid var(--rw-border)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          flexShrink: 0, fontSize: 12, color: "#C8A46A",
+          flexShrink: 0, color: "var(--rw-accent)",
         }}
       >
-        ◈
+        <Sparkles size={14} />
       </div>
       <div
         style={{
-          background: "#241D19",
-          border: "1px solid rgba(255,255,255,0.06)",
+          background: "var(--rw-card-bg)",
+          border: "1px solid var(--rw-hover-bg)",
           borderRadius: "4px 16px 16px 16px",
           padding: "10px 16px",
           display: "flex", gap: 5, alignItems: "center",
@@ -40,7 +41,7 @@ function ThinkingIndicator() {
           }
           .ai-dot {
             width: 6px; height: 6px; border-radius: 50%;
-            background: #C8A46A;
+            background: var(--rw-accent);
             animation: ai-dot-bounce 1.2s ease-in-out infinite;
           }
           .ai-dot:nth-child(2) { animation-delay: 0.15s; }
@@ -67,24 +68,24 @@ function EmptyState() {
       <div
         style={{
           width: 44, height: 44, borderRadius: "50%",
-          background: "linear-gradient(135deg, #241D19, #3a2e24)",
-          border: "1px solid rgba(200,164,106,0.2)",
+          background: "linear-gradient(135deg, var(--rw-card-bg), var(--rw-border))",
+          border: "1px solid var(--rw-border-strong)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 20, color: "#C8A46A",
+          color: "var(--rw-accent)",
         }}
       >
-        ◈
+        <Sparkles size={24} />
       </div>
       <div>
         <p style={{
           fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600,
-          color: "#F5EEE4", margin: "0 0 4px",
+          color: "var(--rw-text-primary)", margin: "0 0 4px",
         }}>
           Chat with this document
         </p>
         <p style={{
           fontFamily: "'DM Sans', sans-serif", fontSize: 11.5,
-          color: "rgba(245,238,228,0.5)", margin: 0, lineHeight: 1.5,
+          color: "var(--rw-text-muted)", margin: 0, lineHeight: 1.5,
         }}>
           Ask questions, get summaries,<br />or generate study materials.
         </p>
@@ -94,7 +95,14 @@ function EmptyState() {
 }
 
 // ── Main Panel ────────────────────────────────────────────────────────────────
-export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileMode = false }) {
+export default function AiPanel({ 
+  pdfId, 
+  pageNumber = 1, 
+  numPages = 100, 
+  mobileMode = false,
+  initialExplainContext,
+  clearInitialExplainContext
+}) {
   const { messages, isLoading, isRetrying, isHistoryLoading, error, sendMessage, clearHistory, explainSelection, retryMessage } =
     useAiChat(pdfId);
   const [input, setInput] = useState("");
@@ -110,16 +118,15 @@ export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileM
     }
   }, [messages, isLoading, isRetrying]);
 
-  // Listen for text selection explanations triggered from the reader
+  // Listen for text selection explanations passed via props
   useEffect(() => {
-    const handleExplain = (e) => {
-      const { text, pageNumber } = e.detail;
-      explainSelection(text, pageNumber);
-    };
-
-    window.addEventListener("ai:explain", handleExplain);
-    return () => window.removeEventListener("ai:explain", handleExplain);
-  }, [explainSelection]);
+    if (initialExplainContext && initialExplainContext.text) {
+      explainSelection(initialExplainContext.text, initialExplainContext.pageNumber);
+      if (clearInitialExplainContext) {
+        clearInitialExplainContext();
+      }
+    }
+  }, [initialExplainContext, explainSelection, clearInitialExplainContext]);
 
   const handleSend = useCallback(
     (text, featureType = "chat", options = {}) => {
@@ -156,23 +163,23 @@ export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileM
     <div
       style={{
         display: "flex", flexDirection: "column", height: "100%",
-        background: "#1A1512", overflow: "hidden",
+        background: "var(--rw-panel-bg)", overflow: "hidden",
       }}
     >
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div
         style={{
           padding: "14px 14px 10px",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          borderBottom: "1px solid var(--rw-hover-bg)",
           flexShrink: 0,
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 15, color: "#C8A46A" }}>◈</span>
+          <span style={{ display: "flex", color: "var(--rw-accent)" }}><Sparkles size={18} /></span>
           <p style={{
             fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600,
-            color: "#F5EEE4", margin: 0,
+            color: "var(--rw-text-primary)", margin: 0,
           }}>
             Chat with Document
           </p>
@@ -185,13 +192,13 @@ export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileM
             title="Clear conversation"
             style={{
               background: "transparent", border: "none", cursor: "pointer",
-              color: "rgba(245,238,228,0.35)", fontSize: 14, padding: "2px 4px",
+              color: "var(--rw-text-muted)", fontSize: 14, padding: "2px 4px",
               borderRadius: 4, lineHeight: 1, transition: "color 0.15s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#e07060")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(245,238,228,0.35)")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--rw-danger)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--rw-text-muted)")}
           >
-            🗑
+            <Trash2 size={16} />
           </button>
         )}
       </div>
@@ -204,7 +211,7 @@ export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileM
           padding: "14px 12px 0",
           display: "flex", flexDirection: "column",
           scrollbarWidth: "thin",
-          scrollbarColor: "rgba(255,255,255,0.08) transparent",
+          scrollbarColor: "var(--rw-border) transparent",
         }}
       >
         {isHistoryLoading ? (
@@ -212,7 +219,7 @@ export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileM
             display: "flex", alignItems: "center", justifyContent: "center",
             flex: 1, gap: 8,
             fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-            color: "rgba(245,238,228,0.4)",
+            color: "var(--rw-text-muted)",
           }}>
             <span style={{ animation: "ai-dot-bounce 1s infinite" }}>Loading history…</span>
           </div>
@@ -227,11 +234,11 @@ export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileM
             {isLoading && !isRetrying && (
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
                  <div style={{
-                   width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(135deg, #2a221d, #3a2e24)",
-                   border: "1px solid rgba(200,164,106,0.3)", display: "flex", alignItems: "center", justifyContent: "center",
-                   fontSize: 12
-                 }}>◈</div>
-                 <div style={{ fontSize: 13, color: "rgba(200,164,106,0.8)", fontFamily: "'DM Sans', sans-serif", fontStyle: "italic" }}>
+                   width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(135deg, var(--rw-hover-bg), var(--rw-border))",
+                   border: "1px solid var(--rw-border)", display: "flex", alignItems: "center", justifyContent: "center",
+                   color: "var(--rw-accent)"
+                 }}><Sparkles size={14} /></div>
+                 <div style={{ fontSize: 13, color: "var(--rw-accent)", fontFamily: "'DM Sans', sans-serif", fontStyle: "italic" }}>
                    Thinking...
                  </div>
               </div>
@@ -240,11 +247,11 @@ export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileM
             {isRetrying && (
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
                  <div style={{
-                   width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(135deg, #2a221d, #3a2e24)",
-                   border: "1px solid rgba(200,164,106,0.3)", display: "flex", alignItems: "center", justifyContent: "center",
-                   fontSize: 12
-                 }}>◈</div>
-                 <div style={{ fontSize: 13, color: "#e2b36b", fontFamily: "'DM Sans', sans-serif", fontStyle: "italic" }}>
+                   width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(135deg, var(--rw-hover-bg), var(--rw-border))",
+                   border: "1px solid var(--rw-border)", display: "flex", alignItems: "center", justifyContent: "center",
+                   color: "var(--rw-accent)"
+                 }}><Sparkles size={14} /></div>
+                 <div style={{ fontSize: 13, color: "var(--rw-accent)", fontFamily: "'DM Sans', sans-serif", fontStyle: "italic" }}>
                    Attempting to reconnect to AI...
                  </div>
               </div>
@@ -282,15 +289,17 @@ export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileM
           style={{
             margin: "0 12px 6px",
             padding: "8px 12px",
-            background: "rgba(224,112,96,0.1)",
-            border: "1px solid rgba(224,112,96,0.2)",
+            background: "var(--rw-accent-muted)",
+            border: "1px solid var(--rw-border-strong)",
             borderRadius: 8,
             fontFamily: "'DM Sans', sans-serif",
-            fontSize: 11.5, color: "#e07060",
+            fontSize: 11.5, color: "var(--rw-danger)",
             flexShrink: 0,
           }}
         >
-          ⚠ {error}
+          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+            <AlertTriangle size={14} /> {error}
+          </div>
         </div>
       )}
 
@@ -298,25 +307,25 @@ export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileM
       <div
         style={{
           padding: "10px 12px 12px",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
+          borderTop: "1px solid var(--rw-hover-bg)",
           flexShrink: 0,
-          background: "#1A1512",
+          background: "var(--rw-panel-bg)",
         }}
       >
         <div
           style={{
             display: "flex", gap: 8, alignItems: "flex-end",
-            background: "#241D19",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: "var(--rw-card-bg)",
+            border: "1px solid var(--rw-border)",
             borderRadius: 10,
             padding: "8px 10px",
             transition: "border-color 0.15s",
           }}
           onFocusCapture={(e) =>
-            (e.currentTarget.style.borderColor = "rgba(200,164,106,0.35)")
+            (e.currentTarget.style.borderColor = "var(--rw-scrollbar)")
           }
           onBlurCapture={(e) =>
-            (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")
+            (e.currentTarget.style.borderColor = "var(--rw-border)")
           }
         >
           <textarea
@@ -331,8 +340,8 @@ export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileM
               flex: 1, background: "transparent", border: "none", outline: "none",
               resize: "none", overflow: "hidden",
               fontFamily: "'DM Sans', sans-serif", fontSize: 13,
-              color: "#F5EEE4", lineHeight: 1.5,
-              caretColor: "#C8A46A",
+              color: "var(--rw-text-primary)", lineHeight: 1.5,
+              caretColor: "var(--rw-accent)",
             }}
             onInput={(e) => {
               // Auto-grow textarea up to ~4 lines
@@ -346,22 +355,22 @@ export default function AiPanel({ pdfId, pageNumber = 1, numPages = 100, mobileM
             style={{
               flexShrink: 0, width: 30, height: 30, borderRadius: 8,
               background: input.trim() && !isLoading
-                ? "linear-gradient(135deg, #C8A46A, #a8843a)"
-                : "rgba(255,255,255,0.06)",
+                ? "linear-gradient(135deg, var(--rw-accent), var(--rw-accent-hover))"
+                : "var(--rw-hover-bg)",
               border: "none", cursor: input.trim() && !isLoading ? "pointer" : "not-allowed",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 14, color: input.trim() && !isLoading ? "#1A1512" : "rgba(255,255,255,0.2)",
+              fontSize: 14, color: input.trim() && !isLoading ? "var(--rw-panel-bg)" : "var(--rw-text-muted)",
               transition: "background 0.2s, color 0.2s",
               marginBottom: 1,
             }}
             title="Send message"
           >
-            ↑
+            <Send size={16} />
           </button>
         </div>
         <p style={{
           fontFamily: "'DM Sans', sans-serif", fontSize: 10,
-          color: "rgba(245,238,228,0.25)", margin: "5px 0 0", textAlign: "center",
+          color: "var(--rw-text-muted)", margin: "5px 0 0", textAlign: "center",
         }}>
           Answers are based on extracted PDF content only.
         </p>

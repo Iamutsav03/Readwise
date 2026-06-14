@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { HIGHLIGHT_COLORS } from "../../../utils/highlightHelpers";
 import ExplainSelectionButton from "./ExplainSelectionButton";
 import MeaningButton from "../../dictionary/components/MeaningButton";
+import { X } from "lucide-react";
 
 // Count words in a string (simple split on whitespace)
 function countWords(text) {
@@ -71,8 +72,8 @@ const SelectionToolbar = ({ position, selectionText, onColorPick, onAction, onCl
     display: "flex",
     gap: "8px",
     padding: "6px 8px",
-    background: "#1a1a1a",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "var(--rw-card-bg)",
+    border: "1px solid var(--rw-border-strong)",
     borderRadius: "8px",
     boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
     alignItems: "center",
@@ -123,21 +124,21 @@ const SelectionToolbar = ({ position, selectionText, onColorPick, onAction, onCl
         ))}
       </div>
 
-      <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.1)", margin: "0 2px" }} />
+      <div style={{ width: 1, height: 20, background: "var(--rw-border-strong)", margin: "0 2px" }} />
 
       {/* Basic Actions */}
       <button
         onClick={handleCopy}
         title="Copy Text"
         style={{
-          background: "transparent", border: "none", color: "#ccc", cursor: "pointer",
+          background: "transparent", border: "none", color: "var(--rw-text-muted)", cursor: "pointer",
           fontSize: "12px", fontFamily: "'DM Sans', sans-serif", padding: "4px"
         }}
       >
         Copy
       </button>
 
-      <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.1)", margin: "0 2px" }} />
+      <div style={{ width: 1, height: 20, background: "var(--rw-border-strong)", margin: "0 2px" }} />
 
       {/* Meaning / Quick Explain Button — always shown for any selection */}
       <MeaningButton
@@ -163,11 +164,11 @@ const SelectionToolbar = ({ position, selectionText, onColorPick, onAction, onCl
         }}
         title="Cancel"
         style={{
-          background: "transparent", border: "none", color: "#aaa", cursor: "pointer",
+          background: "transparent", border: "none", color: "var(--rw-text-secondary)", cursor: "pointer",
           fontSize: 18, lineHeight: 1, padding: "0 4px", display: "flex"
         }}
       >
-        ×
+        <X size={16} />
       </button>
     </div>
   );

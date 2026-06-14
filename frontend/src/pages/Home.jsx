@@ -2,17 +2,28 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import LandingContent from "../components/Landingcontent";
 import ReaderLayout from "../components/ReaderLayout";
+import { Menu } from "lucide-react";
 import { fetchAllPDFs, uploadPDF, updatePdfLastOpened } from "../utils/api";
 import { deletePdf, toggleFavorite, renamePdf } from "../services/pdfActions";
 import { usePdfNavigation } from "../hooks/usePdfNavigation";
+import { useBreakpoints } from "../hooks/useBreakpoints";
 
 const Home = ({ selectedPDF, setSelectedPDF }) => {
   const [pdfs, setPdfs] = useState([]);
   const [pageNumber, setPageNumber] = useState(1);
   const [numPages, setNumPages] = useState(0);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(() => {
+    const saved = localStorage.getItem("rw_scale");
+    return saved ? parseFloat(saved) : 1;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("rw_scale", scale.toString());
+  }, [scale]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const fileInputRef = useRef(null);
   const viewerRef = useRef(null);
+  const { isMobileOrSmaller } = useBreakpoints();
 
   const { openPdf, closePdf, goBackToLibrary } = usePdfNavigation(pdfs, selectedPDF, setSelectedPDF);
 
@@ -24,7 +35,7 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
   const handleUploadSuccess = useCallback((newPDF) => {
     setPdfs((prev) => [newPDF, ...prev]);
     openPdf(newPDF);
-    setPageNumber(1); setScale(1); setNumPages(0);
+    setPageNumber(1); setNumPages(0);
   }, [openPdf]);
 
   const handleFileInputChange = useCallback((e) => {
@@ -53,7 +64,7 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
     // openPdf handles history and setSelectedPDF
     openPdf({ ...pdf, lastOpenedAt: now });
     
-    setPageNumber(1); setScale(1); setNumPages(0);
+    setPageNumber(1); setNumPages(0);
 
     // Persist to DB silently
     updatePdfLastOpened(pdf._id).catch(console.error);
@@ -62,7 +73,7 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
   // ── Remove / clear ─────────────────────────────────────────────────────────
   const handleRemovePdf = useCallback(() => {
     closePdf();
-    setPageNumber(1); setScale(1); setNumPages(0);
+    setPageNumber(1); setNumPages(0);
   }, [closePdf]);
 
   // ── Delete ─────────────────────────────────────────────────────────────────
@@ -127,7 +138,7 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
   const mostRecent = pdfs[0] || null; // already sorted by lastOpenedAt desc
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#f7f4ef" }}>
+    <div style={{ display: "flex", height: "100dvh", overflow: "hidden", background: "var(--rw-app-bg)" }}>
       <input
         ref={fileInputRef}
         type="file"
@@ -161,7 +172,20 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
       )}
 
       {/* ── Library / Home Mode ─────────────────────────────────────────────── */}
-      <div style={{ display: selectedPDF ? "none" : "flex", flex: 1, overflow: "hidden" }}>
+      <div style={{ display: selectedPDF ? "none" : "flex", flex: 1, overflow: "hidden", position: "relative" }}>
+        {/* Mobile backdrop overlay */}
+        {isMobileOrSmaller && isSidebarOpen && (
+          <div 
+            onClick={() => setIsSidebarOpen(false)}
+            style={{
+              position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+              background: "var(--rw-popup-bg)", opacity: 0.8, zIndex: 40,
+              backdropFilter: "blur(2px)",
+              transition: "opacity 0.3s ease"
+            }}
+          />
+        )}
+        
         <Sidebar
           pdfs={pdfs}
           selectedPDF={selectedPDF}
@@ -171,8 +195,24 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
           onRemovePdf={handleDeletePdf}
           onFavorite={handleFavorite}
           onRename={handleRename}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
         />
-        <main id="lc-scroll-host" style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
+        <main id="lc-scroll-host" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", position: "relative" }}>
+          {isMobileOrSmaller && (
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              style={{
+                position: "absolute", top: "16px", left: "16px", zIndex: 10,
+                background: "var(--rw-card-bg)", color: "var(--rw-text-primary)",
+                border: "1px solid var(--rw-border)", borderRadius: "8px",
+                width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)", cursor: "pointer"
+              }}
+            >
+              <Menu size={20} />
+            </button>
+          )}
           <LandingContent
             onUploadClick={handleUploadClick}
           />

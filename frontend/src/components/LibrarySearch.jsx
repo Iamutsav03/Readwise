@@ -27,7 +27,7 @@ const LibrarySearch = ({ query, onQueryChange }) => (
         padding: "7px 10px 7px 30px",
         fontSize: 12.5,
         fontFamily: "'DM Sans', sans-serif",
-        color: "#2e2519",
+        color: "var(--rw-hover-bg)",
         background: "rgba(255,255,255,0.65)",
         border: "1.5px solid #e0d8d0",
         borderRadius: 8,
@@ -36,8 +36,8 @@ const LibrarySearch = ({ query, onQueryChange }) => (
         boxSizing: "border-box",
       }}
       onFocus={e => {
-        e.target.style.borderColor = "#b8966a";
-        e.target.style.background = "#fff";
+        e.target.style.borderColor = "var(--rw-accent)";
+        e.target.style.background = "var(--rw-text-primary)";
       }}
       onBlur={e => {
         e.target.style.borderColor = "#e0d8d0";

@@ -27,7 +27,7 @@ const SearchResultItem = ({ result, isActive, onJump }) => {
             part.startsWith("**") && part.endsWith("**") ? (
                 <strong
                     key={i}
-                    style={{ color: "#c8a870", fontWeight: 600, background: "rgba(184,150,106,0.12)", borderRadius: 2, padding: "0 1px" }}
+                    style={{ color: "var(--rw-accent)", fontWeight: 600, background: "rgba(184,150,106,0.12)", borderRadius: 2, padding: "0 1px" }}
                 >
                     {part.slice(2, -2)}
                 </strong>
@@ -53,9 +53,9 @@ const SearchResultItem = ({ result, isActive, onJump }) => {
                 background: isActive
                     ? "rgba(184,150,106,0.13)"
                     : hovered
-                        ? "rgba(255,255,255,0.05)"
+                        ? "var(--rw-border)"
                         : "transparent",
-                borderLeft: `2px solid ${isActive ? "#b8966a" : "transparent"}`,
+                borderLeft: `2px solid ${isActive ? "var(--rw-accent)" : "transparent"}`,
                 transition: "background 0.15s, border-color 0.15s",
                 marginBottom: 2,
                 // Prevent layout from expanding the panel.
@@ -80,11 +80,11 @@ const SearchResultItem = ({ result, isActive, onJump }) => {
                             fontFamily: "'DM Sans', sans-serif",
                             fontSize: 10.5,
                             fontWeight: 600,
-                            color: isActive ? "#c8a870" : "#9a8a72",
+                            color: isActive ? "var(--rw-accent)" : "#9a8a72",
                             background: isActive
                                 ? "rgba(184,150,106,0.18)"
-                                : "rgba(255,255,255,0.06)",
-                            border: `1px solid ${isActive ? "rgba(184,150,106,0.35)" : "rgba(255,255,255,0.08)"}`,
+                                : "var(--rw-hover-bg)",
+                            border: `1px solid ${isActive ? "rgba(184,150,106,0.35)" : "var(--rw-border)"}`,
                             borderRadius: 5,
                             padding: "2px 7px",
                             letterSpacing: "0.03em",
@@ -116,7 +116,7 @@ const SearchResultItem = ({ result, isActive, onJump }) => {
                 style={{
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: 12,
-                    color: hovered || isActive ? "#c8b898" : "#7a6a58",
+                    color: hovered || isActive ? "var(--rw-text-secondary)" : "var(--rw-text-secondary)",
                     lineHeight: 1.6,
                     margin: 0,
                     // Clamp to 3 lines so long snippets don't dominate.

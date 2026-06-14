@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const DictionaryCache = require("../models/DictionaryCache");
-const SavedWord = require("../models/SavedWord");
 const UserVocabulary = require("../models/UserVocabulary");
 const geminiService = require("../services/geminiService");
 
@@ -25,19 +24,7 @@ function normalizeWord(word) {
   return word.toLowerCase().trim().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "");
 }
 
-async function trackUserVocabulary(pdfId, word, meaning, pageNumber) {
-  if (!pdfId) return;
-  try {
-    const normalized = normalizeWord(word);
-    await UserVocabulary.findOneAndUpdate(
-      { pdfId, word: normalized },
-      { $setOnInsert: { pdfId, word: normalized, meaning, pageNumber } },
-      { upsert: true }
-    );
-  } catch (err) {
-    console.error("Failed to track UserVocabulary:", err);
-  }
-}
+
 
 /**
  * POST /api/dictionary/lookup
@@ -62,7 +49,6 @@ exports.lookupWord = async (req, res) => {
       cached.accessCount += 1;
       cached.lastAccessedAt = new Date();
       await cached.save();
-      await trackUserVocabulary(pdfId, cached.word, cached.meaning, pageNumber);
       console.log(`[DICT] CACHE HIT: "${normalized}"`);
       return res.status(200).json({
         success: true,
@@ -140,9 +126,6 @@ exports.lookupWord = async (req, res) => {
       accessCount: 1,
       lastAccessedAt: new Date(),
     });
-
-    // Track in vocabulary
-    await trackUserVocabulary(pdfId, newCache.word, newCache.meaning, pageNumber);
 
     console.log(`[DICT] DICTIONARY API HIT: "${normalized}"`);
 
@@ -233,9 +216,6 @@ Rules:
       lastAccessedAt: new Date(),
     });
 
-    // Track in vocabulary
-    await trackUserVocabulary(pdfId, newCache.word, newCache.meaning, pageNumber);
-
     return res.status(200).json({
       success: true,
       word: newCache.word,
@@ -260,7 +240,7 @@ Rules:
  */
 exports.saveWord = async (req, res) => {
   try {
-    const { pdfId, word, meaning, partOfSpeech, example } = req.body;
+    const { pdfId, word, meaning, pageNumber } = req.body;
 
     if (!pdfId || !mongoose.Types.ObjectId.isValid(pdfId)) {
       return res.status(400).json({ success: false, error: "Valid pdfId is required" });
@@ -271,18 +251,17 @@ exports.saveWord = async (req, res) => {
 
     const normalized = normalizeWord(word);
 
-    // Prevent duplicates for the same PDF
-    const existing = await SavedWord.findOne({ pdfId, word: normalized });
+    // Prevent duplicates for the same PDF in UserVocabulary
+    const existing = await UserVocabulary.findOne({ pdfId, word: normalized });
     if (existing) {
       return res.status(200).json({ success: true, savedWord: existing, message: "Word already saved" });
     }
 
-    const savedWord = await SavedWord.create({
+    const savedWord = await UserVocabulary.create({
       pdfId,
       word: normalized,
       meaning,
-      partOfSpeech,
-      example,
+      pageNumber: pageNumber || null,
     });
 
     return res.status(201).json({ success: true, savedWord });

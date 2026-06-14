@@ -11,6 +11,10 @@ import LibrarySearch from "./LibrarySearch";
 import PdfRow from "./PdfRow";
 import { loadPosition } from "../utils/readingStorage";
 import readingProgressStore from "../utils/readingProgressStore";
+import AppearanceModal from "../theme/AppearanceModal";
+import { useTheme } from "../theme/useTheme";
+import { useBreakpoints } from "../hooks/useBreakpoints";
+import { BookOpen, FileText, FolderOpen, Library, Palette, Paperclip, Keyboard } from "lucide-react";
 
 // ── Time helper ────────────────────────────────────────────────────────────────
 function timeAgo(dateStr) {
@@ -36,10 +40,15 @@ const Sidebar = ({
   onFavorite,
   onRename,
   fileInputRef,
+  isOpen,     // for mobile drawer
+  onClose,    // to close mobile drawer
 }) => {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
+  const { activeTheme } = useTheme();
+  const { isMobileOrSmaller, isTablet } = useBreakpoints();
 
   const { favorites, hasFavorites, totalFavorites } = useFavorites(pdfs);
   const { query, setQuery, filtered } = usePdfLibrarySearch(pdfs);
@@ -88,17 +97,17 @@ const Sidebar = ({
 
         /* ── Drop zone ── */
         .rw-drop-zone {
-          border: 1.5px dashed rgba(245,238,228,0.15);
+          border: 1.5px dashed var(--rw-border);
           border-radius: 8px;
           padding: 14px 12px;
           text-align: center;
           cursor: pointer;
           transition: border-color 0.2s, background 0.2s;
-          background: #241D19;
+          background: var(--rw-card-bg);
         }
         .rw-drop-zone:hover, .rw-drop-zone.drag {
-          border-color: #C8A46A;
-          background: rgba(200,164,106,0.05);
+          border-color: var(--rw-accent);
+          background: var(--rw-accent-muted);
         }
 
         /* ── Upload button ── */
@@ -106,8 +115,8 @@ const Sidebar = ({
           width: 100%;
           padding: 9px 0;
           border-radius: 8px;
-          background: #C8A46A;
-          color: #1A1512;
+          background: var(--rw-accent);
+          color: var(--rw-accent-text);
           font-family: 'DM Sans', sans-serif;
           font-size: 13px;
           font-weight: 600;
@@ -122,7 +131,7 @@ const Sidebar = ({
           gap: 6px;
         }
         .rw-upload-btn:hover:not(:disabled) {
-          background: #d9b67f;
+          background: var(--rw-accent-hover);
           transform: translateY(-1px);
         }
         .rw-upload-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
@@ -133,11 +142,11 @@ const Sidebar = ({
           overflow-x: hidden;
           flex: 1;
           scrollbar-width: thin;
-          scrollbar-color: rgba(245,238,228,0.2) transparent;
+          scrollbar-color: var(--rw-scrollbar) transparent;
         }
         .rw-scrollable::-webkit-scrollbar { width: 3px; }
         .rw-scrollable::-webkit-scrollbar-thumb {
-          background: rgba(245,238,228,0.2);
+          background: var(--rw-scrollbar);
           border-radius: 4px;
         }
 
@@ -145,7 +154,7 @@ const Sidebar = ({
         .rw-section-label {
           font-size: 10px;
           font-weight: 600;
-          color: rgba(245,238,228,0.5);
+          color: var(--rw-text-muted);
           text-transform: uppercase;
           letter-spacing: 0.1em;
           margin: 0 0 10px;
@@ -166,49 +175,56 @@ const Sidebar = ({
         @keyframes rw-spin { to { transform: rotate(360deg); } }
       `}</style>
 
-      <aside className="rw-sidebar" style={{
-        width: "340px",
-        minWidth: "300px",
-        maxWidth: "360px",
-        height: "100vh",
-        display: "flex",
+      <aside className={`rw-sidebar ${isMobileOrSmaller && !isOpen ? 'closed' : 'open'}`} style={{
+        width: isMobileOrSmaller ? "100vw" : (isTablet ? "80px" : "340px"),
+        minWidth: isTablet ? "80px" : "300px",
+        maxWidth: isTablet ? "80px" : "360px",
+        height: "100dvh",
+        display: isMobileOrSmaller && !isOpen ? "none" : "flex",
         flexDirection: "column",
-        background: "#1A1512",
-        borderRight: "1px solid rgba(255,255,255,0.05)",
+        background: "var(--rw-sidebar-bg)",
+        borderRight: "1px solid var(--rw-border)",
         flexShrink: 0,
-        position: "sticky",
+        position: isMobileOrSmaller ? "fixed" : "sticky",
         top: 0,
+        left: 0,
+        zIndex: isMobileOrSmaller ? 50 : 1,
         overflow: "hidden",
+        transition: "width 0.3s ease, transform 0.3s ease",
       }}>
 
         {/* ── Logo ───────────────────────────────────────── */}
-        <div style={{ padding: "20px 20px 14px", flexShrink: 0 }}>
+        <div style={{ padding: isTablet ? "20px 0" : "20px 20px 14px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: isTablet ? "center" : "flex-start" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <div style={{
-              width: 26, height: 26, background: "#C8A46A",
+              width: 26, height: 26, background: "var(--rw-accent)",
               borderRadius: 6, display: "flex", alignItems: "center",
-              justifyContent: "center", fontSize: 13, flexShrink: 0,
-            }}>📖</div>
-            <span style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: 17, fontWeight: 600, color: "#F5EEE4", letterSpacing: "-0.01em",
-            }}>ReadWise</span>
+              justifyContent: "center", color: "var(--rw-accent-text)", flexShrink: 0,
+            }}><BookOpen size={16} /></div>
+            {!isTablet && (
+              <span style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: 17, fontWeight: 600, color: "var(--rw-text-primary)", letterSpacing: "-0.01em",
+              }}>ReadWise</span>
+            )}
           </div>
-          <p style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 12, color: "rgba(245,238,228,0.7)", marginTop: 6, lineHeight: 1.45,
-          }}>
-            Your intelligent reading workspace.
-          </p>
+          {!isTablet && (
+            <p style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 12, color: "var(--rw-text-secondary)", marginTop: 6, lineHeight: 1.45,
+            }}>
+              Your intelligent reading workspace.
+            </p>
+          )}
         </div>
 
-        <div style={{ height: 1, background: "rgba(255,255,255,0.05)", flexShrink: 0 }} />
+        <div style={{ height: 1, background: "var(--rw-border)", flexShrink: 0 }} />
 
         {/* ── Scrollable ─────────────── */}
         <div className="rw-scrollable" style={{ padding: "14px 12px 12px", display: "flex", flexDirection: "column" }}>
 
           {/* CONTINUE READING */}
-          {mostRecent && (() => {
+          {mostRecent && !isTablet && (() => {
             // Use live store data when the most-recent PDF is currently open,
             // fall back to localStorage for previously-read PDFs.
             const isLive = liveProgress.pdfId === mostRecent._id;
@@ -222,37 +238,37 @@ const Sidebar = ({
                   onClick={() => onSelect(mostRecent)}
                   style={{
                     padding: "12px 14px",
-                    background: "#241D19",
-                    border: "1px solid rgba(255,255,255,0.05)",
+                    background: "var(--rw-card-bg)",
+                    border: "1px solid var(--rw-border)",
                     borderRadius: 8,
                     cursor: "pointer",
                     transition: "transform 0.15s, background 0.15s",
                   }}
                   onMouseEnter={e => {
                     e.currentTarget.style.transform = "translateY(-1px)";
-                    e.currentTarget.style.background = "#2a221d";
+                    e.currentTarget.style.background = "var(--rw-hover-bg)";
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.background = "#241D19";
+                    e.currentTarget.style.background = "var(--rw-card-bg)";
                   }}
                   title="Continue reading"
                 >
                   <p style={{
                     fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 13, fontWeight: 600, color: "#F5EEE4",
+                    fontSize: 13, fontWeight: 600, color: "var(--rw-text-primary)",
                     margin: "0 0 6px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                   }}>
                     {mostRecent.originalName.replace(/\.pdf$/i, "")}
                   </p>
                   <div style={{
                     fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 11, color: "rgba(245,238,228,0.7)", margin: 0,
+                    fontSize: 11, color: "var(--rw-text-secondary)", margin: 0,
                     display: "flex", flexDirection: "column", gap: 3
                   }}>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span>Page {p} / {total > 1 ? total : "?"}</span>
-                      <span style={{ color: "#C8A46A", fontWeight: 500 }}>{pct}% Completed</span>
+                      <span style={{ color: "var(--rw-accent)", fontWeight: 500 }}>{pct}% Completed</span>
                     </div>
                     <span style={{ fontSize: 10, opacity: 0.8, marginTop: 2 }}>{timeAgo(mostRecent.lastOpenedAt) || "Never opened"}</span>
                   </div>
@@ -274,28 +290,35 @@ const Sidebar = ({
 
             {pdfs.length === 0 ? (
               <>
-                <p className="rw-section-label">Upload</p>
+                {!isTablet && <p className="rw-section-label">Upload</p>}
                 <div
                   className={`rw-drop-zone${dragging ? " drag" : ""}`}
                   onDrop={handleDrop}
                   onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                   onDragLeave={() => setDragging(false)}
                   onClick={triggerBrowse}
+                  style={{
+                    padding: isTablet ? "14px 0" : "14px 12px",
+                  }}
                 >
                   <div style={{
-                    width: 30, height: 30, margin: "0 auto 7px",
-                    background: "#1A1512", borderRadius: 8,
+                    width: 30, height: 30, margin: isTablet ? "0 auto" : "0 auto 7px",
+                    background: "var(--rw-sidebar-bg)", borderRadius: 8,
                     display: "flex", alignItems: "center",
-                    justifyContent: "center", fontSize: 14,
+                    justifyContent: "center", color: "var(--rw-text-secondary)",
                   }}>
-                    {dragging ? "📂" : "📄"}
+                    {dragging ? <FolderOpen size={18} /> : <FileText size={18} />}
                   </div>
-                  <p style={{ fontSize: 12.5, color: "#F5EEE4", fontWeight: 500, margin: "0 0 2px" }}>
-                    {dragging ? "Drop to upload" : "Drop a PDF here"}
-                  </p>
-                  <p style={{ fontSize: 11, color: "rgba(245,238,228,0.5)", margin: 0 }}>
-                    or click to browse · max 20 MB
-                  </p>
+                  {!isTablet && (
+                    <>
+                      <p style={{ fontSize: 12.5, color: "var(--rw-text-primary)", fontWeight: 500, margin: "0 0 2px" }}>
+                        {dragging ? "Drop to upload" : "Drop a PDF here"}
+                      </p>
+                      <p style={{ fontSize: 11, color: "var(--rw-text-muted)", margin: 0 }}>
+                        or click to browse · max 20 MB
+                      </p>
+                    </>
+                  )}
                 </div>
                 {error && (
                   <p style={{ fontSize: 11.5, color: "#e07060", margin: "6px 0 0" }}>{error}</p>
@@ -304,10 +327,13 @@ const Sidebar = ({
                   className="rw-upload-btn"
                   onClick={triggerBrowse}
                   disabled={uploading}
+                  style={{
+                    padding: isTablet ? "9px 0" : "9px 0",
+                  }}
                 >
                   {uploading
-                    ? <><span style={{ display: "inline-block", animation: "rw-spin 0.8s linear infinite" }}>◌</span> Uploading…</>
-                    : <><span style={{ fontSize: 14 }}>+</span> Choose a PDF</>
+                    ? <><span style={{ display: "inline-block", animation: "rw-spin 0.8s linear infinite" }}>◌</span> {!isTablet && "Uploading…"}</>
+                    : <><span style={{ fontSize: 14 }}>+</span> {!isTablet && "Choose a PDF"}</>
                   }
                 </button>
               </>
@@ -320,11 +346,11 @@ const Sidebar = ({
                   className="rw-upload-btn"
                   onClick={triggerBrowse}
                   disabled={uploading}
-                  style={{ marginTop: 0 }}
+                  style={{ marginTop: 0, padding: isTablet ? "9px 0" : "9px 0" }}
                 >
                   {uploading
-                    ? <><span style={{ display: "inline-block", animation: "rw-spin 0.8s linear infinite" }}>◌</span> Uploading…</>
-                    : <><span style={{ fontSize: 14 }}>+</span> Upload PDF</>
+                    ? <><span style={{ display: "inline-block", animation: "rw-spin 0.8s linear infinite" }}>◌</span> {!isTablet && "Uploading…"}</>
+                    : <><span style={{ fontSize: 14 }}>+</span> {!isTablet && "Upload PDF"}</>
                   }
                 </button>
               </>
@@ -347,8 +373,8 @@ const Sidebar = ({
                 {pdfs.length > 0 && (
                   <span style={{
                     marginLeft: 6, fontSize: 9.5, fontWeight: 500,
-                    background: "#241D19", borderRadius: 4,
-                    padding: "1px 5px", color: "rgba(245,238,228,0.7)", letterSpacing: "0.04em",
+                    background: "var(--rw-card-bg)", borderRadius: 4,
+                    padding: "1px 5px", color: "var(--rw-text-secondary)", letterSpacing: "0.04em",
                   }}>{pdfs.length}</span>
                 )}
               </p>
@@ -363,16 +389,16 @@ const Sidebar = ({
               <div className="rw-empty">
                 <div style={{
                   width: 40, height: 40, borderRadius: 10,
-                  background: "#241D19", display: "flex",
-                  alignItems: "center", justifyContent: "center", fontSize: 18,
-                }}>📚</div>
-                <p style={{ fontSize: 12.5, color: "rgba(245,238,228,0.5)", margin: 0, lineHeight: 1.6 }}>
+                  background: "var(--rw-card-bg)", display: "flex", color: "var(--rw-text-muted)",
+                  alignItems: "center", justifyContent: "center",
+                }}><Library size={20} /></div>
+                <p style={{ fontSize: 12.5, color: "var(--rw-text-muted)", margin: 0, lineHeight: 1.6 }}>
                   No PDFs yet.<br />Upload one to get started.
                 </p>
               </div>
             ) : filtered.length === 0 ? (
               <div className="rw-empty" style={{ padding: "18px 16px" }}>
-                <p style={{ fontSize: 12.5, color: "rgba(245,238,228,0.5)", margin: 0 }}>
+                <p style={{ fontSize: 12.5, color: "var(--rw-text-muted)", margin: 0 }}>
                   No PDFs found
                 </p>
               </div>
@@ -392,50 +418,64 @@ const Sidebar = ({
               </ul>
             )}
           </div>
-          
-          {/* ── AI Workspace Placeholder ─────────────────────── */}
-          <div style={{ marginTop: "auto", paddingTop: 20 }}>
-            <div style={{
-              padding: "12px", background: "rgba(200,164,106,0.06)",
-              borderRadius: 8, border: "1px solid rgba(200,164,106,0.15)"
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: "#C8A46A", fontFamily: "'DM Sans', sans-serif" }}>AI Workspace</span>
-                <span style={{ fontSize: 9, fontWeight: 500, color: "rgba(245,238,228,0.7)", background: "#241D19", padding: "2px 5px", borderRadius: 4, textTransform: "uppercase" }}>Coming Soon</span>
-              </div>
-              <ul style={{ margin: 0, padding: 0, listStyle: "none", fontSize: 11.5, color: "rgba(245,238,228,0.5)", fontFamily: "'DM Sans', sans-serif", display: "flex", flexDirection: "column", gap: 3 }}>
-                <li>✨ Chat with PDF</li>
-                <li>📝 Summaries</li>
-                <li>📇 Flashcards</li>
-                <li>🎯 Quiz Generation</li>
-              </ul>
-            </div>
-          </div>
+        </div>
+
+        {/* ── Appearance Button ───────────────────────────────── */}
+        <div style={{ padding: "0 20px 12px", flexShrink: 0 }}>
+          <button
+            onClick={() => setIsAppearanceOpen(true)}
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              background: "var(--rw-card-bg)",
+              border: "1px solid var(--rw-border)",
+              borderRadius: "8px",
+              color: "var(--rw-text-primary)",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: "13px",
+              fontWeight: 500,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              cursor: "pointer",
+              transition: "background 0.15s ease",
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = "var(--rw-hover-bg)"}
+            onMouseLeave={e => e.currentTarget.style.background = "var(--rw-card-bg)"}
+          >
+            <Palette size={16} />
+            <span>Appearance: {activeTheme?.name}</span>
+          </button>
         </div>
 
         {/* ── Footer tips ─────────────────────────────────── */}
         <div style={{
           padding: "12px 20px 16px",
-          borderTop: "1px solid rgba(255,255,255,0.05)",
+          borderTop: "1px solid var(--rw-border)",
           flexShrink: 0,
           display: "flex",
           flexDirection: "column",
           gap: 4,
         }}>
           {[
-            ["📎", "PDFs up to 20 MB"],
-            ["⌨️", "Arrow keys turn pages"],
+            [<Paperclip size={12} key="size" />, "PDFs up to 20 MB"],
+            [<Keyboard size={12} key="keys" />, "Arrow keys turn pages"],
           ].map(([icon, text]) => (
             <div key={text} style={{
               display: "flex", alignItems: "center", gap: 6,
-              fontSize: 11, color: "rgba(245,238,228,0.5)",
+              fontSize: 11, color: "var(--rw-text-muted)",
             }}>
-              <span style={{ fontSize: 11 }}>{icon}</span>
+              <div style={{ display: "flex", alignItems: "center", color: "var(--rw-text-muted)" }}>{icon}</div>
               <span>{text}</span>
             </div>
           ))}
         </div>
       </aside>
+
+      <AppearanceModal 
+        isOpen={isAppearanceOpen} 
+        onClose={() => setIsAppearanceOpen(false)} 
+      />
     </>
   );
 };

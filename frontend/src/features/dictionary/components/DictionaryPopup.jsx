@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
+import { useBreakpoints } from "../../../hooks/useBreakpoints";
+import MobileBottomSheet from "../../../components/MobileBottomSheet";
+import { Bookmark, Sparkles, X } from "lucide-react";
 
 /**
  * Action registry for the dictionary popup.
@@ -8,14 +11,14 @@ import { createPortal } from "react-dom";
 const ACTION_REGISTRY = [
   {
     id: "save",
-    icon: "⭐",
+    icon: <Bookmark size={14} />,
     label: "Save Word",
     savedLabel: "Saved!",
     type: "save",
   },
   {
     id: "explain",
-    icon: "🧠",
+    icon: <Sparkles size={14} />,
     label: "Explain Further",
     type: "explain",
   },
@@ -29,13 +32,13 @@ const styles = {
   },
   popup: {
     pointerEvents: "all",
-    background: "linear-gradient(160deg, #1a1512 0%, #241d19 100%)",
-    border: "1px solid rgba(200,164,106,0.2)",
+    background: "var(--rw-popup-bg)",
+    border: "1px solid var(--rw-border)",
     borderRadius: "12px",
     padding: "16px",
     width: "280px",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(200,164,106,0.1)",
-    fontFamily: "'DM Sans', sans-serif",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.1)",
+    fontFamily: "var(--rw-font-family)",
   },
   header: {
     display: "flex",
@@ -46,23 +49,23 @@ const styles = {
   wordTitle: {
     fontSize: "18px",
     fontWeight: 700,
-    color: "#F5EEE4",
+    color: "var(--rw-text-primary)",
     margin: 0,
     textTransform: "capitalize",
   },
   pronunciation: {
     fontSize: "11px",
-    color: "rgba(200,164,106,0.7)",
+    color: "var(--rw-text-secondary)",
     marginTop: "2px",
     fontStyle: "italic",
   },
   badge: {
-    background: "rgba(200,164,106,0.1)",
-    border: "1px solid rgba(200,164,106,0.2)",
+    background: "var(--rw-accent-muted)",
+    border: "1px solid var(--rw-border)",
     borderRadius: "4px",
     padding: "2px 8px",
     fontSize: "11px",
-    color: "#C8A46A",
+    color: "var(--rw-accent)",
     fontWeight: 600,
     textTransform: "uppercase",
     letterSpacing: "0.5px",
@@ -74,20 +77,20 @@ const styles = {
     fontSize: "10px",
     textTransform: "uppercase",
     letterSpacing: "0.8px",
-    color: "rgba(245,238,228,0.4)",
+    color: "var(--rw-text-muted)",
     marginBottom: "3px",
   },
   content: {
     fontSize: "13px",
-    color: "#F5EEE4",
+    color: "var(--rw-text-primary)",
     lineHeight: 1.55,
     margin: 0,
   },
   example: {
     fontSize: "12px",
-    color: "rgba(245,238,228,0.65)",
+    color: "var(--rw-text-secondary)",
     fontStyle: "italic",
-    borderLeft: "2px solid rgba(200,164,106,0.3)",
+    borderLeft: "2px solid var(--rw-border)",
     paddingLeft: "8px",
     margin: 0,
     lineHeight: 1.5,
@@ -99,16 +102,16 @@ const styles = {
     marginTop: "4px",
   },
   synonymChip: {
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "var(--rw-card-bg)",
+    border: "1px solid var(--rw-border)",
     borderRadius: "4px",
     padding: "2px 7px",
     fontSize: "11px",
-    color: "rgba(245,238,228,0.7)",
+    color: "var(--rw-text-secondary)",
   },
   divider: {
     height: "1px",
-    background: "rgba(255,255,255,0.06)",
+    background: "var(--rw-border)",
     margin: "10px 0",
   },
   actions: {
@@ -122,11 +125,14 @@ const styles = {
     marginLeft: "auto",
     background: "transparent",
     border: "none",
-    color: "rgba(245,238,228,0.4)",
+    color: "var(--rw-text-muted)",
     cursor: "pointer",
-    fontSize: "14px",
-    padding: "2px 4px",
-    lineHeight: 1,
+    fontSize: "16px",
+    minWidth: "44px",
+    minHeight: "44px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   errorBox: {
     padding: "10px",
@@ -153,6 +159,7 @@ export default function DictionaryPopup({
 }) {
   const popupRef = useRef(null);
   const [adjustedPos, setAdjustedPos] = useState({ top: 0, left: 0 });
+  const { isMobileOrSmaller: isMobile } = useBreakpoints();
 
   useLayoutEffect(() => {
     if (!position || !popupRef.current) return;
@@ -223,14 +230,18 @@ export default function DictionaryPopup({
           from { opacity: 0; transform: translateY(6px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        .rw-dict-btn:focus-visible {
+          outline: 2px solid var(--rw-accent);
+          outline-offset: 2px;
+        }
       `}</style>
       <div
-        ref={popupRef}
-        style={popupStyle}
+        ref={isMobile ? null : popupRef}
+        style={isMobile ? { padding: "0 16px 24px", fontFamily: "var(--rw-font-family)" } : popupStyle}
         onMouseDown={(e) => e.stopPropagation()} // Stop propagation so ReaderLayout doesn't clear selection
       >
         {isLoading && (
-          <div style={{ color: "rgba(200,164,106,0.8)", fontSize: 13, textAlign: "center", padding: "8px 0" }}>
+          <div style={{ color: "var(--rw-accent)", fontSize: 13, textAlign: "center", padding: "8px 0" }}>
             {isLoading === "fallback" ? "Getting a deeper explanation..." : "Looking up meaning..."}
           </div>
         )}
@@ -241,12 +252,13 @@ export default function DictionaryPopup({
             <div style={{ ...styles.divider, marginTop: "10px" }} />
             <div style={styles.actions}>
               <button
+                className="rw-dict-btn"
                 onClick={onExplainFurther}
-                style={{ background: "transparent", border: "1px solid rgba(200,164,106,0.3)", color: "#C8A46A", borderRadius: 4, padding: "4px 10px", fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}
+                style={{ background: "transparent", border: "1px solid var(--rw-border)", color: "var(--rw-accent)", borderRadius: 6, padding: "8px 12px", minHeight: 44, display: "inline-flex", gap: 6, alignItems: "center", fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}
               >
-                🧠 Explain AI
+                <Sparkles size={14} /> Explain AI
               </button>
-              <button onClick={onClose} style={styles.closeBtn}>❌</button>
+              <button className="rw-dict-btn" onClick={onClose} style={styles.closeBtn}><X size={16} /></button>
             </div>
           </div>
         )}
@@ -301,15 +313,20 @@ export default function DictionaryPopup({
                   return (
                     <button
                       key={action.id}
+                      className="rw-dict-btn"
                       onClick={() => handleAction(action.id)}
                       disabled={isSaved || isSaving}
                       style={{
-                        background: isSaved ? "rgba(200,164,106,0.2)" : "transparent",
-                        border: `1px solid ${isSaved ? "rgba(200,164,106,0.5)" : "rgba(255,255,255,0.1)"}`,
-                        color: isSaved ? "#C8A46A" : "rgba(245,238,228,0.7)",
-                        borderRadius: 4,
-                        padding: "4px 10px",
-                        fontSize: 12,
+                        background: isSaved ? "var(--rw-accent-muted)" : "transparent",
+                        border: `1px solid ${isSaved ? "var(--rw-border-strong)" : "var(--rw-border-strong)"}`,
+                        color: isSaved ? "var(--rw-accent)" : "var(--rw-text-secondary)",
+                        borderRadius: 6,
+                        padding: "8px 12px",
+                        minHeight: 44,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontSize: 13,
                         cursor: isSaved ? "default" : "pointer",
                         fontFamily: "'DM Sans', sans-serif",
                         transition: "all 0.2s",
@@ -322,14 +339,19 @@ export default function DictionaryPopup({
                 return (
                   <button
                     key={action.id}
+                    className="rw-dict-btn"
                     onClick={() => handleAction(action.id)}
                     style={{
-                      background: "linear-gradient(135deg, #2a221d, #3a2e24)",
-                      border: "1px solid rgba(200,164,106,0.3)",
-                      color: "#C8A46A",
-                      borderRadius: 4,
-                      padding: "4px 10px",
-                      fontSize: 12,
+                      background: "linear-gradient(135deg, var(--rw-hover-bg), var(--rw-border))",
+                      border: "1px solid var(--rw-border)",
+                      color: "var(--rw-accent)",
+                      borderRadius: 6,
+                      padding: "8px 12px",
+                      minHeight: 44,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      fontSize: 13,
                       cursor: "pointer",
                       fontFamily: "'DM Sans', sans-serif",
                       fontWeight: 600,
@@ -339,13 +361,26 @@ export default function DictionaryPopup({
                   </button>
                 );
               })}
-              <button onClick={onClose} style={styles.closeBtn} title="Close">❌</button>
+              <button className="rw-dict-btn" onClick={onClose} style={styles.closeBtn} title="Close"><X size={16} /></button>
             </div>
           </>
         )}
       </div>
     </>
   );
+
+  if (isMobile) {
+    return (
+      <MobileBottomSheet
+        isOpen={true}
+        onClose={onClose}
+        title="Dictionary"
+        fullScreen={false}
+      >
+        {popupContent}
+      </MobileBottomSheet>
+    );
+  }
 
   return createPortal(popupContent, document.body);
 }

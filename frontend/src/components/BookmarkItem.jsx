@@ -33,9 +33,9 @@ const BookmarkItem = ({ bookmark, isActive, onJump, onDelete }) => {
         background: isActive
           ? "rgba(184, 150, 106, 0.13)"
           : hovered
-          ? "rgba(255, 255, 255, 0.05)"
+          ? "var(--rw-border)"
           : "transparent",
-        borderLeft: `2px solid ${isActive ? "#b8966a" : "transparent"}`,
+        borderLeft: `2px solid ${isActive ? "var(--rw-accent)" : "transparent"}`,
         transition: "background 0.15s, border-color 0.15s",
         marginBottom: 4,
         boxSizing: "border-box",
@@ -55,13 +55,13 @@ const BookmarkItem = ({ bookmark, isActive, onJump, onDelete }) => {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ color: "#c8a870", fontSize: 13, userSelect: "none" }}>🔖</span>
+          <span style={{ color: "var(--rw-accent)", fontSize: 13, userSelect: "none" }}>🔖</span>
           <span
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 13,
               fontWeight: 600,
-              color: isActive ? "#c8a870" : "#e8d8b8",
+              color: isActive ? "var(--rw-accent)" : "var(--rw-text-primary)",
               letterSpacing: "0.01em",
             }}
           >
@@ -73,7 +73,7 @@ const BookmarkItem = ({ bookmark, isActive, onJump, onDelete }) => {
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 10,
-              color: "#7a6a58",
+              color: "var(--rw-text-secondary)",
               paddingLeft: 20,
             }}
           >
@@ -94,7 +94,7 @@ const BookmarkItem = ({ bookmark, isActive, onJump, onDelete }) => {
         style={{
           background: "none",
           border: "none",
-          color: deleteHovered ? "#e07060" : "#7a6a58",
+          color: deleteHovered ? "#e07060" : "var(--rw-text-secondary)",
           cursor: "pointer",
           fontSize: 14,
           padding: "6px 8px",

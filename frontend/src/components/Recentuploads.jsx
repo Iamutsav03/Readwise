@@ -37,7 +37,7 @@ const RecentUploads = ({ pdfs, selectedPDF, onSelect }) => {
                                         marginBottom: "4px",
                                     }}
                                     onMouseEnter={(e) => {
-                                        if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+                                        if (!isActive) e.currentTarget.style.background = "var(--rw-border)";
                                     }}
                                     onMouseLeave={(e) => {
                                         if (!isActive) e.currentTarget.style.background = "transparent";
@@ -46,7 +46,7 @@ const RecentUploads = ({ pdfs, selectedPDF, onSelect }) => {
                                     {/* PDF icon */}
                                     <div style={{
                                         width: "32px", height: "32px", flexShrink: 0,
-                                        background: isActive ? "rgba(212, 175, 120, 0.15)" : "rgba(255,255,255,0.06)",
+                                        background: isActive ? "rgba(212, 175, 120, 0.15)" : "var(--rw-hover-bg)",
                                         borderRadius: "8px",
                                         display: "flex", alignItems: "center", justifyContent: "center",
                                         fontSize: "14px",
@@ -60,7 +60,7 @@ const RecentUploads = ({ pdfs, selectedPDF, onSelect }) => {
                                             fontFamily: "'DM Sans', sans-serif",
                                             fontSize: "13px",
                                             fontWeight: "500",
-                                            color: isActive ? "#d4af78" : "rgba(255,255,255,0.75)",
+                                            color: isActive ? "var(--rw-accent)" : "rgba(255,255,255,0.75)",
                                             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                                             margin: 0,
                                         }}>

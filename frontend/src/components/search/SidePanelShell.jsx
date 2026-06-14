@@ -57,7 +57,7 @@ const SoonPanel = ({ label }) => (
         fontFamily: "'DM Sans', sans-serif",
         fontSize: 10,
         fontWeight: 500,
-        color: "#b8966a",
+        color: "var(--rw-accent)",
         textTransform: "uppercase",
         letterSpacing: "0.1em",
       }}
@@ -113,7 +113,7 @@ const RailBtn = ({ tab, isActive, onClick }) => {
             bottom: "20%",
             width: 2,
             borderRadius: "2px 0 0 2px",
-            background: "#b8966a",
+            background: "var(--rw-accent)",
           }}
         />
       )}
@@ -123,10 +123,10 @@ const RailBtn = ({ tab, isActive, onClick }) => {
           fontSize: 19,
           lineHeight: 1,
           color: isActive
-            ? "#c8a870"
+            ? "var(--rw-accent)"
             : hovered && !tab.soon
-            ? "#c8b898"
-            : "#7a6a58",
+            ? "var(--rw-accent-hover)"
+            : "var(--rw-text-secondary)",
           transition: "color 0.15s",
           opacity: tab.soon ? 0.3 : 1,
           userSelect: "none",
@@ -145,7 +145,7 @@ const RailBtn = ({ tab, isActive, onClick }) => {
             width: 4,
             height: 4,
             borderRadius: "50%",
-            background: "#3a3028",
+            background: "var(--rw-card-bg)",
             opacity: 0.4,
           }}
         />
@@ -153,6 +153,8 @@ const RailBtn = ({ tab, isActive, onClick }) => {
     </button>
   );
 };
+
+import { useBreakpoints } from "../../hooks/useBreakpoints";
 
 // ── Main shell ────────────────────────────────────────────────────────────────
 const SidePanelShell = ({
@@ -172,10 +174,13 @@ const SidePanelShell = ({
   onSetActiveNote,
   hoveredNoteId,
   onHoverNoteChange,
+  isFocusMode,
+  initialExplainContext,
+  clearInitialExplainContext,
 }) => {
   const searchInputRef = useRef(null);
   const isOpen = activeTab !== null;
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const { isMobileOrSmaller: isMobile, isTablet } = useBreakpoints();
 
   // Autofocus the search input whenever the search tab opens.
   useEffect(() => {
@@ -251,6 +256,8 @@ const SidePanelShell = ({
             pageNumber={pageNumber}
             numPages={numPages}
             mobileMode={isMobile}
+            initialExplainContext={initialExplainContext}
+            clearInitialExplainContext={clearInitialExplainContext}
           />
         );
       default:
@@ -258,13 +265,21 @@ const SidePanelShell = ({
     }
   };
 
+  const hideShell = isFocusMode && !isOpen;
+  
   return (
     <div
+      className={`focus-transition ${hideShell ? "focus-hide-x" : ""}`}
       style={{
         display: "flex",
         flexDirection: "row",
         height: "100%",
         flexShrink: 0,
+        position: isTablet ? "absolute" : "relative",
+        right: isTablet ? 0 : "auto",
+        top: isTablet ? 0 : "auto",
+        bottom: isTablet ? 0 : "auto",
+        zIndex: isMobile ? 9999 : (isTablet ? 10 : 1),
       }}
     >
       {/* ── Collapsible panel / Bottom Sheet ────────────────────── */}
@@ -274,11 +289,15 @@ const SidePanelShell = ({
           onClose={() => setActiveTab(null)}
           title={TABS.find((t) => t.id === activeTab)?.label || "Panel"}
           onHeightChange={onBottomSheetHeightChange}
+          fullScreen={true}
         >
           {renderPanel()}
         </MobileBottomSheet>
       ) : (
-        <div className={`side-panel ${isOpen ? "open" : ""}`}>
+        <div className={`side-panel ${isOpen ? "open" : ""}`} style={{ 
+          boxShadow: isTablet && isOpen ? "-4px 0 16px rgba(0,0,0,0.1)" : "none",
+          borderLeft: isTablet && isOpen ? "1px solid var(--rw-border)" : "none"
+        }}>
           <div className="side-panel-inner">
             {renderPanel()}
           </div>
@@ -286,12 +305,13 @@ const SidePanelShell = ({
       )}
 
       {/* ── Always-visible icon rail ───────────────────────────────── */}
-      <div
+      {!isMobile && (
+        <div
         style={{
           width: 40,
           flexShrink: 0,
-          background: "#0a0806",
-          borderLeft: "1px solid rgba(255,255,255,0.05)",
+          background: "var(--rw-rail-bg)",
+          borderLeft: "1px solid var(--rw-border)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -310,7 +330,8 @@ const SidePanelShell = ({
             onClick={() => handleRailClick(tab)}
           />
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

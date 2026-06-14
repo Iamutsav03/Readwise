@@ -91,7 +91,7 @@ const UploadCard = ({ onUploadSuccess, fileInputRef, triggerUpload }) => {
             >
                 <div style={{
                     width: "40px", height: "40px", margin: "0 auto 10px",
-                    background: "rgba(255,255,255,0.06)", borderRadius: "10px",
+                    background: "var(--rw-hover-bg)", borderRadius: "10px",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: "18px",
                 }}>
@@ -131,7 +131,7 @@ const UploadCard = ({ onUploadSuccess, fileInputRef, triggerUpload }) => {
                 style={{
                     width: "100%", padding: "11px 0",
                     borderRadius: "10px",
-                    background: selectedFile ? "#d4af78" : "rgba(255,255,255,0.06)",
+                    background: selectedFile ? "var(--rw-accent)" : "var(--rw-hover-bg)",
                     color: selectedFile ? "#0f0f0f" : "rgba(255,255,255,0.25)",
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: "13.5px", fontWeight: "500",
@@ -145,7 +145,7 @@ const UploadCard = ({ onUploadSuccess, fileInputRef, triggerUpload }) => {
                     }
                 }}
                 onMouseLeave={(e) => {
-                    e.currentTarget.style.background = selectedFile ? "#d4af78" : "rgba(255,255,255,0.06)";
+                    e.currentTarget.style.background = selectedFile ? "var(--rw-accent)" : "var(--rw-hover-bg)";
                     e.currentTarget.style.transform = "translateY(0)";
                 }}
             >
