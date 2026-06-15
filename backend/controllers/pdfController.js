@@ -9,6 +9,11 @@ const PDFPage = require("../models/PDFPage");
 const Bookmark = require("../models/Bookmark");
 const Highlight = require("../models/Highlight");
 const Note = require("../models/Note");
+const AiChatMessage = require("../models/AiChatMessage");
+const SavedWord = require("../models/SavedWord");
+const UserVocabulary = require("../models/UserVocabulary");
+const aiCacheService = require("../services/aiCacheService");
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPER: Extract page-wise text from a PDF file on disk
@@ -255,6 +260,26 @@ const deletePDF = async (req, res) => {
     // Cascade delete: remove all notes for this PDF
     const { deletedCount: deletedNotesCount } = await Note.deleteMany({ pdfId: pdf._id });
     console.log(`🗑️  Removed ${deletedNotesCount} note(s) for "${pdf.originalName}"`);
+
+    // Cascade delete: AI/vocabulary auxiliary data (non-fatal — failures are logged only)
+    try {
+      const { deletedCount: deletedMsgs } = await AiChatMessage.deleteMany({ pdfId: pdf._id });
+      console.log(`🗑️  Removed ${deletedMsgs} AI chat message(s) for "${pdf.originalName}"`);
+
+      const { deletedCount: deletedWords } = await SavedWord.deleteMany({ pdfId: pdf._id });
+      console.log(`🗑️  Removed ${deletedWords} saved word(s) for "${pdf.originalName}"`);
+
+      const { deletedCount: deletedVocab } = await UserVocabulary.deleteMany({ pdfId: pdf._id });
+      console.log(`🗑️  Removed ${deletedVocab} vocabulary entry(ies) for "${pdf.originalName}"`);
+    } catch (auxErr) {
+      console.error(
+        `⚠️  Partial cleanup failure for "${pdf.originalName}" — PDF will still be deleted:`,
+        auxErr.message
+      );
+    }
+
+    // Invalidate any cached AI responses for this PDF
+    await aiCacheService.invalidatePdf(pdf._id);
 
     // 3. Remove the PDF metadata document
     await PDF.findByIdAndDelete(req.params.id);
