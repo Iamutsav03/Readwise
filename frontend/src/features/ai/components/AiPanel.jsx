@@ -120,13 +120,29 @@ export default function AiPanel({
 
   // Listen for text selection explanations passed via props
   useEffect(() => {
-    if (initialExplainContext && initialExplainContext.text) {
-      explainSelection(initialExplainContext.text, initialExplainContext.pageNumber);
-      if (clearInitialExplainContext) {
-        clearInitialExplainContext();
-      }
+    if (!initialExplainContext?.text) return;
+
+    const { text, pageNumber: pageNum, mode } = initialExplainContext;
+
+    if (mode === "summary") {
+      // Summary: concise key-points of a paragraph/passage
+      sendMessage(
+        `Summarise the following passage in concise bullet points, capturing the key ideas:\n\n"${text}"`,
+        "chat"
+      );
+    } else if (mode === "deep") {
+      // Deep Explain: full contextual analysis via dedicated endpoint
+      explainSelection(text, pageNum);
+    } else {
+      // quick_explain (default): brief, plain-language explanation
+      sendMessage(
+        `Briefly explain this in simple terms (2–3 sentences):\n\n"${text}"`,
+        "chat"
+      );
     }
-  }, [initialExplainContext, explainSelection, clearInitialExplainContext]);
+
+    if (clearInitialExplainContext) clearInitialExplainContext();
+  }, [initialExplainContext, explainSelection, sendMessage, clearInitialExplainContext]);
 
   const handleSend = useCallback(
     (text, featureType = "chat", options = {}) => {

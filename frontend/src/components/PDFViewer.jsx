@@ -130,7 +130,7 @@ const PDFViewer = forwardRef(function PDFViewer(
     fitToWidth,
   ]);
 
-  // Re-fit on window resize (respects whichever mode the toolbar last set)
+  // Re-fit on window resize or when Focus Mode changes
   useEffect(() => {
     const handleResize = () => {
       if (fitMode === "width") {
@@ -140,8 +140,18 @@ const PDFViewer = forwardRef(function PDFViewer(
       }
     };
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [fitToScreen, fitToWidth, fitMode]);
+    
+    // Also re-fit when Focus Mode toggles, because the container width changes
+    // We use a small timeout to let the CSS transition or display:none take effect
+    const timeoutId = setTimeout(() => {
+      handleResize();
+    }, 50);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timeoutId);
+    };
+  }, [fitToScreen, fitToWidth, fitMode, isFocusMode]);
 
   // ── Document load ─────────────────────────────────────────────────────────
   const onDocumentLoadSuccess = ({ numPages }) => {

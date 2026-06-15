@@ -265,13 +265,13 @@ const SidePanelShell = ({
     }
   };
 
-  const hideShell = isFocusMode && !isOpen;
+  const hideShell = isFocusMode;
   
   return (
     <div
       className={`focus-transition ${hideShell ? "focus-hide-x" : ""}`}
       style={{
-        display: "flex",
+        display: hideShell ? "none" : "flex",
         flexDirection: "row",
         height: "100%",
         flexShrink: 0,

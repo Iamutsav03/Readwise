@@ -159,6 +159,7 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
             onPageChange={setPageNumber}
             onScaleChange={setScale}
             onNumPagesChange={setNumPages}
+            onRemove={handleRemovePdf}
             onUploadClick={handleUploadClick}
             onPrev={goPrev}
             onNext={goNext}

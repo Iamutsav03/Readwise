@@ -308,7 +308,6 @@ export default function NotesPanel({
               color: "var(--rw-text-muted)",
             }}
           >
-          >
             <span style={{ marginBottom: "8px", color: "var(--rw-accent)" }}><Edit2 size={24} /></span>
             <p style={{ margin: 0, fontSize: "13px", fontWeight: 300, color: "var(--rw-text-secondary)" }}>
               {searchQuery ? "No matching notes found" : "No notes saved yet"}

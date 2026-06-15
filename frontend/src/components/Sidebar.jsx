@@ -280,13 +280,7 @@ const Sidebar = ({
 
           {/* ── Upload zone ─────────────────────────────────── */}
           <div style={{ padding: "0 6px 14px", flexShrink: 0 }}>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf"
-              style={{ display: "none" }}
-              onChange={handleFileChange}
-            />
+
 
             {pdfs.length === 0 ? (
               <>

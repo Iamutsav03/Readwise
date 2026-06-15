@@ -1,5 +1,6 @@
 // src/components/ReaderLayout.jsx
 import React, { useCallback, useRef, useState, useEffect } from "react";
+import { getPDFViewURL, uploadPDF } from "../utils/api";
 import PDFViewer from "./PDFViewer";
 import FitControls from "./reader/FitControls";
 import PageJumpInput from "./reader/PageJumpInput";
@@ -24,7 +25,7 @@ import { BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
 import MobileZoomPopover from "./reader/MobileZoomPopover";
 import { useBreakpoints } from "../hooks/useBreakpoints";
 import AppearanceModal from "../theme/AppearanceModal";
-import { Lock, LockOpen, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, MoreVertical, Maximize2, Maximize, Sparkles, Search, Edit2, Highlighter, Bookmark as BookmarkIcon, Palette, UploadCloud } from "lucide-react";
+import { Lock, LockOpen, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, MoreVertical, Maximize2, Maximize, Sparkles, Search, Edit2, Highlighter, Bookmark as BookmarkIcon, Palette, UploadCloud, FileX } from "lucide-react";
 
 /**
  * ReaderLayout — full-screen reading view.
@@ -217,22 +218,36 @@ const ReaderLayout = ({
 
   const handleToolbarAction = useCallback((action) => {
     if (!selectionInfo) return;
-
-    if (action === "explain") {
-      const text = selectionInfo.text;
-      const pageNum = selectionInfo.pageNumber;
-      
-      setInitialExplainContext({ text, pageNumber: pageNum, timestamp: Date.now() });
-      setActiveTab("ai");
-      
-      clearSelection();
-      setDictPopupOpen(false);
-    }
+    const { text, pageNumber: pageNum } = selectionInfo;
 
     if (action === "meaning") {
-      // Lookup word but keep toolbar visible
-      dictionary.lookup(selectionInfo.text, selectionInfo.pageNumber);
+      dictionary.lookup(text, pageNum);
       setDictPopupOpen(true);
+      return;
+    }
+
+    if (action === "quick_explain") {
+      setInitialExplainContext({ text, pageNumber: pageNum, mode: "quick", timestamp: Date.now() });
+      setActiveTab("ai");
+      clearSelection();
+      setDictPopupOpen(false);
+      return;
+    }
+
+    if (action === "deep_explain") {
+      setInitialExplainContext({ text, pageNumber: pageNum, mode: "deep", timestamp: Date.now() });
+      setActiveTab("ai");
+      clearSelection();
+      setDictPopupOpen(false);
+      return;
+    }
+
+    if (action === "summary") {
+      setInitialExplainContext({ text, pageNumber: pageNum, mode: "summary", timestamp: Date.now() });
+      setActiveTab("ai");
+      clearSelection();
+      setDictPopupOpen(false);
+      return;
     }
   }, [selectionInfo, clearSelection, setActiveTab, dictionary]);
 
@@ -363,6 +378,7 @@ const ReaderLayout = ({
             <SelectionToolbar
               position={selectionInfo.toolbarPosition}
               selectionText={selectionInfo.text}
+              pageNumber={selectionInfo.pageNumber}
               onColorPick={handleColorPick}
               onAction={handleToolbarAction}
               onClose={() => { clearSelection(); handleDictClose(); }}
@@ -437,16 +453,11 @@ const ReaderLayout = ({
           initialExplainContext={initialExplainContext}
           clearInitialExplainContext={() => setInitialExplainContext(null)}
         />
-        
-        <AppearanceModal isOpen={isAppearanceOpen} onClose={() => setIsAppearanceOpen(false)} />
+      </div>
 
-        <div
-          className={`focus-hint ${showFocusHint && !isMobile ? "visible" : ""} ${(isFocusMode && !isMobile) ? "" : "hidden"}`}
-        >
-          Press ESC to exit
-        </div>
+      <AppearanceModal isOpen={isAppearanceOpen} onClose={() => setIsAppearanceOpen(false)} />
 
-        {/* Floating Exit Focus Mode Button (Mobile/Tablet) */}
+      {/* Floating Exit Focus Mode Button (Mobile/Tablet) */}
         {isFocusMode && isMobile && (
           <button
             onClick={() => setIsFocusMode(false)}
@@ -473,8 +484,7 @@ const ReaderLayout = ({
             <LockOpen size={16} /> Exit Focus
           </button>
         )}
-      </div>
-
+      
       {/* ── Toolbar ───────────────────────────────────────────────── */}
       <div className={`focus-transition ${isFocusMode ? "focus-hide-y" : ""}`} style={{ position: "relative", flexShrink: 0, zIndex: 50 }}>
         {/* Hairline progress bar at very top of toolbar */}
@@ -592,6 +602,13 @@ const ReaderLayout = ({
                       <span>Theme</span>
                       <Palette size={14} />
                     </button>
+
+                    <div style={{ height: "1px", background: "var(--rw-border)", margin: "4px 0" }} />
+
+                    <button className="rw-overflow-item" aria-label="Close Document" role="menuitem" onClick={() => { setIsOverflowOpen(false); onRemove(); }} style={{ color: "var(--rw-danger)" }}>
+                      <span>Close Document</span>
+                      <FileX size={14} />
+                    </button>
                   </div>
                 </>
               )}
@@ -624,8 +641,9 @@ const ReaderLayout = ({
                 <ToolbarIconBtn onClick={() => bookmarkState.toggleBookmark(pageNumber)} title={bookmarkState.isPageBookmarked(pageNumber) ? "Remove bookmark (Ctrl+B)" : "Bookmark this page (Ctrl+B)"}>
                   {bookmarkState.isPageBookmarked(pageNumber) ? <BookmarkSolid style={{ width: 16, height: 16 }} /> : <BookmarkOutline style={{ width: 16, height: 16 }} />}
                 </ToolbarIconBtn>
-                <ToolbarIconBtn onClick={() => { setIsFocusMode(true); setShowFocusHint(true); setActiveTab(null); }} title="Focus Mode"><Lock size={16} /></ToolbarIconBtn>
                 <ToolbarIconBtn onClick={onUploadClick} title="Upload new PDF"><UploadCloud size={16} /></ToolbarIconBtn>
+                <ToolbarIconBtn onClick={onRemove} title="Close document" danger><FileX size={16} /></ToolbarIconBtn>
+                <ToolbarIconBtn onClick={() => { setIsFocusMode(true); setShowFocusHint(true); setActiveTab(null); }} title="Focus Mode"><Lock size={16} /></ToolbarIconBtn>
               </div>
             </>
           )}

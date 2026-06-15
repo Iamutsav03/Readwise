@@ -67,7 +67,19 @@ export default function NoteCard({
     onUpdate(note._id, { content: newContent, title: newTitle });
   };
 
-  const textPreview = stripHtml(note.content);
+  // Strip auto-generated metadata lines from preview (e.g. _Source: Dictionary Meaning | Page: ..._)
+  const rawPreview = stripHtml(note.content);
+  const textPreview = rawPreview
+    .replace(/_Source:[^\n]*/g, "")
+    .replace(/\*Source:[^\n]*/g, "")
+    .replace(/Source:[^|\n]+\|[^\n]*/g, "")
+    .trim();
+
+  // Format creation time as HH:MM
+  const timeLabel = note.createdAt
+    ? new Date(note.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : null;
+
   const isCardHighlighted = isHovered || isEditing;
 
   return (
@@ -164,8 +176,23 @@ export default function NoteCard({
             onMouseEnter={(e) => (e.target.style.background = "var(--rw-border-strong)")}
             onMouseLeave={(e) => (e.target.style.background = "var(--rw-border)")}
           >
-            Page {note.pageNumber} {note.title ? `(${note.title})` : ""}
+            p.{note.pageNumber}
           </span>
+          {timeLabel && (
+            <span
+              style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 11,
+                color: "var(--rw-text-muted)",
+                background: "var(--rw-border)",
+                padding: "2px 6px",
+                borderRadius: 4,
+                cursor: "default",
+              }}
+            >
+              {timeLabel}
+            </span>
+          )}
         </div>
 
         {/* Actions bar */}
