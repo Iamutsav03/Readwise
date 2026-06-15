@@ -1,0 +1,80 @@
+// features/pdf-viewer/hooks/useHighlights.js
+// Hook for managing highlights in the PDF viewer.
+// Moved from src/components/hooks/useHighlights.js
+
+import { useState, useEffect, useCallback } from "react";
+import { createHighlight, getHighlightsForPdf, deleteHighlight as apiDeleteHighlight } from "../../../services/highlightService";
+
+export function useHighlights(pdfId) {
+  const [highlights, setHighlights] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!pdfId) {
+      setHighlights([]);
+      return;
+    }
+
+    let isMounted = true;
+    const fetchHighlights = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getHighlightsForPdf(pdfId);
+        if (isMounted) setHighlights(data);
+      } catch (err) {
+        console.error("Failed to fetch highlights:", err);
+        if (isMounted) setError(err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchHighlights();
+    return () => { isMounted = false; };
+  }, [pdfId]);
+
+  const addHighlight = useCallback(async (pageNumber, selectedText, color, rects) => {
+    const tempId = `temp_${Date.now()}`;
+    const newHighlight = {
+      _id: tempId, pdfId, pageNumber, selectedText, color, rects, createdAt: new Date().toISOString(),
+    };
+
+    setHighlights((prev) => [...prev, newHighlight]);
+
+    try {
+      const saved = await createHighlight(pdfId, pageNumber, selectedText, color, rects);
+      setHighlights((prev) => prev.map((h) => (h._id === tempId ? saved : h)));
+      return saved;
+    } catch (err) {
+      console.error("Failed to add highlight:", err);
+      setHighlights((prev) => prev.filter((h) => h._id !== tempId));
+      throw err;
+    }
+  }, [pdfId]);
+
+  const removeHighlight = useCallback(async (id) => {
+    const highlightToRemove = highlights.find((h) => h._id === id);
+    if (!highlightToRemove) return;
+
+    setHighlights((prev) => prev.filter((h) => h._id !== id));
+
+    try {
+      await apiDeleteHighlight(id);
+      return highlightToRemove;
+    } catch (err) {
+      console.error("Failed to delete highlight:", err);
+      setHighlights((prev) => [...prev, highlightToRemove]);
+      throw err;
+    }
+  }, [highlights]);
+
+  const highlightsForPage = useCallback((pageNumber) => {
+    return highlights.filter((h) => h.pageNumber === pageNumber);
+  }, [highlights]);
+
+  return {
+    highlights, isLoading, error, addHighlight, removeHighlight, highlightsForPage, setHighlights,
+  };
+}

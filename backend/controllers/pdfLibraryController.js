@@ -1,0 +1,234 @@
+// controllers/pdfLibraryController.js
+// Handles PDF library operations: upload, list, view, delete, rename, favorite.
+// Extracted from pdfController.js. Page extraction delegated to pdfPageService.
+
+const path = require("path");
+const fs = require("fs");
+
+const PDF = require("../models/PDF");
+const PDFPage = require("../models/PDFPage");
+const Bookmark = require("../models/Bookmark");
+const Highlight = require("../models/Highlight");
+const Note = require("../models/Note");
+const AiChatMessage = require("../models/AiChatMessage");
+const SavedWord = require("../models/SavedWord");
+const UserVocabulary = require("../models/UserVocabulary");
+
+const aiCacheService = require("../services/aiCacheService");
+const { extractPagesText, saveExtractedPages } = require("../services/pdfPageService");
+
+// ─── Upload ───────────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/pdfs/upload
+ * Upload a PDF, save metadata, and kick off async text extraction.
+ */
+const uploadPDF = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded." });
+    }
+
+    const newPDF = await PDF.create({
+      originalName: req.file.originalname,
+      fileName: req.file.filename,
+      fileSize: req.file.size,
+      filePath: req.file.path,
+    });
+
+    // Fire-and-forget: don't block the HTTP response
+    extractPagesText(req.file.path)
+      .then((pages) => saveExtractedPages(newPDF._id, pages))
+      .then(() => console.log(`✅ Text extracted: "${newPDF.originalName}" (${newPDF._id})`))
+      .catch((err) =>
+        console.error(`⚠️  Text extraction failed for "${newPDF.originalName}":`, err.message)
+      );
+
+    res.status(201).json({
+      message: "PDF uploaded successfully. Text extraction in progress.",
+      pdf: newPDF,
+    });
+  } catch (error) {
+    console.error("[PDFLibrary] Upload error:", error.message);
+    res.status(500).json({ message: "Server error during upload." });
+  }
+};
+
+// ─── List ─────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/pdfs
+ * Return all PDFs sorted by lastOpenedAt desc, then createdAt.
+ */
+const getAllPDFs = async (req, res) => {
+  try {
+    const pdfs = await PDF.aggregate([
+      { $addFields: { sortKey: { $ifNull: ["$lastOpenedAt", "$createdAt"] } } },
+      { $sort: { sortKey: -1 } },
+    ]);
+    res.status(200).json(pdfs);
+  } catch (error) {
+    console.error("[PDFLibrary] Fetch error:", error.message);
+    res.status(500).json({ message: "Server error fetching PDFs." });
+  }
+};
+
+// ─── View ─────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/pdfs/view/:filename
+ * Serve a PDF file for in-browser viewing.
+ */
+const viewPDF = (req, res) => {
+  try {
+    const filePath = path.join(__dirname, "../uploads", req.params.filename);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found." });
+    }
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error("[PDFLibrary] View error:", error.message);
+    res.status(500).json({ message: "Server error viewing PDF." });
+  }
+};
+
+// ─── Favorite ─────────────────────────────────────────────────────────────────
+
+/**
+ * PATCH /api/pdfs/:id/favorite
+ * Toggle isFavorite on a PDF.
+ */
+const toggleFavorite = async (req, res) => {
+  try {
+    const pdf = await PDF.findById(req.params.id);
+    if (!pdf) return res.status(404).json({ message: "PDF not found." });
+
+    pdf.isFavorite = !pdf.isFavorite;
+    await pdf.save();
+    res.status(200).json({ pdf });
+  } catch (error) {
+    console.error("[PDFLibrary] Toggle favorite error:", error.message);
+    res.status(500).json({ message: "Server error toggling favorite." });
+  }
+};
+
+// ─── Rename ───────────────────────────────────────────────────────────────────
+
+/**
+ * PATCH /api/pdfs/:id/rename
+ * Update a PDF's originalName field.
+ */
+const renamePDF = async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || typeof name !== "string") {
+      return res.status(400).json({ message: "name is required." });
+    }
+    const trimmed = name.trim();
+    if (trimmed.length < 1 || trimmed.length > 120) {
+      return res.status(400).json({ message: "Name must be 1–120 characters." });
+    }
+
+    const pdf = await PDF.findByIdAndUpdate(
+      req.params.id,
+      { originalName: trimmed },
+      { new: true }
+    );
+    if (!pdf) return res.status(404).json({ message: "PDF not found." });
+
+    res.status(200).json({ pdf });
+  } catch (error) {
+    console.error("[PDFLibrary] Rename error:", error.message);
+    res.status(500).json({ message: "Server error renaming PDF." });
+  }
+};
+
+// ─── Last opened ──────────────────────────────────────────────────────────────
+
+/**
+ * PATCH /api/pdfs/:id/open
+ * Record that the user opened a PDF (updates lastOpenedAt).
+ */
+const updateLastOpened = async (req, res) => {
+  try {
+    const pdf = await PDF.findByIdAndUpdate(
+      req.params.id,
+      { lastOpenedAt: new Date() },
+      { new: true }
+    );
+    if (!pdf) return res.status(404).json({ message: "PDF not found." });
+    res.status(200).json({ pdf });
+  } catch (error) {
+    console.error("[PDFLibrary] updateLastOpened error:", error.message);
+    res.status(500).json({ message: "Server error updating lastOpenedAt." });
+  }
+};
+
+// ─── Delete ───────────────────────────────────────────────────────────────────
+
+/**
+ * DELETE /api/pdfs/:id
+ * Delete a PDF and ALL associated data (cascade).
+ */
+const deletePDF = async (req, res) => {
+  try {
+    const pdf = await PDF.findById(req.params.id);
+    if (!pdf) return res.status(404).json({ message: "PDF not found." });
+
+    // 1. Remove file from disk
+    if (fs.existsSync(pdf.filePath)) {
+      fs.unlinkSync(pdf.filePath);
+    }
+
+    // 2. Core cascade deletes
+    const { deletedCount: pages } = await PDFPage.deleteMany({ pdfId: pdf._id });
+    console.log(`🗑️  Removed ${pages} page record(s) for "${pdf.originalName}"`);
+
+    const { deletedCount: bookmarks } = await Bookmark.deleteMany({ pdfId: pdf._id });
+    console.log(`🗑️  Removed ${bookmarks} bookmark(s) for "${pdf.originalName}"`);
+
+    const { deletedCount: highlights } = await Highlight.deleteMany({ pdfId: pdf._id });
+    console.log(`🗑️  Removed ${highlights} highlight(s) for "${pdf.originalName}"`);
+
+    const { deletedCount: notes } = await Note.deleteMany({ pdfId: pdf._id });
+    console.log(`🗑️  Removed ${notes} note(s) for "${pdf.originalName}"`);
+
+    // 3. Auxiliary cascade (non-fatal — logged but never blocks deletion)
+    try {
+      const { deletedCount: msgs } = await AiChatMessage.deleteMany({ pdfId: pdf._id });
+      console.log(`🗑️  Removed ${msgs} AI message(s) for "${pdf.originalName}"`);
+
+      const { deletedCount: words } = await SavedWord.deleteMany({ pdfId: pdf._id });
+      console.log(`🗑️  Removed ${words} saved word(s) for "${pdf.originalName}"`);
+
+      const { deletedCount: vocab } = await UserVocabulary.deleteMany({ pdfId: pdf._id });
+      console.log(`🗑️  Removed ${vocab} vocabulary entry(ies) for "${pdf.originalName}"`);
+    } catch (auxErr) {
+      console.error(
+        `⚠️  Partial auxiliary cleanup failure for "${pdf.originalName}" — PDF will still be deleted:`,
+        auxErr.message
+      );
+    }
+
+    // 4. Invalidate AI response cache
+    await aiCacheService.invalidatePdf(pdf._id);
+
+    // 5. Remove PDF document
+    await PDF.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ message: "PDF and all associated data deleted successfully." });
+  } catch (error) {
+    console.error("[PDFLibrary] Delete error:", error.message);
+    res.status(500).json({ message: "Server error deleting PDF." });
+  }
+};
+
+module.exports = {
+  uploadPDF,
+  getAllPDFs,
+  viewPDF,
+  deletePDF,
+  toggleFavorite,
+  renamePDF,
+  updateLastOpened,
+};

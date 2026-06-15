@@ -5,10 +5,14 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
-const connectDB = require("./config/db");
 
-// Load environment variables
+// Load environment variables first so validateEnv can read them
 dotenv.config();
+
+// Validate required environment variables before doing anything else
+require("./config/validateEnv")();
+
+const connectDB = require("./config/db");
 
 // Connect to MongoDB
 console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
@@ -19,7 +23,10 @@ const app = express();
 // ── Middleware ────────────────────────────────────────────────────────────────
 const allowedOrigins = [
   "http://localhost:3000",
-  ...(process.env.CORS_ORIGIN || "").split(",").map((origin) => origin.trim()).filter(Boolean),
+  ...(process.env.CORS_ORIGIN || "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean),
 ];
 
 app.use(
@@ -37,19 +44,12 @@ app.use(
 
 app.use(express.json());
 
-// Serve uploaded files statically
-// e.g. /uploads/filename.pdf
+// Serve uploaded files statically — e.g. /uploads/filename.pdf
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-app.use("/api/test", require("./routes/testRoutes"));
-app.use("/api/pdfs", require("./routes/pdfRoutes"));
-app.use("/api/search", require("./routes/searchRoutes"));
-app.use("/api/bookmarks", require("./routes/bookmarkRoutes"));
-app.use("/api/highlights", require("./routes/highlightRoutes"));
-app.use("/api/notes", require("./routes/noteRoutes"));
-app.use("/api/ai", require("./routes/aiRoutes"));
-app.use("/api/dictionary", require("./routes/dictionaryRoutes"));
+// All API routes are mounted through the routes barrel
+app.use("/api", require("./routes"));
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use((req, res) => {

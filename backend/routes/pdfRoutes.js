@@ -12,27 +12,27 @@ const {
   toggleFavorite,
   renamePDF,
   updateLastOpened,
-} = require("../controllers/pdfController");
+} = require("../controllers/pdfLibraryController");
 
-// POST   /api/pdfs/upload            — Upload a new PDF
+// POST   /api/pdfs/upload         — Upload a new PDF
 router.post("/upload", upload.single("pdf"), uploadPDF);
 
-// GET    /api/pdfs                   — List all uploaded PDFs (sorted by lastOpenedAt)
+// GET    /api/pdfs                — List all uploaded PDFs (sorted by lastOpenedAt)
 router.get("/", getAllPDFs);
 
-// GET    /api/pdfs/view/:filename    — Serve a PDF file to the browser
+// GET    /api/pdfs/view/:filename — Serve a PDF file to the browser
 router.get("/view/:filename", viewPDF);
 
-// PATCH  /api/pdfs/:id/favorite     — Toggle isFavorite
+// PATCH  /api/pdfs/:id/favorite  — Toggle isFavorite
 router.patch("/:id/favorite", toggleFavorite);
 
-// PATCH  /api/pdfs/:id/rename       — Rename a PDF
+// PATCH  /api/pdfs/:id/rename    — Rename a PDF
 router.patch("/:id/rename", renamePDF);
 
-// PATCH  /api/pdfs/:id/open         — Record that user opened a PDF
+// PATCH  /api/pdfs/:id/open      — Record that user opened a PDF
 router.patch("/:id/open", updateLastOpened);
 
-// DELETE /api/pdfs/:id              — Delete a PDF and its page data
+// DELETE /api/pdfs/:id           — Delete a PDF and its data
 router.delete("/:id", deletePDF);
 
 module.exports = router;
