@@ -53,6 +53,9 @@ const Sidebar = ({
   const { favorites, hasFavorites, totalFavorites } = useFavorites(pdfs);
   const { query, setQuery, filtered } = usePdfLibrarySearch(pdfs);
   
+  // Track visual focus (single click selection) independently of opened document
+  const [focusedPdfId, setFocusedPdfId] = useState(null);
+  
   const mostRecent = pdfs.length > 0 ? pdfs[0] : null;
 
   // Live progress: subscribe to the store for instant updates (no refresh needed)
@@ -403,6 +406,8 @@ const Sidebar = ({
                     key={pdf._id}
                     pdf={pdf}
                     active={selectedPDF?._id === pdf._id}
+                    isFocused={focusedPdfId === pdf._id}
+                    onFocus={() => setFocusedPdfId(pdf._id)}
                     onSelect={onSelect}
                     onFavorite={onFavorite}
                     onRename={onRename}

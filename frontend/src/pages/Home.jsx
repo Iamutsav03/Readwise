@@ -21,6 +21,8 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
     localStorage.setItem("rw_scale", scale.toString());
   }, [scale]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
   const fileInputRef = useRef(null);
   const viewerRef = useRef(null);
   const { isMobileOrSmaller } = useBreakpoints();
@@ -51,6 +53,48 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
       .then((data) => handleUploadSuccess(data.pdf))
       .catch(() => alert("Upload failed. Make sure the backend is running."))
       .finally(() => { if (fileInputRef.current) fileInputRef.current.value = null; });
+  }, [handleUploadSuccess]);
+
+  const handleGlobalDragEnter = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current += 1;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleGlobalDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current -= 1;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleGlobalDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleGlobalDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+    
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      alert("Only PDF files are supported.");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("pdf", file);
+    uploadPDF(formData)
+      .then((data) => handleUploadSuccess(data.pdf))
+      .catch(() => alert("Upload failed. Make sure the backend is running."));
   }, [handleUploadSuccess]);
 
   // ── Select / open a PDF (also updates lastOpenedAt) ─────────────────────────
@@ -138,7 +182,33 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
   const mostRecent = pdfs[0] || null; // already sorted by lastOpenedAt desc
 
   return (
-    <div style={{ display: "flex", height: "100dvh", overflow: "hidden", background: "var(--rw-app-bg)" }}>
+    <div 
+      onDragEnter={handleGlobalDragEnter}
+      onDragLeave={handleGlobalDragLeave}
+      onDragOver={handleGlobalDragOver}
+      onDrop={handleGlobalDrop}
+      style={{ display: "flex", height: "100dvh", overflow: "hidden", background: "var(--rw-app-bg)", position: "relative" }}
+    >
+      {/* Global Drag & Drop Overlay */}
+      {isDragging && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(42,32,16,0.3)", backdropFilter: "blur(4px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          pointerEvents: "none" // Let drops pass through to the container
+        }}>
+          <div style={{
+            background: "var(--rw-card-bg)", padding: "40px 60px",
+            borderRadius: 16, border: "2px dashed var(--rw-accent)",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+            textAlign: "center"
+          }}>
+            <h2 style={{ fontFamily: "'Playfair Display',serif", margin: "0 0 8px", fontSize: 24, color: "var(--rw-text-primary)" }}>Drop PDF Anywhere</h2>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", margin: 0, fontSize: 14, color: "var(--rw-text-secondary)" }}>Release to Upload and Open</p>
+          </div>
+        </div>
+      )}
+
       <input
         ref={fileInputRef}
         type="file"

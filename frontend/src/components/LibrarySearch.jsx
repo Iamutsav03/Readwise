@@ -1,5 +1,4 @@
-// components/LibrarySearch.jsx
-// Search input for the Library section. Controlled — parent owns query state.
+import { Search, X } from "lucide-react";
 
 const LibrarySearch = ({ query, onQueryChange }) => (
   <div style={{
@@ -7,14 +6,13 @@ const LibrarySearch = ({ query, onQueryChange }) => (
     marginBottom: 10,
     padding: "0 6px",
   }}>
-    {/* Search icon */}
     <span style={{
-      position: "absolute", left: 18, top: "50%",
+      position: "absolute", left: 16, top: "50%",
       transform: "translateY(-50%)",
-      fontSize: 12, color: "#c0b0a0",
-      pointerEvents: "none", lineHeight: 1,
+      color: "var(--rw-text-secondary)",
+      pointerEvents: "none", display: "flex", alignItems: "center"
     }}>
-      🔍
+      <Search size={14} />
     </span>
 
     <input
@@ -24,41 +22,49 @@ const LibrarySearch = ({ query, onQueryChange }) => (
       placeholder="Search PDFs…"
       style={{
         width: "100%",
-        padding: "7px 10px 7px 30px",
-        fontSize: 12.5,
+        padding: "8px 10px 8px 32px",
+        fontSize: 13,
         fontFamily: "'DM Sans', sans-serif",
-        color: "var(--rw-hover-bg)",
-        background: "rgba(255,255,255,0.65)",
-        border: "1.5px solid #e0d8d0",
+        color: "var(--rw-text-primary)",
+        background: "var(--rw-card-bg)",
+        border: "1px solid var(--rw-border)",
         borderRadius: 8,
         outline: "none",
-        transition: "border-color 0.18s, background 0.18s",
+        transition: "border-color 0.15s, box-shadow 0.15s",
         boxSizing: "border-box",
       }}
       onFocus={e => {
         e.target.style.borderColor = "var(--rw-accent)";
-        e.target.style.background = "var(--rw-text-primary)";
+        e.target.style.boxShadow = "0 0 0 2px var(--rw-accent-muted)";
       }}
       onBlur={e => {
-        e.target.style.borderColor = "#e0d8d0";
-        e.target.style.background = "rgba(255,255,255,0.65)";
+        e.target.style.borderColor = "var(--rw-border)";
+        e.target.style.boxShadow = "none";
       }}
     />
 
-    {/* Clear button */}
     {query && (
       <button
         onClick={() => onQueryChange("")}
         style={{
           position: "absolute", right: 14, top: "50%",
           transform: "translateY(-50%)",
-          background: "none", border: "none", cursor: "pointer",
-          fontSize: 13, color: "#b0a090", padding: 0, lineHeight: 1,
-          display: "flex", alignItems: "center",
+          background: "var(--rw-hover-bg)", border: "none", borderRadius: "50%",
+          width: 18, height: 18, cursor: "pointer",
+          color: "var(--rw-text-secondary)", display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "color 0.15s, background 0.15s"
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.color = "var(--rw-text-primary)";
+          e.currentTarget.style.background = "var(--rw-border)";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.color = "var(--rw-text-secondary)";
+          e.currentTarget.style.background = "var(--rw-hover-bg)";
         }}
         title="Clear search"
       >
-        ×
+        <X size={12} />
       </button>
     )}
   </div>

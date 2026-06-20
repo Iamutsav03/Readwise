@@ -1,15 +1,9 @@
-// components/PdfRow.jsx
-// A single PDF row in the library list.
-//
-// Default: [icon] Name  Size · Date  "Opened Xh ago"
-// Hover:   same + fade-in action buttons  ⭐ ✏ 🗑
-// Rename:  clicking ✏ makes the name an <input>; Enter/Blur saves, Escape cancels.
-
 import { useState, useRef, useEffect, useCallback } from "react";
-import PdfActionsMenu from "./PdfActionsMenu";
+import PdfThumbnail from "./PdfThumbnail";
 import { loadPosition } from "../utils/readingStorage";
+import { useBreakpoints } from "../hooks/useBreakpoints";
+import { BookOpen, Star, Edit2, MoreHorizontal, Trash2 } from "lucide-react";
 
-// ── Time helper ────────────────────────────────────────────────────────────────
 function timeAgo(dateStr) {
   if (!dateStr) return null;
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -24,7 +18,6 @@ function timeAgo(dateStr) {
   return `Opened ${Math.floor(d / 7)}w ago`;
 }
 
-// ── Inline styles injected once ───────────────────────────────────────────────
 const CSS = `
   .rwpr-row {
     display: flex;
@@ -33,31 +26,24 @@ const CSS = `
     padding: 8px 10px;
     border-radius: 9px;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
     position: relative;
     min-width: 0;
     width: 100%;
+    user-select: none;
   }
-  .rwpr-row:hover  { background: rgba(255,255,255,0.04); }
+  .rwpr-row:hover { 
+    background: rgba(255,255,255,0.04); 
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .rwpr-row.focused { background: rgba(255,255,255,0.07); }
   .rwpr-row.active { background: rgba(200,164,106,0.11); }
   .rwpr-row.active:hover { background: rgba(200,164,106,0.16); }
 
-  /* File icon */
-  .rwpr-icon {
-    width: 32px; height: 36px;
-    border-radius: 6px; flex-shrink: 0;
-    background: var(--rw-card-bg); border: 1px solid var(--rw-border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; position: relative;
-    transition: background 0.15s;
-  }
-  .rwpr-row.active .rwpr-icon {
-    background: rgba(200,164,106,0.18);
-    border-color: var(--rw-border);
-  }
+  .rwpr-text { flex: 1; min-width: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
 
-  /* Text block */
-  .rwpr-text { flex: 1; min-width: 0; overflow: hidden; }
+  .rwpr-title-group { display: flex; alignItems: center; gap: 6px; }
 
   .rwpr-name {
     font-size: 13px; font-weight: 500; color: var(--rw-text-primary);
@@ -82,11 +68,22 @@ const CSS = `
   /* Actions */
   .rwpr-actions {
     opacity: 0; pointer-events: none;
+    display: flex; gap: 4px;
     transition: opacity 0.18s;
   }
-  .rwpr-row:hover .rwpr-actions, .rwpr-row:focus-within .rwpr-actions {
+  .rwpr-row:hover .rwpr-actions, .rwpr-row:focus-within .rwpr-actions, .rwpr-row.focused .rwpr-actions {
     opacity: 1; pointer-events: auto;
   }
+
+  .rwpr-btn {
+    width: 26px; height: 26px;
+    border: none; border-radius: 6px; background: transparent;
+    color: var(--rw-text-secondary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .rwpr-btn:hover { background: var(--rw-hover-bg); color: var(--rw-text-primary); }
+  .rwpr-btn.star.active { color: var(--rw-accent); }
 
   .rwpr-rename-input {
     font-size: 13px; font-weight: 500;
@@ -107,19 +104,18 @@ function injectStyle() {
   document.head.appendChild(tag);
 }
 
-import { useBreakpoints } from "../hooks/useBreakpoints";
-import { FileText } from "lucide-react";
-
-// ── Component ─────────────────────────────────────────────────────────────────
-const PdfRow = ({ pdf, active, onSelect, onFavorite, onRename, onDelete }) => {
+const PdfRow = ({ pdf, active, isFocused, onFocus, onSelect, onFavorite, onRename, onDelete }) => {
   injectStyle();
   const { isTablet } = useBreakpoints();
 
   const [renaming, setRenaming] = useState(false);
   const [renameVal, setRenameVal] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
   const inputRef = useRef(null);
+  const pressTimer = useRef(null);
+  const menuRef = useRef(null);
+  const clickTimeoutRef = useRef(null);
 
-  // Focus rename input when it appears
   useEffect(() => {
     if (renaming && inputRef.current) {
       inputRef.current.focus();
@@ -127,8 +123,18 @@ const PdfRow = ({ pdf, active, onSelect, onFavorite, onRename, onDelete }) => {
     }
   }, [renaming]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    if (menuOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+
   const startRename = useCallback((e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     setRenameVal(pdf.originalName.replace(/\.pdf$/i, ""));
     setRenaming(true);
   }, [pdf.originalName]);
@@ -136,7 +142,6 @@ const PdfRow = ({ pdf, active, onSelect, onFavorite, onRename, onDelete }) => {
   const commitRename = useCallback(() => {
     const trimmed = renameVal.trim();
     if (trimmed && trimmed !== pdf.originalName.replace(/\.pdf$/i, "")) {
-      // Append .pdf if not already present
       const finalName = /\.pdf$/i.test(trimmed) ? trimmed : `${trimmed}.pdf`;
       onRename(pdf._id, finalName);
     }
@@ -153,17 +158,13 @@ const PdfRow = ({ pdf, active, onSelect, onFavorite, onRename, onDelete }) => {
     if (e.key === "Escape") cancelRename();
   }, [commitRename, cancelRename]);
 
-  const handleFavClick = useCallback(() => {
-    onFavorite(pdf._id);
-  }, [onFavorite, pdf._id]);
-
-  const handleDeleteClick = useCallback(() => {
-    onDelete(pdf._id);
-  }, [onDelete, pdf._id]);
-
-  const handleOpenClick = useCallback(() => {
-    onSelect(pdf);
-  }, [onSelect, pdf]);
+  // Touch / Mobile long press
+  const handleTouchStart = () => {
+    pressTimer.current = setTimeout(() => {
+      setMenuOpen(true);
+    }, 600);
+  };
+  const handleTouchEnd = () => clearTimeout(pressTimer.current);
 
   const displayName = pdf.originalName.replace(/\.pdf$/i, "");
   const opened = timeAgo(pdf.lastOpenedAt);
@@ -171,23 +172,35 @@ const PdfRow = ({ pdf, active, onSelect, onFavorite, onRename, onDelete }) => {
   const pageProgress = pos ? `Page ${pos.pageNumber}` : null;
 
   return (
-    <li style={{ marginBottom: 2, listStyle: "none" }}>
+    <li style={{ marginBottom: 2, listStyle: "none", position: "relative" }}>
       <div
-        className={`rwpr-row${active ? " active" : ""}`}
-        onClick={() => !renaming && onSelect(pdf)}
+        className={`rwpr-row${active ? " active" : ""}${isFocused ? " focused" : ""}`}
+        onClick={(e) => {
+          if (renaming) return;
+          if (e.detail === 3) {
+            // Cancel any pending double-click action
+            if (clickTimeoutRef.current) {
+              clearTimeout(clickTimeoutRef.current);
+              clickTimeoutRef.current = null;
+            }
+            startRename(e);
+          } else if (e.detail === 1 && onFocus) {
+            onFocus();
+          }
+        }}
+        onDoubleClick={(e) => {
+          if (renaming) return;
+          // Set a short delay to wait and see if a third click is coming
+          clickTimeoutRef.current = setTimeout(() => {
+            onSelect(pdf);
+          }, 250); // 250ms delay should be enough to catch a triple-click
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchEnd}
       >
-        {/* Icon */}
-        <div className="rwpr-icon" style={{ color: active ? "var(--rw-accent)" : "var(--rw-text-secondary)" }}>
-          <FileText size={16} />
-          {active && (
-            <div style={{
-              position: "absolute", top: 3, right: 3,
-              width: 5, height: 5, borderRadius: "50%", background: "var(--rw-accent)",
-            }} />
-          )}
-        </div>
+        <PdfThumbnail pdf={pdf} active={active} />
 
-        {/* Name + meta */}
         {!isTablet && (
           <div className="rwpr-text">
             {renaming ? (
@@ -211,19 +224,67 @@ const PdfRow = ({ pdf, active, onSelect, onFavorite, onRename, onDelete }) => {
           </div>
         )}
 
-        {/* Action Menu */}
+        {/* Action Menu (Desktop) */}
         {!isTablet && (
-          <div className="rwpr-actions">
-            <PdfActionsMenu
-              onOpen={handleOpenClick}
-              onRename={startRename}
-              onFavorite={handleFavClick}
-              onDelete={handleDeleteClick}
-              isFavorite={pdf.isFavorite}
-            />
+          <div className="rwpr-actions" onClick={e => e.stopPropagation()}>
+            <button className="rwpr-btn" title="Open" onClick={() => onSelect(pdf)}>
+              <BookOpen size={16} />
+            </button>
+            <button className="rwpr-btn" title="Rename" onClick={startRename}>
+              <Edit2 size={16} />
+            </button>
+            <button className={`rwpr-btn star ${pdf.isFavorite ? "active" : ""}`} title={pdf.isFavorite ? "Remove Favorite" : "Favorite"} onClick={() => onFavorite(pdf._id)}>
+              <Star size={16} fill={pdf.isFavorite ? "currentColor" : "none"} />
+            </button>
+            <div style={{ position: "relative" }} ref={menuRef}>
+              <button className="rwpr-btn" title="More" onClick={() => setMenuOpen(!menuOpen)}>
+                <MoreHorizontal size={16} />
+              </button>
+              {menuOpen && (
+                <div style={{
+                  position: "absolute", right: 0, top: "100%", marginTop: 4,
+                  background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 8,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.5)", minWidth: 120, zIndex: 100, padding: 4,
+                  fontFamily: "'DM Sans', sans-serif"
+                }}>
+                  <button
+                    onClick={() => { onDelete(pdf._id); setMenuOpen(false); }}
+                    style={{
+                      width: "100%", textAlign: "left", padding: "7px 10px", 
+                      background: "transparent", border: "none", borderRadius: 5, cursor: "pointer",
+                      fontSize: 12.5, color: "#e07060", transition: "background 0.15s",
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(224,112,96,0.15)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
+
+      {/* Mobile Actions Sheet Fallback */}
+      {isTablet && menuOpen && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 1000,
+          background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end",
+        }} onClick={() => setMenuOpen(false)}>
+          <div style={{
+            background: "var(--rw-card-bg)", width: "100%", padding: 20,
+            borderTopLeftRadius: 16, borderTopRightRadius: 16,
+            display: "flex", flexDirection: "column", gap: 10
+          }} onClick={e => e.stopPropagation()}>
+            <p style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 600, color: "var(--rw-text-primary)" }}>{displayName}</p>
+            <button onClick={() => { onSelect(pdf); setMenuOpen(false); }} style={{ padding: 12, background: "var(--rw-accent)", color: "var(--rw-accent-text)", border: "none", borderRadius: 8, fontWeight: 600 }}>Open</button>
+            <button onClick={() => { startRename(); setMenuOpen(false); }} style={{ padding: 12, background: "var(--rw-hover-bg)", color: "var(--rw-text-primary)", border: "none", borderRadius: 8 }}>Rename</button>
+            <button onClick={() => { onFavorite(pdf._id); setMenuOpen(false); }} style={{ padding: 12, background: "var(--rw-hover-bg)", color: "var(--rw-text-primary)", border: "none", borderRadius: 8 }}>{pdf.isFavorite ? "Unfavorite" : "Favorite"}</button>
+            <button onClick={() => { onDelete(pdf._id); setMenuOpen(false); }} style={{ padding: 12, background: "rgba(224,112,96,0.15)", color: "#e07060", border: "none", borderRadius: 8 }}>Delete</button>
+          </div>
+        </div>
+      )}
     </li>
   );
 };
