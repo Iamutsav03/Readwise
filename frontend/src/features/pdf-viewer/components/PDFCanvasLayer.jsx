@@ -15,6 +15,8 @@ const PDFCanvasLayer = ({
   pageData,
   isCurrent,
   isPrev,
+  transitionDir,
+  isCurrentRendered,
   scale,
   searchQuery,
   customTextRenderer,
@@ -29,25 +31,31 @@ const PDFCanvasLayer = ({
   onHoverNoteChange,
   onUpdateNote,
 }) => {
-  const currentDir = pageData.dir;
-  const newPageRendered = pageData.rendered;
-
+  const isSizingLayer = isCurrent ? isCurrentRendered || !isPrev : isPrev && !isCurrentRendered;
   let className = "pdf-page-layer";
   let style = {
-    position: isCurrent ? "relative" : "absolute",
+    position: isSizingLayer ? "relative" : "absolute",
     top: 0, left: 0, width: "100%", height: "100%",
     opacity: 1, // Keep visible to show loading state
   };
 
-  if (isPrev && currentDir === 1) {
-    className += " on-top slide-out-left";
+  if (isPrev && transitionDir === 1) {
+    if (isCurrentRendered) {
+      className += " on-top slide-out-left";
+    } else {
+      className += " on-top";
+    }
     style.zIndex = 2;
-  } else if (isCurrent && currentDir === 1) {
+  } else if (isCurrent && transitionDir === 1) {
     style.zIndex = 1;
-  } else if (isPrev && currentDir === -1) {
+  } else if (isPrev && transitionDir === -1) {
     style.zIndex = 1;
-  } else if (isCurrent && currentDir === -1) {
-    className += " on-top slide-in-left";
+  } else if (isCurrent && transitionDir === -1) {
+    if (isCurrentRendered) {
+      className += " on-top slide-in-left";
+    } else {
+      className += " on-top pre-slide-in-left";
+    }
     style.zIndex = 2;
   } else {
     style.zIndex = 1;
@@ -57,7 +65,7 @@ const PDFCanvasLayer = ({
     <div
       className={className}
       style={style}
-      onAnimationEnd={() => isCurrent && handleAnimationEnd(pageData.id)}
+      onAnimationEnd={() => handleAnimationEnd(pageData.id)}
     >
       <Page
         key={`pdf-page-${pageData.id}__q-${(searchQuery || "").trim().toLowerCase()}`}

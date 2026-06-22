@@ -39,9 +39,8 @@ const PDFViewer = forwardRef(function PDFViewer({
 
   const handleAnimationEnd = (id) => {
     setPageStack(prev => {
-      const isCurrent = prev[prev.length - 1].id === id;
-      if (isCurrent) return [{ ...prev[prev.length - 1], dir: 0 }];
-      return prev;
+      if (prev.length <= 1) return prev;
+      return [{ ...prev[prev.length - 1], dir: 0 }];
     });
   };
 
@@ -110,10 +109,12 @@ const PDFViewer = forwardRef(function PDFViewer({
   return (
     <div ref={containerRef} style={{ width: "fit-content", minWidth: "100%", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#000", padding: isFocusMode || isMobile ? "0" : "8px 0" }}>
       <style>{`
-        .pdf-page-layer { background: var(--rw-text-primary); transition: opacity 0.2s; }
+        .pdf-page-layer { background: transparent; transition: opacity 0.2s; overflow: hidden; will-change: transform; }
+        .react-pdf__Page { overflow: hidden !important; }
         .pdf-page-layer.on-top { box-shadow: 4px 0 16px rgba(0,0,0,0.15); }
         .slide-out-left { animation: slideOutLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards; transform: translateZ(0); }
         .slide-in-left { animation: slideInLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards; transform: translateZ(0); }
+        .pre-slide-in-left { transform: translateX(-102%) translateZ(0); }
         @keyframes slideOutLeft { 0% { transform: translateX(0) translateZ(0); } 100% { transform: translateX(-102%) translateZ(0); } }
         @keyframes slideInLeft { 0% { transform: translateX(-102%) translateZ(0); } 100% { transform: translateX(0) translateZ(0); } }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -131,6 +132,8 @@ const PDFViewer = forwardRef(function PDFViewer({
               pageData={p}
               isCurrent={i === pageStack.length - 1}
               isPrev={i === pageStack.length - 2}
+              transitionDir={pageStack[pageStack.length - 1].dir}
+              isCurrentRendered={pageStack[pageStack.length - 1].rendered}
               scale={scale}
               searchQuery={searchQuery}
               customTextRenderer={customTextRenderer}

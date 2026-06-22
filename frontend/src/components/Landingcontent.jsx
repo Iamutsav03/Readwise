@@ -1,66 +1,177 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useBreakpoints } from "../hooks/useBreakpoints";
-import { Search, BookOpen, Edit2, Star, MoreHorizontal, X, UploadCloud, ChevronLeft, ChevronRight, Maximize, Maximize2, ZoomOut, ZoomIn, Lock, Palette, Zap, Sparkles, FileText, Copy, Send, ClipboardList, Lightbulb, Target, Layers, MessageSquare } from "lucide-react";
+import { Search, BookOpen, Edit2, Star, MoreHorizontal, X, UploadCloud, ChevronLeft, ChevronRight, Maximize, Maximize2, ZoomOut, ZoomIn, Lock, Palette, Zap, Sparkles, FileText, Copy, Send, ClipboardList, Lightbulb, Target, Layers, MessageSquare, ArrowRight } from "lucide-react";
 import { BookmarkIcon as BookmarkOutline } from "@heroicons/react/24/outline";
 
+/* ─── Fonts ─────────────────────────────────────────────────────────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');`;
 
+/* ─── useBreakpoints (inline, no external dep) ───────────────────────────── */
+const useBreakpoints = () => {
+  const [w, setW] = useState(typeof window !== "undefined" ? window.innerWidth : 800);
+  useEffect(() => {
+    const h = () => setW(window.innerWidth);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+  return { isMobileOrSmaller: w < 640 };
+};
+
+/* ─── Design tokens ──────────────────────────────────────────────────────── */
+const T = {
+  accent: "var(--rw-accent)",
+  panel: "var(--rw-panel-bg)",
+  appBg: "var(--rw-app-bg)",
+  card: "var(--rw-card-bg)",
+  border: "var(--rw-border)",
+  textPrim: "var(--rw-text-primary)",
+  textSec: "var(--rw-text-secondary)",
+  textMuted: "var(--rw-text-muted)",
+  toolbar: "var(--rw-toolbar-bg)",
+};
+
+/* ─── Per-page accent colours & icons ───────────────────────────────────── */
+const PAGE_META = [
+  { accent: "#b8966a", icon: BookOpen, label: "Welcome" },
+  { accent: "#7a9e7e", icon: FileText, label: "Library" },
+  { accent: "#7b8fc4", icon: Maximize2, label: "Reader" },
+  { accent: "#c47b7b", icon: Palette, label: "Selection" },
+  { accent: "#9b7bc4", icon: Sparkles, label: "AI Chat" },
+  { accent: "#c4a47b", icon: Lightbulb, label: "Study Tools" },
+  { accent: "#7bbfc4", icon: MessageSquare, label: "Sticky Notes" },
+  { accent: "#b8966a", icon: ArrowRight, label: "Get Started" },
+];
+
+/* ─── Shared style snippets ──────────────────────────────────────────────── */
 const S = {
-  tag: { fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 500, color: "var(--rw-text-secondary)", textTransform: "uppercase", letterSpacing: "0.11em", margin: "0 0 5px" },
-  h2: { fontFamily: "'Playfair Display',serif", fontSize: "clamp(15px,2vw,20px)", fontWeight: 600, color: "var(--rw-panel-bg)", margin: "0 0 4px", letterSpacing: "-0.02em" },
-  sub: { fontFamily: "'DM Sans',sans-serif", fontSize: 11.5, color: "var(--rw-text-secondary)", margin: "0 0 12px", fontWeight: 300, lineHeight: 1.5 },
-  pageNum: { position: "absolute", bottom: 14, right: 18, fontFamily: "'Playfair Display',serif", fontSize: 11, color: "var(--rw-text-secondary)", fontStyle: "italic", zIndex: 5 },
+  tag: { fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 500, color: T.textSec, textTransform: "uppercase", letterSpacing: "0.11em", margin: "0 0 5px" },
+  h2: { fontFamily: "'Playfair Display',serif", fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 600, color: T.panel, margin: "0 0 6px", letterSpacing: "-0.02em" },
+  sub: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: T.textSec, margin: "0 0 14px", fontWeight: 300, lineHeight: 1.6 },
+  pageNum: { position: "absolute", bottom: 14, right: 18, fontFamily: "'Playfair Display',serif", fontSize: 11, color: T.textSec, fontStyle: "italic", zIndex: 5 },
   wrap: { height: "100%", display: "flex", flexDirection: "column", padding: "20px 22px", position: "relative", overflow: "hidden" },
 };
 
-/* Slim integrated caption — replaces the old floating Explainer card */
-const Caption = ({ eyebrow, points }) => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 12 }}>
-    <p style={S.tag}>{eyebrow}</p>
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 14px" }}>
-      {points.map((p, i) => (
-        <span key={i} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10.5, color: "var(--rw-text-secondary)", display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{ width: 3, height: 3, borderRadius: "50%", background: "var(--rw-accent)", display: "inline-block", flexShrink: 0 }} />
-          {p}
-        </span>
-      ))}
-    </div>
+/* ─── Global animations ──────────────────────────────────────────────────── */
+const GLOBAL_CSS = `
+${FONTS}
+@keyframes noteIn      { from{opacity:0;transform:scale(.93) translateY(6px)} to{opacity:1;transform:scale(1) translateY(0)} }
+@keyframes slideUp     { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+@keyframes scalePop    { 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
+@keyframes pulseDot    { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.25)} }
+@keyframes fadeInUp    { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes progressFill{ from{width:0} }
+@keyframes indicatorFade {
+  0%{opacity:0;transform:translateX(-50%) translateY(4px)}
+  15%{opacity:1;transform:translateX(-50%) translateY(0)}
+  70%{opacity:1;transform:translateX(-50%) translateY(0)}
+  100%{opacity:0;transform:translateX(-50%) translateY(-3px)}
+}
+@keyframes pageFlipNext { 0%{transform:perspective(2000px) rotateY(0deg)} 100%{transform:perspective(2000px) rotateY(-180deg)} }
+@keyframes pageFlipPrev { 0%{transform:perspective(2000px) rotateY(0deg)} 100%{transform:perspective(2000px) rotateY(180deg)} }
+@keyframes flipShadowSweep    { 0%{opacity:0} 45%{opacity:.35} 55%{opacity:.35} 100%{opacity:0} }
+@keyframes ambientShadowSweep { 0%{opacity:.18} 50%{opacity:0} 100%{opacity:.18} }
+
+.rw-stagger-1 { animation: slideUp .55s cubic-bezier(.4,0,.2,1) .05s both }
+.rw-stagger-2 { animation: slideUp .55s cubic-bezier(.4,0,.2,1) .15s both }
+.rw-stagger-3 { animation: slideUp .55s cubic-bezier(.4,0,.2,1) .26s both }
+.rw-stagger-4 { animation: slideUp .55s cubic-bezier(.4,0,.2,1) .37s both }
+
+.rw-icon-btn  { border:1px solid rgba(0,0,0,.05); background:transparent; color:${T.textMuted}; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; border-radius:7px; }
+.rw-icon-btn:hover { background:rgba(0,0,0,.06); color:${T.panel}; }
+.rw-icon-btn.on   { background:${T.panel}; color:${T.textPrim}; }
+
+.rw-row:hover { background:rgba(184,150,106,.07); }
+.rw-row-actions { display:flex; gap:4px; }
+.rw-doc-btn { border:none; border-radius:6px; background:transparent; color:#8a7a60; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; width:44px; height:44px; }
+.rw-doc-btn:hover { background:rgba(184,150,106,.18); color:${T.panel}; }
+.rw-doc-btn.star-on { color:${T.accent}; }
+
+.rw-sel-btn { border:none; background:transparent; color:${T.textPrim}; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .13s,transform .1s; border-radius:8px; }
+.rw-sel-btn:hover { background:var(--rw-hover-bg); transform:scale(1.1); }
+
+.study-tool-card { background:var(--rw-card-bg); border:1px solid var(--rw-border); border-radius:10px; padding:13px 11px; cursor:pointer; text-align:left; transition:all .2s; }
+.study-tool-card:hover  { transform:translateY(-2px); }
+.study-tool-card.active { background:var(--rw-accent-muted); border-color:var(--rw-border-strong); }
+
+.rw-continue-card:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.1); }
+
+.rw-zone-left,.rw-zone-right { position:absolute; top:50%; transform:translateY(-50%); z-index:60; cursor:pointer; }
+.rw-zone-left  { left:7px; }
+.rw-zone-right { right:7px; }
+.rw-arrow { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; margin:8px; opacity:1; transition:transform .2s ease; }
+.rw-zone-left:hover .rw-arrow,.rw-zone-right:hover .rw-arrow { transform:scale(1.12); }
+`;
+
+/* ─── Progress ribbon ───────────────────────────────────────────────────── */
+const ProgressRibbon = ({ current, total, accentColor }) => (
+  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, zIndex: 200, background: "rgba(0,0,0,.08)", pointerEvents: "none" }}>
+    <div style={{ height: "100%", width: `${((current + 1) / total) * 100}%`, background: accentColor || T.accent, transition: "width .45s cubic-bezier(.4,0,.2,1)", borderRadius: "0 2px 2px 0" }} />
   </div>
 );
 
-/* ─── Page 1: Welcome ─────────────────────────────────────────────────────── */
+/* ─── Feature header — replaces old Caption ─────────────────────────────── */
+const FeatureHeader = ({ pageIdx, title, sub, dark }) => {
+  const meta = PAGE_META[pageIdx] || PAGE_META[0];
+  const Icon = meta.icon;
+  return (
+    <div className="rw-stagger-1" style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
+      <div style={{ width: 42, height: 42, borderRadius: 11, background: dark ? "rgba(255,255,255,.1)" : `${meta.accent}1a`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: `1.5px solid ${dark ? "rgba(255,255,255,.12)" : `${meta.accent}33`}` }}>
+        <Icon size={20} color={dark ? meta.accent : meta.accent} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p style={{ ...S.tag, color: meta.accent, margin: "0 0 2px" }}>{meta.label}</p>
+        <h2 style={{ ...S.h2, color: dark ? T.textPrim : T.panel, margin: 0, fontSize: "clamp(16px,2vw,21px)" }}>{title}</h2>
+        {sub && <p style={{ ...S.sub, color: dark ? "rgba(255,255,255,.45)" : T.textSec, margin: "3px 0 0", fontSize: 13 }}>{sub}</p>}
+      </div>
+    </div>
+  );
+};
+
+/* ─── "Try it" coach mark ────────────────────────────────────────────────── */
+const TryIt = ({ text, done }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 13px", background: "rgba(184,150,106,.12)", border: "1px dashed rgba(184,150,106,.4)", borderRadius: 30, fontSize: 12, fontFamily: "'DM Sans',sans-serif", color: "#8a6a40", opacity: done ? 0 : 1, transition: "opacity .4s ease", pointerEvents: "none", alignSelf: "flex-start" }}>
+    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#b8966a", display: "inline-block", animation: "pulseDot 1.4s ease-in-out infinite" }} />
+    {text}
+  </div>
+);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE 1 — Welcome
+═══════════════════════════════════════════════════════════════════════════ */
 const Page1 = ({ onNext }) => {
   const [v, setV] = useState(false);
-  useEffect(() => { setTimeout(() => setV(true), 80); }, []);
+  useEffect(() => { const t = setTimeout(() => setV(true), 80); return () => clearTimeout(t); }, []);
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 36px", textAlign: "center", position: "relative" }}>
-      <div style={{ position: "absolute", top: 24, left: 32, width: 5, height: 5, borderRadius: "50%", background: "var(--rw-accent)", opacity: 0.4 }} />
-      <div style={{ position: "absolute", bottom: 44, right: 40, width: 3, height: 3, borderRadius: "50%", background: "var(--rw-accent)", opacity: 0.5 }} />
-      <div style={{ opacity: v ? 1 : 0, transform: v ? "translateY(0) scale(1)" : "translateY(14px) scale(0.93)", transition: "opacity 0.7s ease, transform 0.7s cubic-bezier(0.34,1.4,0.64,1)", marginBottom: 22 }}>
-        <svg width="64" height="52" viewBox="0 0 72 58" fill="none">
-          <rect x="8" y="6" width="25" height="46" rx="3" fill="#e8d4b4" stroke="var(--rw-accent)" strokeWidth="1" />
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 28px", textAlign: "center", position: "relative" }}>
+      <div style={{ position: "absolute", top: 20, left: 28, width: 5, height: 5, borderRadius: "50%", background: T.accent, opacity: .35 }} />
+      <div style={{ position: "absolute", bottom: 40, right: 36, width: 3, height: 3, borderRadius: "50%", background: T.accent, opacity: .45 }} />
+
+      <div style={{ opacity: v ? 1 : 0, transform: v ? "translateY(0) scale(1)" : "translateY(14px) scale(.93)", transition: "opacity .7s ease, transform .7s cubic-bezier(.34,1.4,.64,1)", marginBottom: 24 }}>
+        <svg width="68" height="54" viewBox="0 0 72 58" fill="none">
+          <rect x="8" y="6" width="25" height="46" rx="3" fill="#e8d4b4" stroke="#b8966a" strokeWidth="1" />
           <rect x="10" y="8" width="21" height="42" rx="2" fill="#f5ede0" />
-          <line x1="14" y1="16" x2="27" y2="16" stroke="var(--rw-accent)" strokeWidth="1" strokeLinecap="round" />
-          <line x1="14" y1="21" x2="27" y2="21" stroke="var(--rw-accent)" strokeWidth="1" strokeLinecap="round" />
-          <line x1="14" y1="26" x2="23" y2="26" stroke="var(--rw-accent)" strokeWidth="1" strokeLinecap="round" />
-          <rect x="34" y="6" width="30" height="46" rx="3" fill="#dfc9a5" stroke="var(--rw-accent)" strokeWidth="1" />
+          <line x1="14" y1="16" x2="27" y2="16" stroke="#b8966a" strokeWidth="1" strokeLinecap="round" />
+          <line x1="14" y1="21" x2="27" y2="21" stroke="#b8966a" strokeWidth="1" strokeLinecap="round" />
+          <line x1="14" y1="26" x2="23" y2="26" stroke="#b8966a" strokeWidth="1" strokeLinecap="round" />
+          <rect x="34" y="6" width="30" height="46" rx="3" fill="#dfc9a5" stroke="#b8966a" strokeWidth="1" />
           <rect x="36" y="8" width="26" height="42" rx="2" fill="#faf3e8" />
-          <line x1="40" y1="16" x2="57" y2="16" stroke="var(--rw-accent)" strokeWidth="1.2" strokeLinecap="round" />
-          <line x1="40" y1="21" x2="57" y2="21" stroke="var(--rw-accent)" strokeWidth="1.2" strokeLinecap="round" />
-          <line x1="40" y1="26" x2="52" y2="26" stroke="var(--rw-accent)" strokeWidth="1.2" strokeLinecap="round" />
-          <circle cx="49" cy="50" r="3" fill="var(--rw-accent)" opacity="0.6" />
+          <line x1="40" y1="16" x2="57" y2="16" stroke="#b8966a" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="40" y1="21" x2="57" y2="21" stroke="#b8966a" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="40" y1="26" x2="52" y2="26" stroke="#b8966a" strokeWidth="1.2" strokeLinecap="round" />
+          <circle cx="49" cy="50" r="3" fill="#b8966a" opacity=".6" />
         </svg>
       </div>
-      <div style={{ opacity: v ? 1 : 0, transform: v ? "translateY(0)" : "translateY(10px)", transition: "opacity 0.65s ease 0.18s, transform 0.65s ease 0.18s" }}>
-        <p style={S.tag}>ReadWise · AI Reading Platform</p>
-        <h1 style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: "clamp(22px,3vw,34px)", fontWeight: 700, color: "var(--rw-panel-bg)", lineHeight: 1.15, letterSpacing: "-0.03em", margin: "0 0 10px" }}>
-          Reading should feel<br /><em style={{ color: "var(--rw-accent)", fontStyle: "italic" }}>effortless.</em>
+
+      <div style={{ opacity: v ? 1 : 0, transform: v ? "translateY(0)" : "translateY(10px)", transition: "opacity .65s ease .18s, transform .65s ease .18s" }}>
+        <p style={{ ...S.tag, marginBottom: 10 }}>ReadWise · AI Reading Platform</p>
+        <h1 style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: "clamp(26px,5vw,38px)", fontWeight: 700, color: T.panel, lineHeight: 1.15, letterSpacing: "-0.03em", margin: "0 0 12px" }}>
+          Reading should feel<br /><em style={{ color: T.accent, fontStyle: "italic" }}>effortless.</em>
         </h1>
-        <p style={{ ...S.sub, maxWidth: 290, margin: "0 auto 22px" }}>One tool. Every feature you need to read, understand, and remember.</p>
-        <button onClick={onNext} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "9px 20px", background: "var(--rw-panel-bg)", color: "var(--rw-text-primary)", border: "none", borderRadius: 10, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: "0.03em", transition: "all 0.2s ease" }}
+        <p style={{ ...S.sub, maxWidth: 300, margin: "0 auto 26px", fontSize: 14 }}>One tool. Every feature you need to read, understand, and remember.</p>
+        <button onClick={onNext}
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 26px", background: T.panel, color: T.textPrim, border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: ".03em", transition: "all .2s ease", minHeight: 44 }}
           onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}>
-          See the features <span style={{ fontSize: 15 }}>→</span>
+          See the features <ArrowRight size={15} />
         </button>
       </div>
       <div style={S.pageNum}>1</div>
@@ -68,7 +179,9 @@ const Page1 = ({ onNext }) => {
   );
 };
 
-/* ─── Page 2: Document Library ───────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE 2 — Document Library
+═══════════════════════════════════════════════════════════════════════════ */
 const Page2 = () => {
   const { isMobileOrSmaller } = useBreakpoints();
   const [docs, setDocs] = useState([
@@ -76,157 +189,120 @@ const Page2 = () => {
     { id: 2, name: "System Design Interview", fav: false, pct: 34, page: 82, total: 241, lastOpened: "Yesterday" },
     { id: 3, name: "The Almanack of Naval", fav: false, pct: 92, page: 218, total: 237, lastOpened: "3d ago" },
   ]);
-  const [focusedId, setFocusedId] = useState(null);
   const [renamingId, setRenamingId] = useState(null);
   const [renameVal, setRenameVal] = useState("");
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [hint, setHint] = useState(null);
+  const [triedInteract, setTriedInteract] = useState(false);
   const longPressTimer = useRef(null);
 
-  const showHint = (msg) => { setHint(msg); setTimeout(() => setHint(null), 2200); };
-
-  const toggleFav = (id, e) => {
-    e.stopPropagation();
-    setDocs(p => p.map(d => d.id === id ? { ...d, fav: !d.fav } : d));
-    showHint("Favorite toggled");
-  };
+  const showHint = (msg) => { setHint(msg); setTriedInteract(true); setTimeout(() => setHint(null), 2000); };
+  const toggleFav = (id, e) => { e.stopPropagation(); setDocs(p => p.map(d => d.id === id ? { ...d, fav: !d.fav } : d)); showHint("Favourite toggled"); };
   const startRename = (doc, e) => { if (e) e.stopPropagation(); setRenamingId(doc.id); setRenameVal(doc.name); };
-  const commitRename = () => {
-    if (renameVal.trim()) setDocs(p => p.map(d => d.id === renamingId ? { ...d, name: renameVal.trim() } : d));
-    setRenamingId(null);
-    showHint("Document renamed");
-  };
-  const handleDelete = (id, e) => {
-    e.stopPropagation();
-    setDocs(p => p.filter(d => d.id !== id));
-    setMenuOpenId(null);
-    showHint("Document deleted");
-  };
-  
-  const handleRowClick = (doc, e) => {
-    if (renamingId === doc.id) return;
-    if (e.detail === 3 && !isMobileOrSmaller) { startRename(doc); }
-    else if (e.detail === 2 && !isMobileOrSmaller) { showHint("Opening document…"); }
-    else { setFocusedId(doc.id); }
-  };
-
-  const handleTouchStart = (doc) => {
-    longPressTimer.current = setTimeout(() => {
-      startRename(doc);
-    }, 500);
-  };
-  
-  const handleTouchEndOrMove = () => {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-  };
-
-  const filteredDocs = docs.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  const rowStyle = (doc) => ({
-    display: "flex", alignItems: "center", gap: isMobileOrSmaller ? 14 : 10, padding: isMobileOrSmaller ? "12px 14px" : "8px 10px", borderRadius: 9,
-    cursor: "pointer", transition: "background 0.15s, transform 0.1s",
-    background: focusedId === doc.id ? "rgba(184,150,106,0.12)" : "transparent",
-    position: "relative",
-  });
-
-  const bodyFontSize = isMobileOrSmaller ? 14.5 : 13;
-  const subFontSize = isMobileOrSmaller ? 12 : 11;
-  const iconSize = isMobileOrSmaller ? 18 : 14;
+  const commitRename = () => { if (renameVal.trim()) setDocs(p => p.map(d => d.id === renamingId ? { ...d, name: renameVal.trim() } : d)); setRenamingId(null); showHint("Document renamed"); };
+  const handleDelete = (id, e) => { e.stopPropagation(); setDocs(p => p.filter(d => d.id !== id)); setMenuOpenId(null); showHint("Document deleted"); };
+  const handleTouchStart = (doc) => { longPressTimer.current = setTimeout(() => startRename(doc), 520); };
+  const handleTouchEnd = () => { if (longPressTimer.current) clearTimeout(longPressTimer.current); };
+  const filtered = docs.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 16px" : "18px 20px" }}>
-      <Caption eyebrow="Feature · Library" points={["Drag & drop upload", "Auto-tracked progress", "Instant search"]} />
-      <h2 style={{...S.h2, fontSize: isMobileOrSmaller ? 24 : S.h2.fontSize}}>Your document library.</h2>
-      <p style={{...S.sub, fontSize: isMobileOrSmaller ? 13 : S.sub.fontSize}}>Pick up exactly where you left off.</p>
+    <div style={{ ...S.wrap, padding: "18px 18px 14px" }}>
+      <div className="rw-stagger-1">
+        <FeatureHeader pageIdx={1} title="Your document library." sub="Pick up exactly where you left off." />
+      </div>
 
-      <div
-        style={{ background: "rgba(200,164,106,0.11)", border: "1px solid var(--rw-border)", borderRadius: 10, padding: "12px", marginBottom: 10, display: "flex", flexDirection: "column", gap: 8, cursor: "pointer", transition: "transform 0.15s, box-shadow 0.15s" }}
-        onClick={() => showHint("Opening document…")} className="demo-continue-card">
-        <style>{`.demo-continue-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }`}</style>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      {/* Continue card */}
+      <div className="rw-continue-card rw-stagger-2"
+        style={{ background: "rgba(200,164,106,.11)", border: "1px solid var(--rw-border)", borderRadius: 12, padding: "13px 14px", marginBottom: 10, cursor: "pointer", transition: "transform .15s,box-shadow .15s" }}
+        onClick={() => showHint("Opening document…")}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
           <div>
-            <p style={{ margin: 0, fontSize: isMobileOrSmaller ? 11 : 10, fontWeight: 600, color: "var(--rw-accent)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Continue Reading</p>
-            <p style={{ margin: "2px 0 0", fontSize: isMobileOrSmaller ? 15 : 13.5, fontWeight: 600, color: "var(--rw-panel-bg)", fontFamily: "'Playfair Display',serif" }}>Deep Work</p>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: T.accent, textTransform: "uppercase", letterSpacing: ".05em" }}>Continue Reading</p>
+            <p style={{ margin: "2px 0 0", fontSize: 15, fontWeight: 600, color: T.panel, fontFamily: "'Playfair Display',serif" }}>Deep Work</p>
           </div>
-          <p style={{ margin: 0, fontSize: subFontSize, color: "#8a7a60", fontStyle: "italic", fontFamily: "'DM Sans',sans-serif" }}>2h ago</p>
+          <p style={{ margin: 0, fontSize: 12, color: "#8a7a60", fontStyle: "italic", fontFamily: "'DM Sans',sans-serif" }}>2h ago</p>
         </div>
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 4 }}>
-            <p style={{ margin: 0, fontSize: subFontSize, color: "#8a7a60", fontFamily: "'DM Sans',sans-serif" }}>Page 187 / 240</p>
-            <p style={{ margin: 0, fontSize: subFontSize, color: "var(--rw-accent)", fontWeight: 500, fontFamily: "'DM Sans',sans-serif" }}>78%</p>
-          </div>
-          <div style={{ width: "100%", height: 3, background: "rgba(184,150,106,0.2)", borderRadius: 2, overflow: "hidden" }}>
-            <div style={{ width: "78%", height: "100%", background: "var(--rw-accent)", borderRadius: 2 }} />
-          </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+          <p style={{ margin: 0, fontSize: 12, color: "#8a7a60" }}>Page 187 / 240</p>
+          <p style={{ margin: 0, fontSize: 12, color: T.accent, fontWeight: 500 }}>78%</p>
+        </div>
+        <div style={{ width: "100%", height: 4, background: "rgba(184,150,106,.2)", borderRadius: 2, overflow: "hidden" }}>
+          <div style={{ width: "78%", height: "100%", background: T.accent, borderRadius: 2 }} />
         </div>
       </div>
 
-      <div
+      {/* Upload zone */}
+      <div className="rw-stagger-2"
         onDragOver={e => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={e => { e.preventDefault(); setDragOver(false); showHint("PDF uploading…"); }}
-        style={{ border: `1.5px dashed ${dragOver ? "var(--rw-accent)" : "var(--rw-border)"}`, borderRadius: 10, padding: isMobileOrSmaller ? "14px" : "11px", marginBottom: 10, display: "flex", alignItems: "center", gap: 10, background: dragOver ? "rgba(200,164,106,0.08)" : "var(--rw-card-bg)", cursor: "pointer", transition: "all 0.2s" }}
+        style={{ border: `1.5px dashed ${dragOver ? T.accent : "var(--rw-border)"}`, borderRadius: 10, padding: "11px 14px", marginBottom: 10, display: "flex", alignItems: "center", gap: 11, background: dragOver ? "rgba(200,164,106,.08)" : "var(--rw-card-bg)", cursor: "pointer", transition: "all .2s", minHeight: 44 }}
         onClick={() => showHint("Opening file picker…")}>
-        <div style={{ background: "var(--rw-accent)", color: "var(--rw-panel-bg)", padding: 6, borderRadius: 6, display: "flex" }}><UploadCloud size={isMobileOrSmaller ? 20 : 16} /></div>
+        <div style={{ background: T.accent, color: T.panel, padding: 7, borderRadius: 7, display: "flex", flexShrink: 0 }}><UploadCloud size={17} /></div>
         <div>
-          <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: bodyFontSize, fontWeight: 500, color: "var(--rw-panel-bg)" }}>Upload PDF</p>
-          <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: subFontSize, color: "#8a7a60" }}>{isMobileOrSmaller ? "Tap to browse" : "Drag & drop or click to browse"}</p>
+          <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 500, color: T.panel }}>Upload PDF</p>
+          <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "#8a7a60" }}>{isMobileOrSmaller ? "Tap to browse" : "Drag & drop or click to browse"}</p>
         </div>
       </div>
 
-      <div style={{ position: "relative", marginBottom: 9 }}>
-        <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#8a7a60", display: "flex" }}><Search size={isMobileOrSmaller ? 16 : 13} /></span>
+      {/* Search */}
+      <div className="rw-stagger-3" style={{ position: "relative", marginBottom: 10 }}>
+        <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#8a7a60", display: "flex" }}><Search size={14} /></span>
         <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search PDFs…"
-          style={{ width: "100%", padding: isMobileOrSmaller ? "10px 10px 10px 36px" : "7px 10px 7px 30px", fontSize: bodyFontSize, fontFamily: "'DM Sans', sans-serif", color: "var(--rw-panel-bg)", background: "#faf3e8", border: "1px solid var(--rw-border)", borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
+          style={{ width: "100%", padding: "10px 10px 10px 34px", fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.panel, background: "#faf3e8", border: "1px solid var(--rw-border)", borderRadius: 9, outline: "none", boxSizing: "border-box", minHeight: 44 }} />
         {searchQuery && (
-          <button onClick={() => setSearchQuery("")} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "rgba(184,150,106,0.15)", border: "none", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#8a7a60" }}><X size={14} /></button>
+          <button onClick={() => setSearchQuery("")} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "rgba(184,150,106,.15)", border: "none", borderRadius: "50%", width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#8a7a60" }}><X size={14} /></button>
         )}
       </div>
 
-      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: isMobileOrSmaller ? 10.5 : 9.5, color: "var(--rw-text-secondary)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 4px 6px" }}>Recent</p>
+      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: T.textSec, textTransform: "uppercase", letterSpacing: ".08em", margin: "0 0 5px 4px" }}>Recent</p>
 
-      <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", paddingBottom: 8 }}>
-        <style>{`
-          .demo-row:hover { background: rgba(184,150,106,0.06); }
-          .demo-row-actions { opacity: 0; pointer-events: none; display: flex; gap: 4px; transition: opacity 0.15s; }
-          .demo-row:hover .demo-row-actions, .demo-row.focused .demo-row-actions { opacity: 1; pointer-events: auto; }
-          .demo-btn { width: 32px; height: 32px; border: none; border-radius: 6px; background: transparent; color: #8a7a60; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-          .demo-btn:hover { background: rgba(184,150,106,0.15); color: var(--rw-panel-bg); }
-          .demo-btn.star.active { color: var(--rw-accent); }
-          .demo-thumbnail { width: 34px; height: 42px; background: #fff; border-radius: 4px; position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.1); flex-shrink: 0; }
-          .demo-thumbnail-inner { position: absolute; top: 4px; left: 4px; right: 4px; display: flex; flex-direction: column; gap: 3px; }
-          .demo-line { height: 2px; background: #e0e0e0; border-radius: 1px; }
-        `}</style>
-        {filteredDocs.map(doc => (
-          <div key={doc.id} className={`demo-row ${focusedId === doc.id ? "focused" : ""}`} style={rowStyle(doc)} onClick={e => handleRowClick(doc, e)}
-            onTouchStart={() => isMobileOrSmaller && handleTouchStart(doc)} onTouchEnd={handleTouchEndOrMove} onTouchMove={handleTouchEndOrMove}>
-            <div className="demo-thumbnail">
-              <div className="demo-thumbnail-inner">
-                <div className="demo-line" style={{ width: "80%" }} /><div className="demo-line" style={{ width: "90%" }} /><div className="demo-line" style={{ width: "60%" }} />
-                <div className="demo-line" style={{ width: "85%", marginTop: 4 }} /><div className="demo-line" style={{ width: "75%" }} />
+      {/* Doc list */}
+      <div className="rw-stagger-4" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", paddingBottom: 6 }}>
+        {filtered.map(doc => (
+          <div key={doc.id} className="rw-row"
+            style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 8px", borderRadius: 10, cursor: "pointer", transition: "background .15s", position: "relative" }}
+            onClick={() => showHint("Opening document…")}
+            onTouchStart={() => isMobileOrSmaller && handleTouchStart(doc)}
+            onTouchEnd={handleTouchEnd} onTouchMove={handleTouchEnd}>
+
+            {/* Thumbnail */}
+            <div style={{ width: 34, height: 44, background: "#fff", borderRadius: 4, position: "relative", overflow: "hidden", border: "1px solid rgba(0,0,0,.1)", flexShrink: 0 }}>
+              <div style={{ position: "absolute", top: 5, left: 4, right: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+                {[80, 90, 60, 85, 75].map((w, i) => <div key={i} style={{ height: 2, background: "#e0e0e0", borderRadius: 1, width: `${w}%` }} />)}
               </div>
             </div>
-            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+
+            {/* Text */}
+            <div style={{ flex: 1, minWidth: 0 }}>
               {renamingId === doc.id ? (
-                <input value={renameVal} onChange={e => setRenameVal(e.target.value)} onBlur={commitRename} onKeyDown={e => e.key === "Enter" && commitRename()} autoFocus
-                  style={{ width: "100%", fontSize: bodyFontSize, fontFamily: "'DM Sans',sans-serif", color: "var(--rw-panel-bg)", background: "#faf3e8", border: "1.5px solid var(--rw-accent)", borderRadius: 5, padding: "2px 6px", outline: "none" }}
+                <input value={renameVal} onChange={e => setRenameVal(e.target.value)} onBlur={commitRename}
+                  onKeyDown={e => e.key === "Enter" && commitRename()} autoFocus
+                  style={{ width: "100%", fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.panel, background: "#faf3e8", border: `1.5px solid ${T.accent}`, borderRadius: 5, padding: "2px 6px", outline: "none" }}
                   onClick={e => e.stopPropagation()} />
               ) : (
-                <p style={{ margin: 0, fontSize: bodyFontSize, fontWeight: 500, color: "var(--rw-panel-bg)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: "'DM Sans',sans-serif" }} title={doc.name}>{doc.name}</p>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: T.panel, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: "'DM Sans',sans-serif" }}>{doc.name}</p>
               )}
-              <p style={{ margin: "2px 0 0", fontSize: subFontSize, color: "#8a7a60", fontFamily: "'DM Sans',sans-serif" }}>Page {doc.page} / {doc.total}</p>
-              <p style={{ margin: "1px 0 0", fontSize: subFontSize - 1, color: "rgba(138,122,96,0.7)", fontStyle: "italic", fontFamily: "'DM Sans',sans-serif" }}>{doc.lastOpened}</p>
+              <p style={{ margin: "2px 0 0", fontSize: 12, color: "#8a7a60", fontFamily: "'DM Sans',sans-serif" }}>Page {doc.page} / {doc.total}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 4 }}>
+                <div style={{ flex: 1, height: 3, background: "rgba(184,150,106,.18)", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ width: `${doc.pct}%`, height: "100%", background: T.accent, borderRadius: 2 }} />
+                </div>
+                <p style={{ margin: 0, fontSize: 11, color: T.accent, fontWeight: 500, fontFamily: "'DM Sans',sans-serif", flexShrink: 0 }}>{doc.pct}%</p>
+              </div>
             </div>
-            <div className="demo-row-actions" onClick={e => e.stopPropagation()} style={isMobileOrSmaller ? { opacity: 1, pointerEvents: "auto", gap: 0 } : {}}>
-              <button className="demo-btn" title="Open" onClick={() => showHint("Opening document…")}><BookOpen size={iconSize} /></button>
-              <button className="demo-btn" title="Rename" onClick={e => startRename(doc, e)}><Edit2 size={iconSize} /></button>
-              <button className={`demo-btn star ${doc.fav ? "active" : ""}`} onClick={e => toggleFav(doc.id, e)}><Star size={iconSize} fill={doc.fav ? "currentColor" : "none"} /></button>
+
+            {/* Actions — always visible on mobile */}
+            <div className="rw-row-actions" onClick={e => e.stopPropagation()}>
+              <button className={`rw-doc-btn ${doc.fav ? "star-on" : ""}`} onClick={e => toggleFav(doc.id, e)} style={{ width: 44, height: 44 }}><Star size={16} fill={doc.fav ? "currentColor" : "none"} /></button>
+              <button className="rw-doc-btn" onClick={e => startRename(doc, e)} style={{ width: 44, height: 44 }}><Edit2 size={15} /></button>
               <div style={{ position: "relative" }}>
-                <button className="demo-btn" onClick={() => setMenuOpenId(menuOpenId === doc.id ? null : doc.id)}><MoreHorizontal size={iconSize} /></button>
+                <button className="rw-doc-btn" onClick={() => setMenuOpenId(menuOpenId === doc.id ? null : doc.id)} style={{ width: 44, height: 44 }}><MoreHorizontal size={16} /></button>
                 {menuOpenId === doc.id && (
-                  <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 4, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 8, padding: 4, zIndex: 10, minWidth: 80 }}>
-                    <button onClick={e => handleDelete(doc.id, e)} style={{ width: "100%", textAlign: "left", padding: "8px 12px", background: "transparent", border: "none", borderRadius: 5, cursor: "pointer", fontSize: bodyFontSize, color: "#e07060" }}>Delete</button>
+                  <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 4, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 9, padding: 4, zIndex: 10, minWidth: 90 }}>
+                    <button onClick={e => handleDelete(doc.id, e)} style={{ width: "100%", textAlign: "left", padding: "10px 13px", background: "transparent", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 14, color: "#e07060", fontFamily: "'DM Sans',sans-serif" }}>Delete</button>
                   </div>
                 )}
               </div>
@@ -234,15 +310,20 @@ const Page2 = () => {
           </div>
         ))}
       </div>
-      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: "var(--rw-accent)", margin: "4px 0 0", textAlign: "center", fontStyle: "italic", minHeight: 14 }}>
-        {hint || (isMobileOrSmaller ? "Tap to open · Long-press to rename" : "Click: select · Double-click: open · Triple-click: rename")}
-      </p>
+
+      <div style={{ marginTop: 8 }}>
+        <TryIt text={isMobileOrSmaller ? "Long-press a title to rename" : "Click to select · Double-click to open"} done={triedInteract} />
+      </div>
+      {hint && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: T.accent, margin: "6px 0 0", textAlign: "center", fontStyle: "italic", animation: "fadeInUp .2s ease" }}>{hint}</p>}
+
       <div style={S.pageNum}>2</div>
     </div>
   );
 };
 
-/* ─── Page 3: PDF Reader ──────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE 3 — PDF Reader
+═══════════════════════════════════════════════════════════════════════════ */
 const Page3 = () => {
   const { isMobileOrSmaller } = useBreakpoints();
   const [scale, setScale] = useState(100);
@@ -251,12 +332,55 @@ const Page3 = () => {
   const [focusMode, setFocusMode] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [toast, setToast] = useState(null);
+  const [tried, setTried] = useState(false);
   const totalPages = 240;
+  const BTN = isMobileOrSmaller ? 44 : 32;
 
-  const flashToast = (label) => { setToast(label); setTimeout(() => setToast(null), 1100); };
-  const changeZoom = (delta) => { setFitMode(null); setScale(s => Math.max(50, Math.min(1500, s + delta))); };
-  const setFit = (mode) => { setFitMode(mode); flashToast(mode === "width" ? "Fit Width" : "Fit Page"); };
-  const nav = (dir) => { setPage(p => Math.max(1, Math.min(totalPages, p + (dir === "next" ? 1 : -1)))); };
+  const startX = useRef(null);
+  const startY = useRef(null);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const THRESHOLD = 60;
+
+  const flash = (label) => { setToast(label); setTried(true); setTimeout(() => setToast(null), 1100); };
+  const zoom = (delta) => { setFitMode(null); setScale(s => Math.max(50, Math.min(1500, s + delta))); flash(`${Math.max(50, Math.min(1500, scale + delta))}%`); };
+  const setFit = (mode) => { setFitMode(mode); flash(mode === "width" ? "Fit Width" : "Fit Page"); };
+  const nav = (dir) => { setPage(p => Math.max(1, Math.min(totalPages, p + (dir === "next" ? 1 : -1)))); setTried(true); };
+
+  const onTouchStart = (e) => {
+    if (!isMobileOrSmaller) return;
+    startX.current = e.touches[0].clientX;
+    startY.current = e.touches[0].clientY;
+    setIsDragging(true);
+    setDragX(0);
+  };
+
+  const onTouchMove = (e) => {
+    if (startX.current === null || !isMobileOrSmaller) return;
+    const dx = e.touches[0].clientX - startX.current;
+    const dy = e.touches[0].clientY - startY.current;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      e.stopPropagation(); // Stop global carousel from swiping
+      const atStart = page <= 1 && dx > 0;
+      const atEnd = page >= totalPages && dx < 0;
+      const factor = atStart || atEnd ? 0.15 : 0.8;
+      setDragX(dx * factor);
+    }
+  };
+
+  const onTouchEnd = (e) => {
+    if (startX.current === null || !isMobileOrSmaller) { setIsDragging(false); return; }
+    const dx = e.changedTouches[0].clientX - startX.current;
+    const dy = e.changedTouches[0].clientY - startY.current;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      e.stopPropagation();
+      if (dx < -THRESHOLD && page < totalPages) nav("next");
+      else if (dx > THRESHOLD && page > 1) nav("prev");
+    }
+    setDragX(0);
+    setIsDragging(false);
+    startX.current = null;
+  };
 
   const pageBoxStyle = fitMode === "width"
     ? { width: "92%", height: "70%" }
@@ -264,228 +388,291 @@ const Page3 = () => {
       ? { width: "52%", height: "88%" }
       : { width: `${52 * (scale / 100)}%`, height: `${88 * (scale / 100)}%`, maxWidth: "98%", maxHeight: "95%" };
 
-  const iconSize = isMobileOrSmaller ? 18 : 15;
-  const btnSize = isMobileOrSmaller ? 40 : 30;
+  const iconSz = isMobileOrSmaller ? 20 : 16;
 
   return (
-    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 16px 0" : "18px 20px 0" }}>
-      <Caption eyebrow="Feature · Reader" points={["Smooth page transitions", "Zoom 50%–1500%", "Focus mode"]} />
-      <div style={{ flex: 1, position: "relative", background: focusMode ? "#1c1c1c" : "#f9f9f9", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", margin: isMobileOrSmaller ? "0 -16px" : "0 -22px", overflow: "hidden", transition: "background 0.3s ease" }}>
-        <div style={{ ...pageBoxStyle, background: "#fff", boxShadow: focusMode ? "0 8px 32px rgba(0,0,0,0.4)" : "0 4px 20px rgba(0,0,0,0.06)", border: "1px solid #e0e0e0", borderRadius: 4, display: "flex", flexDirection: "column", padding: "9% 8%", transition: "all 0.32s cubic-bezier(0.4,0,0.2,1)", position: "relative" }}>
-          <div style={{ width: "40%", height: isMobileOrSmaller ? 10 : 14, background: "#e0e0e0", marginBottom: isMobileOrSmaller ? 12 : 18, borderRadius: 2 }} />
-          {[100, 95, 100, 80, 100, 92].map((w, i) => <div key={i} style={{ width: `${w}%`, height: isMobileOrSmaller ? 5 : 7, background: i === 2 ? "rgba(255,200,60,0.55)" : "#f0f0f0", marginBottom: isMobileOrSmaller ? 7 : 9, borderRadius: 2 }} />)}
+    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 18px 0" : "18px 20px 0" }}>
+      <div className="rw-stagger-1">
+        <FeatureHeader pageIdx={2} title="Smooth, powerful reader." sub="Zoom, bookmark, and focus — all at your fingertips." />
+      </div>
+
+      {/* Page surface */}
+      <div 
+        style={{ flex: 1, position: "relative", background: focusMode ? "#1c1c1c" : "#f9f9f9", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", margin: isMobileOrSmaller ? "0 -18px" : "0 -22px", overflow: "hidden", transition: "background .3s ease", touchAction: isMobileOrSmaller ? "pan-y" : "auto" }}
+        onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
+      >
+        <div className="rw-stagger-2" style={{ ...pageBoxStyle, background: "#fff", boxShadow: focusMode ? "0 8px 32px rgba(0,0,0,.4)" : "0 4px 20px rgba(0,0,0,.06)", border: "1px solid #e0e0e0", borderRadius: 4, display: "flex", flexDirection: "column", padding: "9% 8%", transition: isDragging ? "none" : "all .32s cubic-bezier(.4,0,.2,1)", position: "relative", transform: `perspective(1000px) translateX(${dragX}px) rotateY(${dragX / 5}deg)` }}>
+          <div style={{ width: "40%", height: 14, background: "#e0e0e0", marginBottom: 18, borderRadius: 2 }} />
+          {[100, 95, 100, 80, 100, 92].map((w, i) => <div key={i} style={{ width: `${w}%`, height: 7, background: i === 2 ? "rgba(255,200,60,.55)" : "#f0f0f0", marginBottom: 9, borderRadius: 2 }} />)}
           <span style={{ position: "absolute", bottom: 10, right: 14, fontFamily: "'Playfair Display',serif", fontSize: 10, color: "#9a9a9a", fontStyle: "italic" }}>{page}</span>
         </div>
-        {toast && (
-          <div style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", background: "rgba(0,0,0,0.78)", color: "#fff", padding: "8px 16px", borderRadius: 20, fontSize: isMobileOrSmaller ? 13 : 11.5, fontFamily: "'DM Sans', sans-serif", animation: "noteIn 0.18s ease" }}>{toast}</div>
-        )}
+
+        {toast && <div style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", background: "rgba(0,0,0,.78)", color: "#fff", padding: "8px 18px", borderRadius: 20, fontSize: 13, fontFamily: "'DM Sans',sans-serif", animation: "noteIn .18s ease", whiteSpace: "nowrap" }}>{toast}</div>}
+
         {focusMode && isMobileOrSmaller && (
-           <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)" }}>
-             <button onClick={() => { setFocusMode(false); flashToast("Focus mode off"); }} style={{ padding: "10px 20px", borderRadius: 20, background: "rgba(255,255,255,0.15)", color: "#fff", border: "none", fontSize: 13, backdropFilter: "blur(4px)", display: "flex", alignItems: "center", gap: 6 }}><Lock size={16} /> Exit Focus</button>
-           </div>
+          <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)" }}>
+            <button onClick={() => { setFocusMode(false); flash("Focus off"); }} style={{ padding: "11px 22px", borderRadius: 22, background: "rgba(255,255,255,.15)", color: "#fff", border: "none", fontSize: 14, backdropFilter: "blur(4px)", display: "flex", alignItems: "center", gap: 6, minHeight: 44 }}><Lock size={16} /> Exit Focus</button>
+          </div>
         )}
       </div>
 
-      <div style={{ flexShrink: 0, margin: isMobileOrSmaller ? "0 -16px" : "0 -22px" }}>
-        <style>{`
-          .demo-icon-btn { width: ${btnSize}px; height: ${btnSize}px; border-radius: 7px; border: 1px solid rgba(0,0,0,0.05); background: transparent; color: var(--rw-text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-          .demo-icon-btn:hover { background: rgba(0,0,0,0.05); color: var(--rw-panel-bg); }
-          .demo-icon-btn.on { background: var(--rw-panel-bg); color: var(--rw-text-primary); }
-        `}</style>
-        <div style={{ height: 3, width: "100%", background: "var(--rw-border)" }}>
-          <div style={{ height: "100%", width: `${(page / totalPages) * 100}%`, background: "var(--rw-accent)", transition: "width 0.3s" }} />
+      {/* Toolbar */}
+      <div style={{ flexShrink: 0, margin: isMobileOrSmaller ? "0 -18px" : "0 -22px" }}>
+        <div style={{ height: 3, background: "var(--rw-border)" }}>
+          <div style={{ height: "100%", width: `${(page / totalPages) * 100}%`, background: T.accent, transition: "width .3s" }} />
         </div>
-        
+
         {isMobileOrSmaller ? (
-          <div style={{ display: "flex", flexDirection: "column", background: "var(--rw-toolbar-bg)", borderTop: "1px solid var(--rw-border)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 12px", borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
-               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                 <button className="demo-icon-btn" onClick={() => nav("prev")}><ChevronLeft size={iconSize} /></button>
-                 <div style={{ background: "transparent", border: "1px solid var(--rw-border)", color: "var(--rw-panel-bg)", padding: "4px 8px", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>{page} / {totalPages}</div>
-                 <button className="demo-icon-btn" onClick={() => nav("next")}><ChevronRight size={iconSize} /></button>
-               </div>
-               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                 <button className="demo-icon-btn" onClick={() => changeZoom(-25)}><ZoomOut size={iconSize} /></button>
-                 <span style={{ fontSize: 13, color: "var(--rw-text-secondary)", minWidth: 42, textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>{fitMode ? (fitMode === "page" ? "Fit" : "Wide") : `${scale}%`}</span>
-                 <button className="demo-icon-btn" onClick={() => changeZoom(25)}><ZoomIn size={iconSize} /></button>
-               </div>
+          <div style={{ background: "var(--rw-toolbar-bg)", borderTop: "1px solid var(--rw-border)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px", borderBottom: "1px solid rgba(0,0,0,.04)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <button className="rw-icon-btn" style={{ width: BTN, height: BTN }} onClick={() => nav("prev")}><ChevronLeft size={iconSz} /></button>
+                <span style={{ fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, minWidth: 66, textAlign: "center" }}>{page} / {totalPages}</span>
+                <button className="rw-icon-btn" style={{ width: BTN, height: BTN }} onClick={() => nav("next")}><ChevronRight size={iconSz} /></button>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <button className="rw-icon-btn" style={{ width: BTN, height: BTN }} onClick={() => zoom(-25)}><ZoomOut size={iconSz} /></button>
+                <span style={{ fontSize: 13, color: T.textSec, minWidth: 44, textAlign: "center", fontFamily: "'DM Sans',sans-serif" }}>{fitMode ? (fitMode === "page" ? "Fit" : "Wide") : `${scale}%`}</span>
+                <button className="rw-icon-btn" style={{ width: BTN, height: BTN }} onClick={() => zoom(25)}><ZoomIn size={iconSz} /></button>
+              </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around", padding: "6px 12px" }}>
-               <button className={`demo-icon-btn ${fitMode === "page" ? "on" : ""}`} onClick={() => setFit("page")}><Maximize2 size={iconSize} /></button>
-               <button className={`demo-icon-btn ${fitMode === "width" ? "on" : ""}`} onClick={() => setFit("width")}><Maximize size={iconSize} /></button>
-               <div style={{ width: 1, height: 20, background: "var(--rw-border)", margin: "0 2px" }} />
-               <button className={`demo-icon-btn ${bookmarked ? "on" : ""}`} onClick={() => { setBookmarked(b => !b); flashToast(bookmarked ? "Bookmark removed" : "Bookmarked"); }}><BookmarkOutline style={{ width: iconSize, height: iconSize }} /></button>
-               <button className={`demo-icon-btn ${focusMode ? "on" : ""}`} onClick={() => { setFocusMode(f => !f); flashToast(focusMode ? "Focus mode off" : "Focus mode on"); }}><Lock size={iconSize} /></button>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around", padding: "6px 14px 8px" }}>
+              <button className={`rw-icon-btn ${fitMode === "page" ? "on" : ""}`} style={{ width: BTN, height: BTN }} onClick={() => setFit("page")}><Maximize2 size={iconSz} /></button>
+              <button className={`rw-icon-btn ${fitMode === "width" ? "on" : ""}`} style={{ width: BTN, height: BTN }} onClick={() => setFit("width")}><Maximize size={iconSz} /></button>
+              <div style={{ width: 1, height: 22, background: "var(--rw-border)" }} />
+              <button className={`rw-icon-btn ${bookmarked ? "on" : ""}`} style={{ width: BTN, height: BTN }} onClick={() => { setBookmarked(b => !b); flash(bookmarked ? "Bookmark removed" : "Bookmarked"); }}><BookmarkOutline style={{ width: iconSz, height: iconSz }} /></button>
+              <button className={`rw-icon-btn ${focusMode ? "on" : ""}`} style={{ width: BTN, height: BTN }} onClick={() => { setFocusMode(f => !f); flash(focusMode ? "Focus off" : "Focus on"); }}><Lock size={iconSz} /></button>
             </div>
           </div>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 54, background: "var(--rw-toolbar-bg)", borderTop: "1px solid var(--rw-border)", gap: 6, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 52, background: "var(--rw-toolbar-bg)", borderTop: "1px solid var(--rw-border)", gap: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <button className="demo-icon-btn" onClick={() => nav("prev")}><ChevronLeft size={16} /></button>
-              <div style={{ background: "transparent", border: "1px solid var(--rw-border)", color: "var(--rw-panel-bg)", padding: "2px 8px", borderRadius: 6, fontSize: 12.5, fontFamily: "'DM Sans', sans-serif" }}>{page} / {totalPages}</div>
-              <button className="demo-icon-btn" onClick={() => nav("next")}><ChevronRight size={16} /></button>
+              <button className="rw-icon-btn" style={{ width: 32, height: 32 }} onClick={() => nav("prev")}><ChevronLeft size={16} /></button>
+              <span style={{ border: "1px solid var(--rw-border)", color: T.textPrim, padding: "3px 10px", borderRadius: 7, fontSize: 13, fontFamily: "'DM Sans',sans-serif" }}>{page} / {totalPages}</span>
+              <button className="rw-icon-btn" style={{ width: 32, height: 32 }} onClick={() => nav("next")}><ChevronRight size={16} /></button>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <button className={`demo-icon-btn ${fitMode === "page" ? "on" : ""}`} onClick={() => setFit("page")}><Maximize2 size={15} /></button>
-              <button className={`demo-icon-btn ${fitMode === "width" ? "on" : ""}`} onClick={() => setFit("width")}><Maximize size={15} /></button>
+              <button className={`rw-icon-btn ${fitMode === "page" ? "on" : ""}`} style={{ width: 32, height: 32 }} onClick={() => setFit("page")}><Maximize2 size={15} /></button>
+              <button className={`rw-icon-btn ${fitMode === "width" ? "on" : ""}`} style={{ width: 32, height: 32 }} onClick={() => setFit("width")}><Maximize size={15} /></button>
               <div style={{ width: 1, height: 20, background: "var(--rw-border)", margin: "0 2px" }} />
-              <button className="demo-icon-btn" onClick={() => changeZoom(-25)}><ZoomOut size={15} /></button>
-              <span style={{ fontSize: 11.5, color: "var(--rw-text-secondary)", minWidth: 38, textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>{fitMode ? (fitMode === "page" ? "Fit" : "Wide") : `${scale}%`}</span>
-              <button className="demo-icon-btn" onClick={() => changeZoom(25)}><ZoomIn size={15} /></button>
+              <button className="rw-icon-btn" style={{ width: 32, height: 32 }} onClick={() => zoom(-25)}><ZoomOut size={15} /></button>
+              <span style={{ fontSize: 12, color: T.textSec, minWidth: 40, textAlign: "center", fontFamily: "'DM Sans',sans-serif" }}>{fitMode ? (fitMode === "page" ? "Fit" : "Wide") : `${scale}%`}</span>
+              <button className="rw-icon-btn" style={{ width: 32, height: 32 }} onClick={() => zoom(25)}><ZoomIn size={15} /></button>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <button className={`demo-icon-btn ${bookmarked ? "on" : ""}`} onClick={() => { setBookmarked(b => !b); flashToast(bookmarked ? "Bookmark removed" : "Bookmarked"); }}><BookmarkOutline style={{ width: 15, height: 15 }} /></button>
-              <button className={`demo-icon-btn ${focusMode ? "on" : ""}`} onClick={() => { setFocusMode(f => !f); flashToast(focusMode ? "Focus mode off" : "Focus mode on"); }}><Lock size={15} /></button>
+              <button className={`rw-icon-btn ${bookmarked ? "on" : ""}`} style={{ width: 32, height: 32 }} onClick={() => { setBookmarked(b => !b); flash(bookmarked ? "Bookmark removed" : "Bookmarked"); }}><BookmarkOutline style={{ width: 15, height: 15 }} /></button>
+              <button className={`rw-icon-btn ${focusMode ? "on" : ""}`} style={{ width: 32, height: 32 }} onClick={() => { setFocusMode(f => !f); flash(focusMode ? "Focus off" : "Focus on"); }}><Lock size={15} /></button>
             </div>
           </div>
         )}
+      </div>
+
+      <div style={{ padding: "8px 0 0" }}>
+        <TryIt text={isMobileOrSmaller ? "Swipe to turn pages or tap buttons" : "Try zooming or turning pages below"} done={tried} />
       </div>
       <div style={S.pageNum}>3</div>
     </div>
   );
 };
 
-/* ─── Page 4: Text Selection ─────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE 4 — Text Selection
+═══════════════════════════════════════════════════════════════════════════ */
 const Page4 = () => {
   const { isMobileOrSmaller } = useBreakpoints();
   const [actionLabel, setActionLabel] = useState(null);
+  const [tried, setTried] = useState(false);
+  const [toolbarOpen, setToolbarOpen] = useState(false);
   const containerRef = useRef(null);
-  const [toolbarPos, setToolbarPos] = useState({ top: -52, flip: false });
+  const timeoutRef = useRef(null);
 
-  const showAction = (label) => { setActionLabel(label); setTimeout(() => setActionLabel(null), 2200); };
+  const showAction = (label) => { 
+    setActionLabel(label); 
+    setTried(true); 
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setActionLabel(null), 2000); 
+    if (isMobileOrSmaller) setToolbarOpen(false);
+  };
+  const BTN = isMobileOrSmaller ? 44 : 32;
+  const iconSz = isMobileOrSmaller ? 20 : 16;
 
-  useEffect(() => {
-    if (isMobileOrSmaller && containerRef.current) {
-      // Check if there is enough space above the text
-      const rect = containerRef.current.getBoundingClientRect();
-      // A quick heuristic: if the top is too close to the screen edge, flip it below
-      if (rect.top < 100) {
-        setToolbarPos({ top: "100%", marginTop: 12, flip: true });
-      } else {
-        setToolbarPos({ top: -56, marginTop: 0, flip: false });
-      }
-    } else {
-      setToolbarPos({ top: -52, marginTop: 0, flip: false });
-    }
-  }, [isMobileOrSmaller]);
-
-  const btnSize = isMobileOrSmaller ? 40 : 30;
-  const iconSize = isMobileOrSmaller ? 18 : 15;
+  const toolbarItems = [
+    { icon: Palette, label: "Highlight", action: "Highlight applied" },
+    { icon: BookOpen, label: "Define", action: "Definition shown" },
+    { icon: Zap, label: "Quick Explain", action: "Quick Explain" },
+    { icon: Sparkles, label: "Deep Explain", action: "Deep Explain" },
+    { icon: FileText, label: "Summarise", action: "Summary generated" },
+    { icon: Copy, label: "Copy", action: "Text copied" },
+  ];
 
   return (
-    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 16px" : "18px 20px" }}>
-      <Caption eyebrow="Feature · Selection" points={["Quick & Deep Explain", "Instant definitions", "One-click summary"]} />
-      <div style={{ flex: 1, background: "#f9f9f9", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", margin: isMobileOrSmaller ? "0 -16px" : "0 -22px" }}>
-        <style>{`
-          .demo-sel-btn { width: ${btnSize}px; height: ${btnSize}px; border-radius: 8px; border: none; background: transparent; color: var(--rw-text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.13s, transform 0.1s; }
-          .demo-sel-btn:hover { background: var(--rw-hover-bg); transform: scale(1.1); }
-        `}</style>
-        <div style={{ width: "82%", maxWidth: 480, background: "#fff", padding: isMobileOrSmaller ? "20px" : "30px 32px", borderRadius: 8, boxShadow: "0 4px 20px rgba(0,0,0,0.05)", position: "relative", border: "1px solid #eaeaea" }}>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontSize: isMobileOrSmaller ? 16 : 14.5, color: "var(--rw-panel-bg)", lineHeight: 1.8, margin: 0 }}>
+    <div style={{ ...S.wrap, padding: "18px 18px" }}>
+      <div className="rw-stagger-1">
+        <FeatureHeader pageIdx={3} title="Select any text to understand it." sub="Quick Explain, Deep Explain, definitions — one tap." />
+      </div>
+
+      <div className="rw-stagger-2" style={{ flex: 1, background: "#f9f9f9", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 -2px" }}>
+        <div style={{ width: "88%", maxWidth: 460, background: "#fff", padding: isMobileOrSmaller ? "22px 18px" : "30px 32px", borderRadius: 10, boxShadow: "0 4px 20px rgba(0,0,0,.05)", position: "relative", border: "1px solid #eaeaea" }}>
+          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: isMobileOrSmaller ? 15.5 : 14.5, color: T.panel, lineHeight: 1.85, margin: 0 }}>
             Reading complex documents is difficult. Select any text to instantly unlock understanding.
             <br /><br />
-            <span ref={containerRef} style={{ background: "rgba(184,150,106,0.25)", position: "relative", borderRadius: 2, padding: "2px 0" }}>
+            <span 
+              ref={containerRef} 
+              onClick={() => setToolbarOpen(!toolbarOpen)}
+              style={{ background: toolbarOpen ? "rgba(184,150,106,.4)" : "rgba(184,150,106,.25)", position: "relative", borderRadius: 2, padding: "2px 0", cursor: "pointer", transition: "background 0.2s" }}
+            >
               This makes processing academic papers effortless.
-              <div style={{ position: "absolute", top: toolbarPos.top, marginTop: toolbarPos.marginTop, left: "50%", transform: "translateX(-50%)", display: "flex", gap: isMobileOrSmaller ? "4px" : "2px", padding: "5px", background: "var(--rw-card-bg)", border: "1px solid var(--rw-border-strong)", borderRadius: "12px", boxShadow: "0 8px 28px rgba(0,0,0,0.18)", alignItems: "center", zIndex: 100, flexWrap: isMobileOrSmaller ? "wrap" : "nowrap", justifyContent: "center", width: isMobileOrSmaller ? 240 : "auto" }}>
-                <button className="demo-sel-btn" onClick={() => showAction("Highlight applied")}><Palette size={iconSize} /></button>
-                <div style={{ width: 1, height: 18, background: "var(--rw-border-strong)", margin: "0 2px" }} />
-                <button className="demo-sel-btn" title="Meaning" onClick={() => showAction("Definition shown")}><BookOpen size={iconSize} /></button>
-                <button className="demo-sel-btn" title="Quick Explain" onClick={() => showAction("Quick Explain")}><Zap size={iconSize} /></button>
-                <button className="demo-sel-btn" title="Deep Explain" onClick={() => showAction("Deep Explain")}><Sparkles size={iconSize} /></button>
-                <button className="demo-sel-btn" title="Summarise" onClick={() => showAction("Summary generated")}><FileText size={iconSize} /></button>
-                <div style={{ width: 1, height: 18, background: "var(--rw-border-strong)", margin: "0 2px" }} />
-                <button className="demo-sel-btn" onClick={() => showAction("Text copied")}><Copy size={iconSize} /></button>
+              {/* Toolbar — above on desktop, below on mobile */}
+              <div 
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                position: "absolute",
+                ...(isMobileOrSmaller ? { top: "110%", marginTop: 8 } : { bottom: "110%", marginBottom: 8 }),
+                left: "50%", transform: `translateX(-50%) scale(${toolbarOpen ? 1 : 0.95})`,
+                display: "flex", gap: 3, padding: "5px 7px",
+                background: "var(--rw-card-bg)", border: "1px solid var(--rw-border-strong)",
+                borderRadius: 14, boxShadow: "0 8px 28px rgba(0,0,0,.18)",
+                alignItems: "center", zIndex: 100,
+                opacity: toolbarOpen ? 1 : 0,
+                pointerEvents: toolbarOpen ? "auto" : "none",
+                transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                flexWrap: isMobileOrSmaller ? "wrap" : "nowrap",
+                justifyContent: "center",
+                width: isMobileOrSmaller ? 240 : "max-content",
+              }}>
+                {toolbarItems.map((item, i) => (
+                  <button key={i} className="rw-sel-btn" title={item.label}
+                    style={{ width: BTN, height: BTN }}
+                    onClick={(e) => { e.stopPropagation(); showAction(item.action); }}>
+                    <item.icon size={iconSz} />
+                  </button>
+                ))}
               </div>
             </span>
-          </p>
-          <div style={{ position: "absolute", bottom: -44, left: "50%", transform: "translateX(-50%)", background: "var(--rw-accent)", color: "var(--rw-panel-bg)", padding: isMobileOrSmaller ? "8px 20px" : "6px 16px", borderRadius: 20, fontSize: isMobileOrSmaller ? 14 : 12.5, fontFamily: "'DM Sans', sans-serif", fontWeight: 600, whiteSpace: "nowrap", boxShadow: "0 4px 14px rgba(0,0,0,0.15)", opacity: actionLabel ? 1 : 0, transition: "opacity 0.3s", pointerEvents: "none" }}>
+          </div>
+
+          {/* Action toast */}
+          <div style={{ position: "absolute", bottom: -50, left: "50%", transform: "translateX(-50%)", background: T.accent, color: T.panel, padding: isMobileOrSmaller ? "9px 22px" : "7px 18px", borderRadius: 22, fontSize: 13, fontFamily: "'DM Sans',sans-serif", fontWeight: 600, whiteSpace: "nowrap", boxShadow: "0 4px 14px rgba(0,0,0,.15)", opacity: actionLabel ? 1 : 0, transition: "opacity .3s", pointerEvents: "none", animation: actionLabel ? "scalePop .25s ease" : "none" }}>
             {actionLabel}
           </div>
         </div>
+      </div>
+
+      <div style={{ marginTop: 12 }}>
+        <TryIt text={toolbarOpen ? "Tap a button in the toolbar" : "Tap the highlighted text above"} done={tried} />
       </div>
       <div style={S.pageNum}>4</div>
     </div>
   );
 };
 
-/* ─── Page 5: AI Chat ────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE 5 — AI Chat
+═══════════════════════════════════════════════════════════════════════════ */
 const Page5 = () => {
   const { isMobileOrSmaller } = useBreakpoints();
   const [inputVal, setInputVal] = useState("");
-  const [messages, setMessages] = useState([{ type: "user", text: "What is the main idea?" }, { type: "ai", text: "Focused, distraction-free work is rare — and increasingly valuable." }]);
+  const [messages, setMessages] = useState([
+    { type: "user", text: "What is the main idea?" },
+    { type: "ai", text: "Focused, distraction-free work is rare — and increasingly valuable." },
+  ]);
   const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef(null);
+  const [tried, setTried] = useState(false);
+  const endRef = useRef(null);
+  const bodyFS = isMobileOrSmaller ? 14 : 13;
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, isTyping]);
 
   const simulateSend = (text) => {
-    if (!text) return;
-    setMessages(prev => [...prev, { type: "user", text }]);
-    setInputVal("");
-    setIsTyping(true);
+    if (!text?.trim()) return;
+    setMessages(p => [...p, { type: "user", text }]);
+    setInputVal(""); setIsTyping(true); setTried(true);
     setTimeout(() => {
       setIsTyping(false);
-      setMessages(prev => [...prev, { type: "ai", text: "Based on the document, this refers to eliminating shallow distractions to reach peak cognitive output." }]);
+      setMessages(p => [...p, { type: "ai", text: "Based on the document, this refers to eliminating shallow distractions to reach peak cognitive output." }]);
     }, 1300);
   };
 
-  const bodyFontSize = isMobileOrSmaller ? 14 : 12.5;
+  const suggestions = ["Summarise Chapter 3", "Give me 5 key takeaways", "Explain 'attention residue'"];
 
   return (
-    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 16px 0" : "18px 20px 0", background: "var(--rw-panel-bg)" }}>
-      <p style={S.tag}>Feature · AI Chat</p>
-      <h2 style={{ ...S.h2, color: "var(--rw-text-primary)", fontSize: isMobileOrSmaller ? 24 : S.h2.fontSize }}>Your PDF answers back.</h2>
-      <p style={{ ...S.sub, color: "rgba(255,255,255,0.45)", fontSize: isMobileOrSmaller ? 13 : S.sub.fontSize }}>RAG-powered answers, grounded in your document.</p>
+    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 18px 0" : "18px 20px 0", background: T.panel }}>
+      <div className="rw-stagger-1">
+        <FeatureHeader pageIdx={4} title="Your PDF answers back." sub="RAG-powered answers grounded in your document." dark />
+      </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14, overflowY: "auto", margin: "0 -2px", paddingBottom: 10 }}>
-        {messages.length === 0 && !isTyping && (
-          <div style={{ textAlign: "center", marginTop: 30 }}>
-            <Sparkles size={isMobileOrSmaller ? 26 : 22} color="var(--rw-accent)" style={{ marginBottom: 8 }} />
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: bodyFontSize, color: "var(--rw-text-primary)", fontWeight: 600 }}>Try asking:</p>
-          </div>
-        )}
+      {/* Suggestion chips */}
+      {messages.length <= 2 && (
+        <div className="rw-stagger-2" style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+          {suggestions.map((s, i) => (
+            <button key={i} onClick={() => simulateSend(s)}
+              style={{ padding: "7px 13px", background: "var(--rw-hover-bg)", border: "1px solid var(--rw-border)", borderRadius: 22, fontSize: 12, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, cursor: "pointer", minHeight: 36, transition: "background .15s" }}>
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Messages */}
+      <div className="rw-stagger-3" style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto", paddingBottom: 10 }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.type === "user" ? "flex-end" : "flex-start", gap: 8 }}>
-            {m.type === "ai" && <div style={{ width: isMobileOrSmaller ? 30 : 24, height: isMobileOrSmaller ? 30 : 24, borderRadius: "50%", background: "linear-gradient(135deg, var(--rw-hover-bg), var(--rw-border))", border: "1px solid var(--rw-border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--rw-accent)", flexShrink: 0 }}><Sparkles size={isMobileOrSmaller ? 16 : 12} /></div>}
-            <div style={{ background: "var(--rw-card-bg)", border: m.type === "user" ? "1px solid var(--rw-border)" : "1px solid var(--rw-hover-bg)", padding: isMobileOrSmaller ? "12px 16px" : "9px 13px", borderRadius: m.type === "user" ? "16px 4px 16px 16px" : "4px 16px 16px 16px", maxWidth: "85%" }}>
-              <p style={{ margin: 0, fontFamily: "'DM Sans', sans-serif", fontSize: bodyFontSize, color: "var(--rw-text-primary)", lineHeight: 1.6 }}>{m.text}</p>
+            {m.type === "ai" && (
+              <div style={{ width: isMobileOrSmaller ? 30 : 26, height: isMobileOrSmaller ? 30 : 26, borderRadius: "50%", background: "linear-gradient(135deg,var(--rw-hover-bg),var(--rw-border))", border: "1px solid var(--rw-border)", display: "flex", alignItems: "center", justifyContent: "center", color: T.accent, flexShrink: 0 }}>
+                <Sparkles size={isMobileOrSmaller ? 15 : 13} />
+              </div>
+            )}
+            <div style={{ background: "var(--rw-card-bg)", border: m.type === "user" ? "1px solid var(--rw-border)" : "1px solid var(--rw-hover-bg)", padding: isMobileOrSmaller ? "12px 15px" : "10px 13px", borderRadius: m.type === "user" ? "16px 4px 16px 16px" : "4px 16px 16px 16px", maxWidth: "85%", animation: "fadeInUp .25s ease" }}>
+              <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: bodyFS, color: T.textPrim, lineHeight: 1.65 }}>{m.text}</p>
             </div>
           </div>
         ))}
         {isTyping && (
           <div style={{ display: "flex", gap: 8 }}>
-            <div style={{ width: isMobileOrSmaller ? 30 : 24, height: isMobileOrSmaller ? 30 : 24, borderRadius: "50%", border: "1px solid var(--rw-border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--rw-accent)" }}><Sparkles size={isMobileOrSmaller ? 16 : 12} /></div>
-            <div style={{ fontSize: bodyFontSize, color: "var(--rw-accent)", fontFamily: "'DM Sans', sans-serif", fontStyle: "italic", alignSelf: "center" }}>Thinking…</div>
+            <div style={{ width: 26, height: 26, borderRadius: "50%", border: "1px solid var(--rw-border)", display: "flex", alignItems: "center", justifyContent: "center", color: T.accent }}><Sparkles size={13} /></div>
+            <div style={{ fontSize: 13, color: T.accent, fontFamily: "'DM Sans',sans-serif", fontStyle: "italic", alignSelf: "center" }}>Thinking…</div>
           </div>
         )}
-        <div ref={messagesEndRef} />
+        <div ref={endRef} />
       </div>
 
-      <div style={{ padding: "10px 0 14px" }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 10, padding: isMobileOrSmaller ? "10px 12px" : "7px 9px" }}>
-          <input type="text" value={inputVal} onChange={e => setInputVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && simulateSend(inputVal)} placeholder="Ask anything about this PDF…"
-            style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontFamily: "'DM Sans', sans-serif", fontSize: bodyFontSize, color: "var(--rw-text-primary)" }} />
-          <button onClick={() => simulateSend(inputVal)} style={{ width: isMobileOrSmaller ? 38 : 28, height: isMobileOrSmaller ? 38 : 28, borderRadius: 8, background: "var(--rw-hover-bg)", border: "none", color: "var(--rw-text-muted)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><Send size={isMobileOrSmaller ? 18 : 14} /></button>
+      {/* Input */}
+      <div className="rw-stagger-4" style={{ padding: "10px 0 14px" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 12, padding: isMobileOrSmaller ? "10px 12px" : "8px 10px" }}>
+          <input type="text" value={inputVal} onChange={e => setInputVal(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && simulateSend(inputVal)}
+            placeholder="Ask anything about this PDF…"
+            style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontFamily: "'DM Sans',sans-serif", fontSize: bodyFS, color: T.textPrim, minHeight: 24 }} />
+          <button onClick={() => simulateSend(inputVal)}
+            style={{ width: isMobileOrSmaller ? 42 : 32, height: isMobileOrSmaller ? 42 : 32, borderRadius: 9, background: "var(--rw-hover-bg)", border: "none", color: T.textMuted, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+            <Send size={isMobileOrSmaller ? 18 : 14} />
+          </button>
+        </div>
+        <div style={{ marginTop: 8 }}>
+          <TryIt text="Type a question or tap a suggestion above" done={tried} />
         </div>
       </div>
-      <div style={S.pageNum}>5</div>
+      <div style={{ ...S.pageNum, color: "rgba(255,255,255,.2)" }}>5</div>
     </div>
   );
 };
 
-/* ─── Page 6: Study Tools ────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE 6 — Study Tools
+═══════════════════════════════════════════════════════════════════════════ */
 const STUDY_OUTPUT = {
   summary: { body: "Deep Work argues that distraction-free concentration is increasingly rare — and increasingly valuable. Cultivating it is a competitive advantage." },
   concepts: { items: ["Deep Work — focused, undistracted cognitive effort", "Attention Residue — the cost of switching tasks", "Fixed-Schedule Productivity — work backward from a hard stop"] },
   interview: { items: ["How does deep work differ from working long hours?", "What is attention residue and why does it matter?"] },
   flashcards: { cards: [{ q: "What is Deep Work?", a: "Focused, distraction-free professional activity." }, { q: "What is Attention Residue?", a: "Cognitive cost from switching tasks too often." }] },
 };
+
+const TOOLS = [
+  { id: "summary", icon: ClipboardList, label: "Summarise", desc: "Key points" },
+  { id: "concepts", icon: Lightbulb, label: "Concepts", desc: "Key ideas" },
+  { id: "interview", icon: Target, label: "Interview Qs", desc: "Exam prep" },
+  { id: "flashcards", icon: Layers, label: "Flashcards", desc: "Revision" },
+];
 
 const Page6 = () => {
   const { isMobileOrSmaller } = useBreakpoints();
@@ -494,95 +681,109 @@ const Page6 = () => {
   const [loading, setLoading] = useState(false);
   const [output, setOutput] = useState(null);
   const [flipped, setFlipped] = useState({});
+  const [tried, setTried] = useState(false);
+  const bodyFS = 13;
 
-  const simulateGenerate = () => {
-    setLoading(true); setOutput(null);
-    setTimeout(() => { setLoading(false); setOutput(activeTool); }, 1400);
-  };
-
-  const tools = [
-    { id: "summary", icon: ClipboardList, label: "Summarize", desc: "Key points & notes" },
-    { id: "concepts", icon: Lightbulb, label: "Key Concepts", desc: "Ideas explained" },
-    { id: "interview", icon: Target, label: "Interview Qs", desc: "Q&A for exam prep" },
-    { id: "flashcards", icon: Layers, label: "Flashcards", desc: "Revision cards" },
-  ];
-
+  const generate = () => { setLoading(true); setOutput(null); setTried(true); setTimeout(() => { setLoading(false); setOutput(activeTool); }, 1400); };
   const out = output ? STUDY_OUTPUT[output] : null;
-  const bodyFontSize = isMobileOrSmaller ? 13 : 11.5;
 
   return (
-    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 16px 0" : "18px 20px 0", background: "var(--rw-panel-bg)" }}>
-      <p style={S.tag}>Feature · Study Tools</p>
-      <h2 style={{ ...S.h2, color: "var(--rw-text-primary)", fontSize: isMobileOrSmaller ? 24 : S.h2.fontSize }}>Study smarter, not harder.</h2>
-      <p style={{ ...S.sub, color: "rgba(255,255,255,0.45)", fontSize: isMobileOrSmaller ? 13 : S.sub.fontSize }}>Choose a tool, pick a scope, generate instantly.</p>
-
-      <style>{`
-        .demo-study-tool { background: var(--rw-card-bg); border: 1px solid var(--rw-border); border-radius: 8px; padding: 10px 8px; cursor: pointer; text-align: left; transition: all 0.2s; }
-        .demo-study-tool:hover { transform: translateY(-2px); }
-        .demo-study-tool.active { background: var(--rw-accent-muted); border-color: var(--rw-border-strong); }
-        .demo-flip-card { perspective: 800px; cursor: pointer; height: ${isMobileOrSmaller ? 64 : 56}px; touch-action: manipulation; }
-        .demo-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.5s; transform-style: preserve-3d; }
-        .demo-flip-card.is-flipped .demo-flip-inner { transform: rotateY(180deg); }
-        .demo-flip-face { position: absolute; inset: 0; backface-visibility: hidden; display: flex; align-items: center; padding: 8px 11px; border-radius: 8px; }
-        .demo-flip-back { transform: rotateY(180deg); }
-      `}</style>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: isMobileOrSmaller ? 12 : 8, fontFamily: "'DM Sans', sans-serif" }}>
-        {tools.map(t => (
-          <div key={t.id} className={`demo-study-tool ${activeTool === t.id ? "active" : ""}`} onClick={() => { setActiveTool(t.id); setOutput(null); }}>
-            <t.icon size={isMobileOrSmaller ? 20 : 16} color="var(--rw-accent)" style={{ marginBottom: 5 }} />
-            <p style={{ margin: 0, fontSize: isMobileOrSmaller ? 13 : 11.5, fontWeight: 600, color: "var(--rw-text-primary)" }}>{t.label}</p>
-            <p style={{ margin: 0, fontSize: isMobileOrSmaller ? 11 : 9.5, color: "var(--rw-text-muted)" }}>{t.desc}</p>
-          </div>
-        ))}
+    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 18px 10px" : "18px 20px 10px", background: T.panel }}>
+      <div className="rw-stagger-1">
+        <FeatureHeader pageIdx={5} title="Study smarter, not harder." sub="Pick a tool, pick a scope, generate instantly." dark />
       </div>
 
-      <div style={{ display: "flex", gap: 6, margin: "10px 0" }}>
+      {/* Tool selector — horizontal scrollable pills on mobile */}
+      {isMobileOrSmaller ? (
+        <div className="rw-stagger-2" style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 12, scrollbarWidth: "none" }}>
+          <style>{`.no-scrollbar::-webkit-scrollbar{display:none}`}</style>
+          {TOOLS.map(t => (
+            <button key={t.id} className="no-scrollbar"
+              onClick={() => { setActiveTool(t.id); setOutput(null); }}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "10px 16px", background: activeTool === t.id ? T.accent : "var(--rw-card-bg)", border: `1.5px solid ${activeTool === t.id ? T.accent : "var(--rw-border)"}`, borderRadius: 12, cursor: "pointer", flexShrink: 0, minHeight: 44, transition: "all .2s" }}>
+              <t.icon size={18} color={activeTool === t.id ? T.panel : T.accent} />
+              <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: activeTool === t.id ? 600 : 400, color: activeTool === t.id ? T.panel : T.textPrim, whiteSpace: "nowrap" }}>{t.label}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="rw-stagger-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+          {TOOLS.map(t => (
+            <div key={t.id} className={`study-tool-card ${activeTool === t.id ? "active" : ""}`} onClick={() => { setActiveTool(t.id); setOutput(null); }}>
+              <t.icon size={17} color={T.accent} style={{ marginBottom: 5 }} />
+              <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: T.textPrim, fontFamily: "'DM Sans',sans-serif" }}>{t.label}</p>
+              <p style={{ margin: 0, fontSize: 11, color: T.textMuted, fontFamily: "'DM Sans',sans-serif" }}>{t.desc}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Scope toggle */}
+      <div className="rw-stagger-3" style={{ display: "flex", gap: 6, marginBottom: 10 }}>
         {[{ id: "current", l: "Current page" }, { id: "chapter", l: "Chapter" }].map(s => (
-          <button key={s.id} onClick={() => setScope(s.id)} style={{ flex: 1, padding: isMobileOrSmaller ? "10px" : "6px", background: scope === s.id ? "var(--rw-accent)" : "var(--rw-hover-bg)", color: scope === s.id ? "var(--rw-panel-bg)" : "var(--rw-text-primary)", border: "none", borderRadius: 7, fontSize: isMobileOrSmaller ? 12 : 10.5, fontWeight: scope === s.id ? 600 : 400, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", touchAction: "manipulation" }}>{s.l}</button>
+          <button key={s.id} onClick={() => setScope(s.id)}
+            style={{ flex: 1, padding: isMobileOrSmaller ? "11px" : "7px", background: scope === s.id ? T.accent : "var(--rw-hover-bg)", color: scope === s.id ? T.panel : T.textPrim, border: "none", borderRadius: 8, fontSize: 13, fontWeight: scope === s.id ? 600 : 400, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", minHeight: 44, transition: "all .2s" }}>
+            {s.l}
+          </button>
         ))}
       </div>
 
-      <button onClick={simulateGenerate} disabled={loading} style={{ width: "100%", padding: isMobileOrSmaller ? "14px" : "10px", background: "linear-gradient(135deg, var(--rw-accent), #d9a05b)", color: "var(--rw-panel-bg)", border: "none", borderRadius: 8, fontSize: isMobileOrSmaller ? 14 : 12.5, fontWeight: 600, display: "flex", justifyContent: "center", alignItems: "center", gap: 6, cursor: loading ? "default" : "pointer", fontFamily: "'DM Sans',sans-serif", marginBottom: 10, touchAction: "manipulation" }}>
-        {loading ? "Generating…" : <><Sparkles size={isMobileOrSmaller ? 18 : 14} /> Generate</>}
+      {/* Generate button */}
+      <button className="rw-stagger-4" onClick={generate} disabled={loading}
+        style={{ width: "100%", padding: isMobileOrSmaller ? "15px" : "11px", background: `linear-gradient(135deg,${T.accent},#d9a05b)`, color: T.panel, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "center", alignItems: "center", gap: 7, cursor: loading ? "default" : "pointer", fontFamily: "'DM Sans',sans-serif", marginBottom: 12, minHeight: 48, opacity: loading ? .7 : 1, transition: "opacity .2s" }}>
+        {loading ? "Generating…" : <><Sparkles size={17} /> Generate</>}
       </button>
 
+      {/* Output */}
       <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
         {out && !loading && (
-          <div style={{ background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 10, padding: isMobileOrSmaller ? 16 : 12, animation: "noteIn 0.25s ease" }}>
-            {out.body && <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: bodyFontSize, color: "var(--rw-text-primary)", lineHeight: 1.6, fontWeight: 300 }}>{out.body}</p>}
+          <div style={{ background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 11, padding: isMobileOrSmaller ? 16 : 13, animation: "noteIn .25s ease" }}>
+            {out.body && <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: bodyFS, color: T.textPrim, lineHeight: 1.65, fontWeight: 300 }}>{out.body}</p>}
             {out.items && (
-              <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>
-                {out.items.map((it, i) => <li key={i} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: bodyFontSize, color: "var(--rw-text-primary)", fontWeight: 300, lineHeight: 1.5 }}>{it}</li>)}
+              <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+                {out.items.map((it, i) => <li key={i} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: bodyFS, color: T.textPrim, fontWeight: 300, lineHeight: 1.6 }}>{it}</li>)}
               </ul>
             )}
             {out.cards && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <style>{`
+                  .flip-card { perspective:800px; cursor:pointer; height:${isMobileOrSmaller ? 64 : 56}px; }
+                  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+                  .flip-card.flipped .flip-inner { transform:rotateY(180deg); }
+                  .flip-face { position:absolute; inset:0; backface-visibility:hidden; display:flex; align-items:center; padding:10px 13px; border-radius:9px; }
+                  .flip-back { transform:rotateY(180deg); }
+                `}</style>
                 {out.cards.map((c, i) => (
-                  <div key={i} className={`demo-flip-card ${flipped[i] ? "is-flipped" : ""}`} onClick={() => setFlipped(f => ({ ...f, [i]: !f[i] }))}>
-                    <div className="demo-flip-inner">
-                      <div className="demo-flip-face" style={{ background: "var(--rw-hover-bg)" }}>
-                        <p style={{ margin: 0, fontSize: bodyFontSize, color: "var(--rw-text-primary)", fontWeight: 500 }}>Q: {c.q}</p>
+                  <div key={i} className={`flip-card ${flipped[i] ? "flipped" : ""}`} onClick={() => setFlipped(f => ({ ...f, [i]: !f[i] }))}>
+                    <div className="flip-inner">
+                      <div className="flip-face" style={{ background: "var(--rw-hover-bg)" }}>
+                        <p style={{ margin: 0, fontSize: bodyFS, color: T.textPrim, fontWeight: 500, fontFamily: "'DM Sans',sans-serif" }}>Q: {c.q}</p>
                       </div>
-                      <div className="demo-flip-face demo-flip-back" style={{ background: "var(--rw-accent-muted)" }}>
-                        <p style={{ margin: 0, fontSize: bodyFontSize, color: "var(--rw-text-primary)", fontWeight: 300 }}>A: {c.a}</p>
+                      <div className="flip-face flip-back" style={{ background: "var(--rw-accent-muted)" }}>
+                        <p style={{ margin: 0, fontSize: bodyFS, color: T.textPrim, fontWeight: 300, fontFamily: "'DM Sans',sans-serif" }}>A: {c.a}</p>
                       </div>
                     </div>
                   </div>
                 ))}
-                <p style={{ margin: "2px 0 0", fontSize: isMobileOrSmaller ? 11 : 9.5, color: "var(--rw-text-muted)", textAlign: "center", fontFamily: "'DM Sans',sans-serif", fontStyle: "italic" }}>Tap a card to flip</p>
+                <p style={{ margin: "2px 0 0", fontSize: 12, color: T.textMuted, textAlign: "center", fontFamily: "'DM Sans',sans-serif", fontStyle: "italic" }}>Tap a card to flip</p>
               </div>
             )}
           </div>
         )}
-        {!out && !loading && <p style={{ textAlign: "center", fontSize: isMobileOrSmaller ? 13 : 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans',sans-serif", fontStyle: "italic", marginTop: 16 }}>Output will appear here</p>}
+        {!out && !loading && (
+          <div style={{ marginTop: 4 }}>
+            <TryIt text="Pick a tool and tap Generate" done={tried} />
+          </div>
+        )}
       </div>
-      <div style={S.pageNum}>6</div>
+      <div style={{ ...S.pageNum, color: "rgba(255,255,255,.2)" }}>6</div>
     </div>
   );
 };
 
-/* ─── Page 7: Sticky Notes (drag-to-create + draggable pins) ────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE 7 — Sticky Notes
+═══════════════════════════════════════════════════════════════════════════ */
 const NOTE_PREFILLS = [
   { title: "Follow up", text: "Check sources for this claim." },
   { title: "Exam material", text: "Memorise this — likely to come up." },
@@ -592,183 +793,197 @@ const NOTE_PREFILLS = [
 
 const Page7 = () => {
   const { isMobileOrSmaller } = useBreakpoints();
-  const [notes, setNotes] = useState([{ id: 1, x: 28, y: 24, title: "Follow up", text: "Check sources for this claim." }]);
+  const [notes, setNotes] = useState([{ id: 1, x: 30, y: 22, title: "Follow up", text: "Check sources for this claim." }]);
   const [activeId, setActiveId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editVal, setEditVal] = useState("");
   const [dragId, setDragId] = useState(null);
+  const [tried, setTried] = useState(false);
   const pdfRef = useRef(null);
   const dragMoved = useRef(false);
   const MAX = 5;
 
   const placeNote = (clientX, clientY) => {
-    if (notes.length >= MAX) return;
+    if (notes.length >= MAX || !pdfRef.current) return;
     const rect = pdfRef.current.getBoundingClientRect();
     const x = Math.max(6, Math.min(88, ((clientX - rect.left) / rect.width) * 100));
     const y = Math.max(6, Math.min(80, ((clientY - rect.top) / rect.height) * 100));
-    const prefill = NOTE_PREFILLS[notes.length % NOTE_PREFILLS.length];
     const id = Date.now();
-    setNotes(p => [...p, { id, x, y, ...prefill }]);
+    setNotes(p => [...p, { id, x, y, ...NOTE_PREFILLS[p.length % NOTE_PREFILLS.length] }]);
     setActiveId(id);
+    setTried(true);
   };
 
   const handleSurfaceClick = (e) => {
     if (e.target.closest(".note-pin") || e.target.closest(".note-card")) return;
     if (activeId !== null) { setActiveId(null); return; }
-    // For touch devices, handleSurfaceClick might fire on touch. 
-    // Usually touch triggers onClick unless prevented.
-    const cx = e.clientX ?? (e.touches && e.touches[0].clientX);
-    const cy = e.clientY ?? (e.touches && e.touches[0].clientY);
-    if(cx !== undefined) placeNote(cx, cy);
+    placeNote(e.clientX, e.clientY);
   };
 
   const handlePinDown = (id, e) => {
-    e.stopPropagation();
-    dragMoved.current = false;
-    setDragId(id);
+    e.stopPropagation(); dragMoved.current = false; setDragId(id);
   };
-  
+
   useEffect(() => {
     if (dragId === null) return;
     const onMove = (e) => {
       dragMoved.current = true;
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      const rect = pdfRef.current.getBoundingClientRect();
-      const x = Math.max(6, Math.min(88, ((clientX - rect.left) / rect.width) * 100));
-      const y = Math.max(6, Math.min(80, ((clientY - rect.top) / rect.height) * 100));
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      const rect = pdfRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const x = Math.max(6, Math.min(88, ((cx - rect.left) / rect.width) * 100));
+      const y = Math.max(6, Math.min(80, ((cy - rect.top) / rect.height) * 100));
       setNotes(p => p.map(n => n.id === dragId ? { ...n, x, y } : n));
     };
-    const onTouchMove = (e) => {
-      // Prevent scrolling the page while dragging the note
-      e.preventDefault(); 
-      onMove(e);
-    };
-    const onUp = () => { setDragId(null); };
-    
+    const onTouchMove = (e) => { e.preventDefault(); onMove(e); };
+    const onUp = () => setDragId(null);
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
     window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onUp);
-    
-    return () => { 
-      window.removeEventListener("mousemove", onMove); 
-      window.removeEventListener("mouseup", onUp); 
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onUp);
     };
   }, [dragId]);
 
   const removeNote = (id, e) => { e.stopPropagation(); setNotes(p => p.filter(n => n.id !== id)); if (activeId === id) setActiveId(null); };
-
-  const pinSize = isMobileOrSmaller ? 40 : 26;
-  const pinIconSize = isMobileOrSmaller ? 18 : 12;
+  const PIN = isMobileOrSmaller ? 42 : 28;
+  const PIN_ICON = isMobileOrSmaller ? 18 : 13;
 
   return (
-    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 16px" : "18px 20px" }}>
-      <Caption eyebrow="Feature · Sticky Notes" points={["Tap to drop a pin", "Drag to reposition", "Title + rich note body"]} />
+    <div style={{ ...S.wrap, padding: "18px 18px 14px" }}>
+      <div className="rw-stagger-1">
+        <FeatureHeader pageIdx={6} title="Drop notes right on the page." sub="Tap to pin, drag to reposition." />
+      </div>
+
       <div ref={pdfRef} onClick={handleSurfaceClick}
-        style={{ flex: 1, background: "#fdfaf3", border: "1px solid var(--rw-border)", borderRadius: 10, padding: isMobileOrSmaller ? "20px 16px" : "16px 20px", position: "relative", cursor: notes.length < MAX && activeId === null ? "crosshair" : "default", overflow: "hidden", margin: isMobileOrSmaller ? "0 -4px" : "0 -2px" }}>
+        className="rw-stagger-2"
+        style={{ flex: 1, background: "#fdfaf3", border: "1px solid var(--rw-border)", borderRadius: 12, padding: "18px 18px", position: "relative", cursor: notes.length < MAX && activeId === null ? "crosshair" : "default", overflow: "hidden" }}>
+
+        {/* Fake text lines */}
         {[78, 92, 85, 70, 95, 80, 60, 88, 76, 90, 72, 85, 65, 90].map((w, i) => (
-          <div key={i} style={{ height: 4, borderRadius: 3, background: "rgba(42,32,16,0.08)", width: `${w}%`, marginBottom: 10 }} />
+          <div key={i} style={{ height: 5, borderRadius: 3, background: "rgba(42,32,16,.08)", width: `${w}%`, marginBottom: isMobileOrSmaller ? 11 : 9 }} />
         ))}
-        <div style={{ position: "absolute", bottom: 10, left: 20, fontFamily: "'DM Sans',sans-serif", fontSize: isMobileOrSmaller ? 11.5 : 10, color: "#9a8870", pointerEvents: "none" }}>
-          {notes.length < MAX && activeId === null ? (isMobileOrSmaller ? "Tap anywhere to drop a note" : "Click anywhere to drop a note · drag a pin to move it") : activeId !== null ? "Tap outside to close" : "All note slots used"}
+
+        <div style={{ position: "absolute", bottom: 12, left: 18, fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "#9a8870", pointerEvents: "none" }}>
+          {notes.length < MAX && activeId === null
+            ? (isMobileOrSmaller ? "Tap anywhere to drop a note" : "Click anywhere · drag pins to move")
+            : activeId !== null ? "Tap outside to close"
+              : "All 5 note slots used"}
         </div>
 
-        {notes.map((note, i) => (
+        {notes.map(note => (
           <div key={note.id} style={{ position: "absolute", left: `${note.x}%`, top: `${note.y}%`, zIndex: dragId === note.id ? 30 : 10 }}>
+            {/* Pin */}
             <div className="note-pin"
               onMouseDown={e => handlePinDown(note.id, e)}
               onTouchStart={e => handlePinDown(note.id, e)}
               onClick={e => { e.stopPropagation(); if (dragMoved.current) return; setActiveId(activeId === note.id ? null : note.id); setEditingId(null); }}
-              style={{ width: pinSize, height: pinSize, borderRadius: "50% 50% 50% 4px", background: "var(--rw-panel-bg)", border: "2px solid var(--rw-accent)", display: "flex", alignItems: "center", justifyContent: "center", cursor: dragId === note.id ? "grabbing" : "grab", transform: `translate(-50%,-50%) ${dragId === note.id ? "scale(1.18)" : "scale(1)"}`, boxShadow: dragId === note.id ? "0 6px 18px rgba(0,0,0,0.25)" : "0 2px 8px rgba(0,0,0,0.18)", transition: dragId === note.id ? "none" : "transform 0.15s, box-shadow 0.15s", color: "var(--rw-accent)", touchAction: dragId === note.id ? "none" : "auto" }}>
-              <MessageSquare size={pinIconSize} fill={dragId === note.id ? "var(--rw-accent)" : "none"} />
+              style={{ width: PIN, height: PIN, borderRadius: "50% 50% 50% 4px", background: T.panel, border: `2px solid ${T.accent}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: dragId === note.id ? "grabbing" : "grab", transform: `translate(-50%,-50%) scale(${dragId === note.id ? 1.14 : 1})`, boxShadow: dragId === note.id ? "0 6px 18px rgba(0,0,0,.25)" : "0 2px 8px rgba(0,0,0,.18)", transition: dragId === note.id ? "none" : "transform .15s,box-shadow .15s", color: T.accent, touchAction: dragId === note.id ? "none" : "auto" }}>
+              <MessageSquare size={PIN_ICON} fill={dragId === note.id ? T.accent : "none"} />
             </div>
+
+            {/* Card */}
             {activeId === note.id && (
               <div className="note-card" onClick={e => e.stopPropagation()}
-                style={{ position: "absolute", left: isMobileOrSmaller ? "-60px" : "30px", top: isMobileOrSmaller ? "30px" : "-10px", width: isMobileOrSmaller ? 220 : 178, background: "var(--rw-text-primary)", border: "1px solid var(--rw-border)", borderRadius: 10, padding: isMobileOrSmaller ? "14px 16px" : "10px 12px", boxShadow: "0 4px 18px rgba(0,0,0,0.14)", zIndex: 20, animation: "noteIn 0.2s ease" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                style={{ position: "absolute", left: isMobileOrSmaller ? "-70px" : "32px", top: isMobileOrSmaller ? "30px" : "-10px", width: isMobileOrSmaller ? 220 : 185, background: "var(--rw-text-primary)", border: "1px solid var(--rw-border)", borderRadius: 12, padding: isMobileOrSmaller ? "14px 16px" : "11px 13px", boxShadow: "0 4px 18px rgba(0,0,0,.14)", zIndex: 20, animation: "noteIn .2s ease" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   {editingId === note.id ? (
                     <input value={editVal} onChange={e => setEditVal(e.target.value)}
                       onBlur={() => { setNotes(p => p.map(n => n.id === note.id ? { ...n, title: editVal } : n)); setEditingId(null); }}
                       autoFocus
-                      style={{ fontFamily: "'DM Sans',sans-serif", fontSize: isMobileOrSmaller ? 11 : 9.5, color: "var(--rw-accent)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", border: "none", borderBottom: "1px solid var(--rw-accent)", outline: "none", background: "transparent", width: "70%" }} />
+                      style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: T.accent, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", border: "none", borderBottom: `1px solid ${T.accent}`, outline: "none", background: "transparent", width: "70%" }} />
                   ) : (
-                    <span onClick={() => { setEditingId(note.id); setEditVal(note.title); }} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: isMobileOrSmaller ? 11 : 9.5, color: "var(--rw-accent)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", cursor: "text" }}>{note.title}</span>
+                    <span onClick={() => { setEditingId(note.id); setEditVal(note.title); }} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: T.accent, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", cursor: "text" }}>{note.title}</span>
                   )}
-                  <button onClick={e => removeNote(note.id, e)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--rw-text-muted)", fontSize: 16, padding: "0 4px" }}>×</button>
+                  <button onClick={e => removeNote(note.id, e)} style={{ background: "none", border: "none", cursor: "pointer", color: T.textMuted, fontSize: 18, lineHeight: 1, padding: "0 2px", minWidth: 24, minHeight: 24, display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                 </div>
-                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: isMobileOrSmaller ? 13 : 11.5, color: "#3a2e20", margin: 0, lineHeight: 1.5, fontWeight: 300 }}>{note.text}</p>
+                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: isMobileOrSmaller ? 13.5 : 12, color: "#3a2e20", margin: 0, lineHeight: 1.55, fontWeight: 300 }}>{note.text}</p>
               </div>
             )}
           </div>
         ))}
+      </div>
+
+      <div style={{ marginTop: 10 }}>
+        <TryIt text="Tap anywhere on the page to drop a note" done={tried} />
       </div>
       <div style={S.pageNum}>7</div>
     </div>
   );
 };
 
-/* ─── Page 8: Final CTA ──────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE 8 — CTA
+═══════════════════════════════════════════════════════════════════════════ */
 const Page8 = ({ onUploadClick }) => {
   const [v, setV] = useState(false);
-  useEffect(() => { setTimeout(() => setV(true), 100); }, []);
+  useEffect(() => { const t = setTimeout(() => setV(true), 100); return () => clearTimeout(t); }, []);
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 36px", textAlign: "center", background: "var(--rw-panel-bg)", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", width: 220, height: 220, borderRadius: "50%", background: "radial-gradient(circle, rgba(184,150,106,0.1) 0%, transparent 70%)", top: "50%", left: "50%", transform: "translate(-50%,-50%)", pointerEvents: "none" }} />
-      <div style={{ opacity: v ? 1 : 0, transform: v ? "translateY(0)" : "translateY(14px)", transition: "opacity 0.7s ease, transform 0.7s ease" }}>
-        <div style={{ fontSize: 26, marginBottom: 16, opacity: 0.6 }}>✦</div>
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 500, color: "var(--rw-accent)", textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 16px" }}>ReadWise</p>
-        <p style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: "clamp(16px,2.2vw,23px)", fontStyle: "italic", color: "var(--rw-text-primary)", lineHeight: 1.5, margin: "0 0 7px", fontWeight: 500 }}>"The best reading tool<br />disappears."</p>
-        <p style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(14px,1.8vw,19px)", color: "var(--rw-text-primary)", lineHeight: 1.5, margin: "0 0 26px", fontWeight: 600 }}>Only understanding remains.</p>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 28px", textAlign: "center", background: T.panel, position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", width: 240, height: 240, borderRadius: "50%", background: "radial-gradient(circle, rgba(184,150,106,.1) 0%, transparent 70%)", top: "50%", left: "50%", transform: "translate(-50%,-50%)", pointerEvents: "none" }} />
+
+      <div style={{ opacity: v ? 1 : 0, transform: v ? "translateY(0)" : "translateY(14px)", transition: "opacity .7s ease, transform .7s ease" }}>
+        <div style={{ fontSize: 26, marginBottom: 18, opacity: .55 }}>✦</div>
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 500, color: T.accent, textTransform: "uppercase", letterSpacing: ".14em", margin: "0 0 18px" }}>ReadWise</p>
+        <p style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: "clamp(17px,2.5vw,24px)", fontStyle: "italic", color: T.textPrim, lineHeight: 1.55, margin: "0 0 8px", fontWeight: 500 }}>"The best reading tool<br />disappears."</p>
+        <p style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(15px,2vw,20px)", color: T.textPrim, lineHeight: 1.5, margin: "0 0 30px", fontWeight: 600 }}>Only understanding remains.</p>
         <button onClick={onUploadClick}
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 24px", background: "var(--rw-text-primary)", color: "var(--rw-panel-bg)", border: "none", borderRadius: 10, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: "0.02em", transition: "all 0.22s ease" }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = "0.9"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 9, padding: "13px 28px", background: T.textPrim, color: T.panel, border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: ".02em", transition: "all .22s ease", minHeight: 48 }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = ".88"; e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}>
-          Upload your first PDF <span style={{ fontSize: 16 }}>→</span>
+          Upload your first PDF <ArrowRight size={15} />
         </button>
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.22)", marginTop: 13 }}>No account needed · Free to start</p>
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,.22)", marginTop: 14 }}>No account needed · Free to start</p>
       </div>
-      <div style={{ position: "absolute", bottom: 16, right: 20, fontFamily: "'Playfair Display',serif", fontSize: 11, color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>8</div>
+
+      <div style={{ position: "absolute", bottom: 16, right: 20, fontFamily: "'Playfair Display',serif", fontSize: 11, color: "rgba(255,255,255,.18)", fontStyle: "italic" }}>8</div>
     </div>
   );
 };
 
-/* ─── Page Registry ───────────────────────────────────────────────────────── */
+/* ─── Page registry ──────────────────────────────────────────────────────── */
 const PAGES = [Page1, Page2, Page3, Page4, Page5, Page6, Page7, Page8];
-const PAGE_TITLES = ["Welcome", "Library", "PDF Reader", "Selection", "AI Chat", "Study Tools", "Sticky Notes", "Begin Reading"];
-const DARK_PAGES = new Set([4, 5, 7]); // AI Chat, Study Tools, Final CTA use panel-dark background
+const DARK_PAGES = new Set([4, 5, 7]);
 
-/* ─── Book Container — real paper-style page flip ───────────────────────── */
-/*
-  Two-leaf hinge technique:
-  - The "static stack" beneath always shows the page AFTER the flip lands (the target page),
-    so when the turning leaf finishes rotating away, the content underneath is already correct.
-  - The turning "leaf" is a single absolutely-positioned panel with two faces (front/back),
-    each backface-hidden, rotated together via one transform. It hinges from the edge being
-    turned (right edge for next, left edge for prev) so it behaves like a real page corner.
-  - A shadow gradient sweeps across the leaf as it rotates past 90deg to sell paper depth.
-*/
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOTTOM NAV — dot indicators for mobile
+═══════════════════════════════════════════════════════════════════════════ */
+const BottomNav = ({ current, total, onGo, isDark }) => (
+  <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0 14px", background: isDark ? T.panel : "var(--rw-app-bg)" }}>
+    {Array.from({ length: total }).map((_, i) => (
+      <button key={i} onClick={() => onGo(i)}
+        style={{ width: i === current ? 22 : 7, height: 7, borderRadius: 4, background: i === current ? T.accent : (isDark ? "rgba(255,255,255,.2)" : "rgba(0,0,0,.15)"), border: "none", cursor: "pointer", padding: 0, transition: "all .3s cubic-bezier(.4,0,.2,1)", minWidth: 7 }} />
+    ))}
+  </div>
+);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOOK CONTAINER — desktop page-flip
+═══════════════════════════════════════════════════════════════════════════ */
 const BookContainer = ({ onUploadClick }) => {
   const [currentPage, setCurrentPage] = useState(0);
-  const [flip, setFlip] = useState(null); // { dir: 'next'|'prev', from: idx, to: idx }
+  const [flip, setFlip] = useState(null);
   const [showIndicator, setShowIndicator] = useState(false);
   const indicatorTimer = useRef(null);
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
-  const totalPages = PAGES.length;
+  const total = PAGES.length;
   const FLIP_MS = 620;
 
-  const goTo = (idx) => {
-    if (flip || idx < 0 || idx >= totalPages || idx === currentPage) return;
+  const goTo = useCallback((idx) => {
+    if (flip || idx < 0 || idx >= total || idx === currentPage) return;
     const dir = idx > currentPage ? "next" : "prev";
     setFlip({ dir, from: currentPage, to: idx });
     setTimeout(() => { setCurrentPage(idx); setFlip(null); }, FLIP_MS);
     setShowIndicator(true);
     clearTimeout(indicatorTimer.current);
     indicatorTimer.current = setTimeout(() => setShowIndicator(false), 1800);
-  };
+  }, [currentPage, flip, total]);
 
   const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; touchStartY.current = e.touches[0].clientY; };
   const handleTouchEnd = (e) => {
@@ -786,152 +1001,81 @@ const BookContainer = ({ onUploadClick }) => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [currentPage, flip]);
+  }, [currentPage, flip, goTo]);
 
   useEffect(() => () => clearTimeout(indicatorTimer.current), []);
 
-  const bgFor = (idx) => DARK_PAGES.has(idx) ? "var(--rw-panel-bg)" : "var(--rw-app-bg)";
+  const isDarkCurrent = DARK_PAGES.has(currentPage);
 
   const renderPaper = (idx) => {
     const PageComp = PAGES[idx];
     const isDark = DARK_PAGES.has(idx);
     return (
-      <div style={{ position: "absolute", inset: 0, background: bgFor(idx), overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, background: isDark ? T.panel : "var(--rw-app-bg)", overflow: "hidden" }}>
         {!isDark && (
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
-            {Array.from({ length: 32 }).map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${3 + i * 3.1}%`, height: "0.5px", background: "rgba(196,182,164,0.15)" }} />)}
-            <div style={{ position: "absolute", left: 44, top: 0, bottom: 0, width: "0.5px", background: "rgba(196,182,164,0.22)" }} />
+            {Array.from({ length: 32 }).map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${3 + i * 3.1}%`, height: "0.5px", background: "rgba(196,182,164,.15)" }} />)}
+            <div style={{ position: "absolute", left: 44, top: 0, bottom: 0, width: "0.5px", background: "rgba(196,182,164,.22)" }} />
           </div>
         )}
         <div style={{ position: "relative", zIndex: 1, height: "100%" }}>
           <PageComp onNext={() => goTo(idx + 1)} onUploadClick={onUploadClick} />
         </div>
+        <ProgressRibbon current={idx} total={PAGES.length} accentColor={PAGE_META[idx]?.accent} />
       </div>
     );
   };
 
-  const isDarkCurrent = DARK_PAGES.has(currentPage);
-
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0, margin: 0 }}>
-      <style>{`
-        ${FONTS}
-        @keyframes noteIn { from { opacity:0; transform:scale(0.93) translateY(6px); } to { opacity:1; transform:scale(1) translateY(0); } }
-        @keyframes indicatorFade {
-          0%   { opacity: 0; transform: translateX(-50%) translateY(4px); }
-          15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
-          70%  { opacity: 1; transform: translateX(-50%) translateY(0); }
-          100% { opacity: 0; transform: translateX(-50%) translateY(-3px); }
-        }
-        @keyframes pageFlipNext {
-          0%   { transform: perspective(2000px) rotateY(0deg); }
-          100% { transform: perspective(2000px) rotateY(-180deg); }
-        }
-        @keyframes pageFlipPrev {
-          0%   { transform: perspective(2000px) rotateY(0deg); }
-          100% { transform: perspective(2000px) rotateY(180deg); }
-        }
-        @keyframes flipShadowSweep {
-          0%   { opacity: 0; }
-          45%  { opacity: 0.35; }
-          55%  { opacity: 0.35; }
-          100% { opacity: 0; }
-        }
-        @keyframes ambientShadowSweep {
-          0%   { opacity: 0.18; }
-          50%  { opacity: 0; }
-          100% { opacity: 0.18; }
-        }
-        .rw-zone-left, .rw-zone-right {
-          position: absolute; top: 50%; transform: translateY(-50%);
-          width: auto; height: auto; z-index: 60; cursor: pointer;
-        }
-        .rw-zone-left  { left: 7px; }
-        .rw-zone-right { right: 7px; }
-        .rw-arrow {
-          width: 32px; height: 32px; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center; font-size: 15px;
-          margin: 8px; opacity: 1; transition: transform 0.2s ease;
-        }
-        .rw-zone-left:hover .rw-arrow, .rw-zone-right:hover .rw-arrow { transform: scale(1.12); }
-      `}</style>
-
       <div style={{ position: "relative", flex: 1, width: "100%", minHeight: 0 }}
         onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-        {/* Depth layers under the book */}
-        <div style={{ position: "absolute", inset: 0, transform: "translateX(6px) translateY(9px)", background: "rgba(26,21,16,0.09)", filter: "blur(6px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", inset: 0, transform: "translateX(3px) translateY(4px)", background: "rgba(26,21,16,0.05)", pointerEvents: "none" }} />
+
+        {/* Depth layers */}
+        <div style={{ position: "absolute", inset: 0, transform: "translateX(6px) translateY(9px)", background: "rgba(26,21,16,.09)", filter: "blur(6px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, transform: "translateX(3px) translateY(4px)", background: "rgba(26,21,16,.05)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, background: "#ece6da", border: "1px solid #d4ccbf", transform: "translate(2px,2px)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, background: "#f2ece2", border: "1px solid #ddd5c8", transform: "translate(1px,1px)", pointerEvents: "none" }} />
 
         {/* Book frame */}
-        <div style={{ position: "absolute", inset: 0, border: `1px solid ${isDarkCurrent ? "var(--rw-hover-bg)" : "#e2dbd0"}`, overflow: "hidden", boxShadow: "inset 3px 0 12px rgba(0,0,0,0.03)" }}>
-
-          {/* Base layer: the page the flip will land on, always rendered underneath */}
+        <div style={{ position: "absolute", inset: 0, border: `1px solid ${isDarkCurrent ? "var(--rw-hover-bg)" : "#e2dbd0"}`, overflow: "hidden", boxShadow: "inset 3px 0 12px rgba(0,0,0,.03)" }}>
           {renderPaper(flip ? flip.to : currentPage)}
 
-          {/* Ambient shadow cast onto the static page by the lifting leaf, sweeps opposite the leaf's travel */}
           {flip && (
-            <div style={{
-              position: "absolute", inset: 0, zIndex: 40, pointerEvents: "none",
-              background: flip.dir === "next"
-                ? "linear-gradient(to right, rgba(0,0,0,0.18), rgba(0,0,0,0) 30%)"
-                : "linear-gradient(to left, rgba(0,0,0,0.18), rgba(0,0,0,0) 30%)",
-              animation: `ambientShadowSweep ${FLIP_MS}ms ease forwards`,
-            }} />
+            <div style={{ position: "absolute", inset: 0, zIndex: 40, pointerEvents: "none", background: flip.dir === "next" ? "linear-gradient(to right,rgba(0,0,0,.18),rgba(0,0,0,0) 30%)" : "linear-gradient(to left,rgba(0,0,0,.18),rgba(0,0,0,0) 30%)", animation: `ambientShadowSweep ${FLIP_MS}ms ease forwards` }} />
           )}
 
-          {/* Turning leaf: only present mid-flip */}
           {flip && (
-            <div style={{
-              position: "absolute", inset: 0, zIndex: 50,
-              transformStyle: "preserve-3d",
-              transformOrigin: flip.dir === "next" ? "right center" : "left center",
-              animation: `${flip.dir === "next" ? "pageFlipNext" : "pageFlipPrev"} ${FLIP_MS}ms cubic-bezier(0.45,0.05,0.55,0.95) forwards`,
-            }}>
-              {/* Front face: the page being left (visible 0deg -> 90deg) */}
+            <div style={{ position: "absolute", inset: 0, zIndex: 50, transformStyle: "preserve-3d", transformOrigin: flip.dir === "next" ? "right center" : "left center", animation: `${flip.dir === "next" ? "pageFlipNext" : "pageFlipPrev"} ${FLIP_MS}ms cubic-bezier(.45,.05,.55,.95) forwards` }}>
               <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden" }}>
                 {renderPaper(flip.from)}
-                <div style={{
-                  position: "absolute", inset: 0, pointerEvents: "none",
-                  background: flip.dir === "next"
-                    ? "linear-gradient(to left, rgba(0,0,0,0.22), rgba(0,0,0,0) 55%)"
-                    : "linear-gradient(to right, rgba(0,0,0,0.22), rgba(0,0,0,0) 55%)",
-                  animation: `flipShadowSweep ${FLIP_MS}ms ease forwards`,
-                }} />
+                <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: flip.dir === "next" ? "linear-gradient(to left,rgba(0,0,0,.22),rgba(0,0,0,0) 55%)" : "linear-gradient(to right,rgba(0,0,0,.22),rgba(0,0,0,0) 55%)", animation: `flipShadowSweep ${FLIP_MS}ms ease forwards` }} />
               </div>
-              {/* Back face: the page being revealed (visible 90deg -> 180deg, pre-flipped so it reads correctly) */}
               <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
                 {renderPaper(flip.to)}
-                <div style={{
-                  position: "absolute", inset: 0, pointerEvents: "none",
-                  background: flip.dir === "next"
-                    ? "linear-gradient(to right, rgba(0,0,0,0.22), rgba(0,0,0,0) 55%)"
-                    : "linear-gradient(to left, rgba(0,0,0,0.22), rgba(0,0,0,0) 55%)",
-                  animation: `flipShadowSweep ${FLIP_MS}ms ease forwards`,
-                }} />
+                <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: flip.dir === "next" ? "linear-gradient(to right,rgba(0,0,0,.22),rgba(0,0,0,0) 55%)" : "linear-gradient(to left,rgba(0,0,0,.22),rgba(0,0,0,0) 55%)", animation: `flipShadowSweep ${FLIP_MS}ms ease forwards` }} />
               </div>
             </div>
           )}
 
-          {/* Nav zones */}
+          {/* Arrow nav */}
           {currentPage > 0 && (
             <div className="rw-zone-left" onClick={() => goTo(currentPage - 1)}>
-              <div className="rw-arrow" style={{ background: isDarkCurrent ? "var(--rw-border)" : "rgba(26,21,16,0.07)", color: isDarkCurrent ? "var(--rw-text-primary)" : "#3a2e20" }}>‹</div>
+              <div className="rw-arrow" style={{ background: isDarkCurrent ? "var(--rw-border)" : "rgba(26,21,16,.07)", color: isDarkCurrent ? T.textPrim : "#3a2e20" }}>‹</div>
             </div>
           )}
-          {currentPage < totalPages - 1 && (
+          {currentPage < total - 1 && (
             <div className="rw-zone-right" onClick={() => goTo(currentPage + 1)}>
-              <div className="rw-arrow" style={{ background: isDarkCurrent ? "var(--rw-border)" : "rgba(26,21,16,0.07)", color: isDarkCurrent ? "var(--rw-text-primary)" : "#3a2e20" }}>›</div>
+              <div className="rw-arrow" style={{ background: isDarkCurrent ? "var(--rw-border)" : "rgba(26,21,16,.07)", color: isDarkCurrent ? T.textPrim : "#3a2e20" }}>›</div>
             </div>
           )}
         </div>
 
         {/* Page indicator */}
         <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", pointerEvents: "none", zIndex: 70, animation: showIndicator ? "indicatorFade 1.8s ease forwards" : "none", opacity: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, background: isDarkCurrent ? "rgba(255,255,255,0.07)" : "rgba(26,21,16,0.06)", backdropFilter: "blur(6px)", border: `1px solid ${isDarkCurrent ? "var(--rw-border)" : "rgba(26,21,16,0.07)"}` }}>
-            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, letterSpacing: "0.06em", color: isDarkCurrent ? "rgba(232,216,184,0.7)" : "rgba(58,46,32,0.5)" }}>{currentPage + 1} / {totalPages}</span>
-            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, letterSpacing: "0.04em", color: isDarkCurrent ? "rgba(184,150,106,0.6)" : "rgba(184,150,106,0.8)" }}>{PAGE_TITLES[currentPage]}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, background: isDarkCurrent ? "rgba(255,255,255,.07)" : "rgba(26,21,16,.06)", backdropFilter: "blur(6px)", border: `1px solid ${isDarkCurrent ? "var(--rw-border)" : "rgba(26,21,16,.07)"}` }}>
+            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, letterSpacing: ".06em", color: isDarkCurrent ? "rgba(232,216,184,.7)" : "rgba(58,46,32,.5)" }}>{currentPage + 1} / {total}</span>
+            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, letterSpacing: ".04em", color: isDarkCurrent ? "rgba(184,150,106,.6)" : "rgba(184,150,106,.8)" }}>{PAGE_META[currentPage]?.label}</span>
           </div>
         </div>
       </div>
@@ -939,53 +1083,124 @@ const BookContainer = ({ onUploadClick }) => {
   );
 };
 
-/* ─── Mobile Story Flow ───────────────────────────────────────────────────── */
-const MobileStoryPage = ({ PageComp, idx, onUploadClick }) => {
-  const isDark = DARK_PAGES.has(idx);
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef(null);
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE CAROUSEL — horizontal swipe with spring spring spring
+═══════════════════════════════════════════════════════════════════════════ */
+const MobileCarousel = ({ onUploadClick }) => {
+  const [current, setCurrent] = useState(0);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startX = useRef(null);
+  const startY = useRef(null);
+  const total = PAGES.length;
+  const THRESHOLD = 48;
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setIsVisible(true); }, { threshold: 0.3 });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
+  const goTo = (idx) => {
+    if (idx < 0 || idx >= total) return;
+    setCurrent(idx);
+    setDragX(0);
+  };
+
+  const onTouchStart = (e) => {
+    startX.current = e.touches[0].clientX;
+    startY.current = e.touches[0].clientY;
+    setIsDragging(true);
+  };
+
+  const onTouchMove = (e) => {
+    if (startX.current === null) return;
+    const dx = e.touches[0].clientX - startX.current;
+    const dy = e.touches[0].clientY - startY.current;
+    // Only hijack horizontal swipes
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // Rubber-band resistance at edges
+      const atStart = current === 0 && dx > 0;
+      const atEnd = current === total - 1 && dx < 0;
+      const factor = atStart || atEnd ? 0.25 : 1;
+      setDragX(dx * factor);
+    }
+  };
+
+  const onTouchEnd = (e) => {
+    if (startX.current === null) { setIsDragging(false); return; }
+    const dx = e.changedTouches[0].clientX - startX.current;
+    const dy = e.changedTouches[0].clientY - startY.current;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > THRESHOLD) {
+      if (dx < 0) goTo(current + 1);
+      else goTo(current - 1);
+    } else {
+      setDragX(0);
+    }
+    startX.current = null;
+    setIsDragging(false);
+  };
+
+  const isDark = DARK_PAGES.has(current);
 
   return (
-    <div ref={ref} style={{ height: "100dvh", width: "100vw", scrollSnapAlign: "start", scrollSnapStop: "always", display: "flex", flexDirection: "column", background: isDark ? "var(--rw-panel-bg)" : "var(--rw-app-bg)", position: "relative", overflow: "hidden" }}>
-      <div style={{ flex: 1, opacity: isVisible ? 1 : 0, transform: isVisible ? "translateY(0)" : "translateY(20px)", transition: "opacity 0.8s ease, transform 0.8s cubic-bezier(0.4,0,0.2,1)", display: "flex", flexDirection: "column", position: "relative" }}>
-        <PageComp onNext={() => { }} onUploadClick={onUploadClick} />
+    <div style={{ height: "100dvh", width: "100vw", display: "flex", flexDirection: "column", overflow: "hidden", background: isDark ? T.panel : "var(--rw-app-bg)" }}>
+      {/* Global progress ribbon */}
+      <ProgressRibbon current={current} total={total} accentColor={PAGE_META[current]?.accent} />
+
+      {/* Sliding viewport */}
+      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}
+        onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+
+        {/* Render current ±1 for perf */}
+        {PAGES.map((PageComp, idx) => {
+          const visible = Math.abs(idx - current) <= 1;
+          if (!visible) return null;
+          const offset = (idx - current) * 100;
+          const translateX = offset + (dragX / window.innerWidth) * 100;
+          const pageIsDark = DARK_PAGES.has(idx);
+          return (
+            <div key={idx} style={{
+              position: "absolute", inset: 0,
+              transform: `translateX(${translateX}%)`,
+              transition: isDragging ? "none" : "transform .42s cubic-bezier(.35,.9,.45,1)",
+              willChange: "transform",
+              background: pageIsDark ? T.panel : "var(--rw-app-bg)",
+              overflow: "hidden",
+            }}>
+              {/* Ruled paper lines for light pages */}
+              {!pageIsDark && (
+                <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0 }}>
+                  {Array.from({ length: 28 }).map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${4 + i * 3.5}%`, height: "0.5px", background: "rgba(196,182,164,.13)" }} />)}
+                </div>
+              )}
+              <div style={{ position: "relative", zIndex: 1, height: "100%" }}>
+                <PageComp onNext={() => goTo(idx + 1)} onUploadClick={onUploadClick} />
+              </div>
+            </div>
+          );
+        })}
       </div>
-      {idx < PAGES.length - 1 && (
-        <div style={{ position: "absolute", bottom: 28, left: "50%", opacity: isVisible ? 0.5 : 0, transition: "opacity 1s ease 0.5s", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, pointerEvents: "none" }}>
-          <span style={{ fontSize: 9, fontFamily: "'DM Sans',sans-serif", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--rw-text-secondary)" }}>Scroll</span>
-          <span style={{ color: "var(--rw-text-secondary)" }}>↓</span>
-        </div>
-      )}
+
+      {/* Bottom nav */}
+      <BottomNav current={current} total={total} onGo={goTo} isDark={isDark} />
     </div>
   );
 };
 
-/* ─── Export Wrapper ──────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   ROOT EXPORT
+═══════════════════════════════════════════════════════════════════════════ */
 const LandingContentWrapper = ({ onUploadClick }) => {
   const { isMobileOrSmaller } = useBreakpoints();
 
-  if (isMobileOrSmaller) {
-    return (
-      <div style={{ height: "100dvh", width: "100vw", overflowY: "auto", overflowX: "hidden", scrollSnapType: "y mandatory", background: "var(--rw-app-bg)", scrollBehavior: "smooth" }} className="custom-scrollbar">
-        <style>{`
-          ${FONTS}
-          @keyframes mobileBounce { 0%,20%,50%,80%,100%{transform:translateY(0) translateX(-50%)} 40%{transform:translateY(-7px) translateX(-50%)} 60%{transform:translateY(-3px) translateX(-50%)} }
-          @keyframes noteIn { from{opacity:0;transform:scale(0.93) translateY(6px)} to{opacity:1;transform:scale(1) translateY(0)} }
-          @keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
-          @keyframes dotBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
-        `}</style>
-        {PAGES.map((PageComp, idx) => <MobileStoryPage key={idx} PageComp={PageComp} idx={idx} onUploadClick={onUploadClick} />)}
-      </div>
-    );
-  }
-
-  return <BookContainer onUploadClick={onUploadClick} />;
+  return (
+    <>
+      <style>{GLOBAL_CSS}</style>
+      {isMobileOrSmaller
+        ? <MobileCarousel onUploadClick={onUploadClick} />
+        : (
+          <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+            <BookContainer onUploadClick={onUploadClick} />
+          </div>
+        )
+      }
+    </>
+  );
 };
 
 export default LandingContentWrapper;
