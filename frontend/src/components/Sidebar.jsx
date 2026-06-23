@@ -14,7 +14,8 @@ import readingProgressStore from "../utils/readingProgressStore";
 import AppearanceModal from "../theme/AppearanceModal";
 import { useTheme } from "../theme/useTheme";
 import { useBreakpoints } from "../hooks/useBreakpoints";
-import { BookOpen, FileText, FolderOpen, Library, Palette, Paperclip, Keyboard } from "lucide-react";
+import { BookOpen, FileText, FolderOpen, Library, Palette, Paperclip, Keyboard, LogOut, User } from "lucide-react";
+import { useAuth } from "../features/auth/useAuth";
 
 // ── Time helper ────────────────────────────────────────────────────────────────
 function timeAgo(dateStr) {
@@ -49,6 +50,7 @@ const Sidebar = ({
   const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
   const { activeTheme } = useTheme();
   const { isMobileOrSmaller, isTablet } = useBreakpoints();
+  const { user, logout } = useAuth();
 
   const { favorites, hasFavorites, totalFavorites } = useFavorites(pdfs);
   const { query, setQuery, filtered } = usePdfLibrarySearch(pdfs);
@@ -447,27 +449,48 @@ const Sidebar = ({
           </button>
         </div>
 
-        {/* ── Footer tips ─────────────────────────────────── */}
+        {/* ── User Profile & Logout ───────────────────────────────── */}
         <div style={{
           padding: "12px 20px 16px",
           borderTop: "1px solid var(--rw-border)",
           flexShrink: 0,
           display: "flex",
-          flexDirection: "column",
-          gap: 4,
+          alignItems: "center",
+          justifyContent: "space-between",
         }}>
-          {[
-            [<Paperclip size={12} key="size" />, "PDFs up to 20 MB"],
-            [<Keyboard size={12} key="keys" />, "Arrow keys turn pages"],
-          ].map(([icon, text]) => (
-            <div key={text} style={{
-              display: "flex", alignItems: "center", gap: 6,
-              fontSize: 11, color: "var(--rw-text-muted)",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", color: "var(--rw-text-muted)" }}>{icon}</div>
-              <span>{text}</span>
+          {!isTablet && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, overflow: "hidden" }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: "50%",
+                background: "var(--rw-accent-muted)", color: "var(--rw-accent)",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+              }}>
+                <User size={14} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: "var(--rw-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {user?.email}
+                </span>
+                <span style={{ fontSize: 10, color: "var(--rw-text-muted)" }}>Free Plan</span>
+              </div>
             </div>
-          ))}
+          )}
+          
+          <button
+            onClick={logout}
+            title="Sign out"
+            style={{
+              background: "transparent", border: "none", cursor: "pointer",
+              color: "var(--rw-text-muted)", padding: isTablet ? 8 : 4,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              borderRadius: 6, transition: "background 0.2s, color 0.2s",
+              margin: isTablet ? "0 auto" : 0
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "var(--rw-text-muted)"; e.currentTarget.style.background = "transparent"; }}
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </aside>
 

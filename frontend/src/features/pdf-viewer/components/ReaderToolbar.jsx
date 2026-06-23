@@ -99,6 +99,7 @@ export const ReaderToolbar = ({
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <ToolbarIconBtn onClick={handleZoomOut} aria-label="Zoom Out"><ZoomOut size={16} /></ToolbarIconBtn>
               <ToolbarIconBtn onClick={handleZoomIn} aria-label="Zoom In"><ZoomIn size={16} /></ToolbarIconBtn>
+              <ToolbarIconBtn onClick={onRemove} title="Close Document" danger><FileX size={16} /></ToolbarIconBtn>
               <ToolbarIconBtn onClick={() => { setIsFocusMode(true); setShowFocusHint(true); setActiveTab(null); }} title="Focus Mode"><Lock size={16} /></ToolbarIconBtn>
               <ToolbarIconBtn onClick={() => setIsOverflowOpen(!isOverflowOpen)}><MoreVertical size={16} /></ToolbarIconBtn>
             </div>
@@ -165,10 +166,6 @@ export const ReaderToolbar = ({
                   </button>
 
                   <div style={{ height: "1px", background: "var(--rw-border)", margin: "4px 0" }} />
-
-                  <button className="rw-overflow-item" onClick={() => { setIsOverflowOpen(false); onRemove(); }} style={{ color: "var(--rw-danger)" }}>
-                    <span>Close Document</span><FileX size={14} />
-                  </button>
                 </div>
               </>
             )}

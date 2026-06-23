@@ -56,7 +56,7 @@ exports.chat = async (req, res) => {
     }
 
     // 2. Fetch recent conversation history (last 10 completed messages)
-    const historyMessages = await AiChatMessage.find({ pdfId, status: "completed" })
+    const historyMessages = await AiChatMessage.find({ pdfId, userId: req.user.id, status: "completed" })
       .sort({ createdAt: -1 })
       .limit(10)
       .lean();
@@ -73,7 +73,7 @@ exports.chat = async (req, res) => {
     // 4. Save placeholder messages (or recover existing if retrying)
     let userMsg, assistantMsg;
     if (retryMessageId) {
-      assistantMsg = await AiChatMessage.findById(retryMessageId);
+      assistantMsg = await AiChatMessage.findOne({ _id: retryMessageId, userId: req.user.id });
       if (!assistantMsg) {
         return res.status(404).json({ success: false, error: "Message to retry not found" });
       }
@@ -83,6 +83,7 @@ exports.chat = async (req, res) => {
       [userMsg, assistantMsg] = await Promise.all([
         AiChatMessage.create({
           pdfId,
+          userId: req.user.id,
           role: "user",
           content: trimmedMessage,
           featureType,
@@ -90,6 +91,7 @@ exports.chat = async (req, res) => {
         }),
         AiChatMessage.create({
           pdfId,
+          userId: req.user.id,
           role: "assistant",
           content: "",
           contextPages: pageNumbers,
@@ -157,7 +159,7 @@ exports.getHistory = async (req, res) => {
       return res.status(400).json({ success: false, error: "Valid pdfId is required." });
     }
 
-    const messages = await AiChatMessage.find({ pdfId }).sort({ createdAt: 1 }).lean();
+    const messages = await AiChatMessage.find({ pdfId, userId: req.user.id }).sort({ createdAt: 1 }).lean();
     return res.status(200).json({ success: true, messages });
   } catch (err) {
     console.error("[ChatController] getHistory error:", err);
@@ -176,7 +178,7 @@ exports.clearHistory = async (req, res) => {
       return res.status(400).json({ success: false, error: "Valid pdfId is required." });
     }
 
-    await AiChatMessage.deleteMany({ pdfId });
+    await AiChatMessage.deleteMany({ pdfId, userId: req.user.id });
     return res.status(200).json({ success: true, message: "Chat history cleared." });
   } catch (err) {
     console.error("[ChatController] clearHistory error:", err);

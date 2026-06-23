@@ -14,6 +14,11 @@ const REQUIRED_VARS = [
     validate: (v) => Boolean(v),
     message: "MONGO_URI is missing. Provide a valid MongoDB connection string.",
   },
+  {
+    key: "JWT_SECRET",
+    validate: (v) => Boolean(v) && v.length >= 32,
+    message: "JWT_SECRET is missing or too short. Provide a secure random string.",
+  },
 ];
 
 /**

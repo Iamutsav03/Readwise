@@ -18,8 +18,8 @@ const addBookmark = async (req, res) => {
 
     // Use findOneAndUpdate with upsert to prevent duplicate key errors and return the doc
     const bookmark = await Bookmark.findOneAndUpdate(
-      { pdfId, pageNumber: Number(pageNumber) },
-      { pdfId, pageNumber: Number(pageNumber) },
+      { pdfId, pageNumber: Number(pageNumber), userId: req.user.id },
+      { pdfId, pageNumber: Number(pageNumber), userId: req.user.id },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
@@ -43,7 +43,7 @@ const getBookmarks = async (req, res) => {
       return res.status(400).json({ message: "pdfId parameter is required." });
     }
 
-    const bookmarks = await Bookmark.find({ pdfId }).sort({ pageNumber: 1 });
+    const bookmarks = await Bookmark.find({ pdfId, userId: req.user.id }).sort({ pageNumber: 1 });
     res.status(200).json(bookmarks);
   } catch (error) {
     console.error("Get bookmarks error:", error.message);
@@ -67,6 +67,7 @@ const deleteBookmark = async (req, res) => {
     const deleted = await Bookmark.findOneAndDelete({
       pdfId,
       pageNumber: Number(pageNumber),
+      userId: req.user.id,
     });
 
     if (!deleted) {

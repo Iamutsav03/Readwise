@@ -18,6 +18,13 @@ const bookmarkSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    // User who bookmarked
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
   },
   {
     // Track when the bookmark was created, no need for updatedAt
@@ -25,7 +32,7 @@ const bookmarkSchema = new mongoose.Schema(
   }
 );
 
-// Compound index to guarantee uniqueness: a page in a PDF can only be bookmarked once
-bookmarkSchema.index({ pdfId: 1, pageNumber: 1 }, { unique: true });
+// Compound index to guarantee uniqueness: a page in a PDF can only be bookmarked once per user
+bookmarkSchema.index({ pdfId: 1, pageNumber: 1, userId: 1 }, { unique: true });
 
 module.exports = mongoose.model("Bookmark", bookmarkSchema);

@@ -87,7 +87,7 @@ const SelectionToolbar = ({
       background: "var(--rw-card-bg)",
       border: "1px solid var(--rw-border-strong)",
       borderRadius: "12px",
-      boxShadow: "0 8px 28px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1)",
+      boxShadow: "var(--rw-shadow)",
       alignItems: "center",
       maxWidth: "420px",
       animation: "selFadeScale 0.15s ease-out",

@@ -2,6 +2,23 @@ import { useState, useEffect } from "react";
 import Home from "./pages/Home";
 import ThemeQAPage from "./pages/ThemeQAPage";
 import { ThemeProvider } from "./theme/ThemeProvider";
+import { AuthProvider } from "./features/auth/AuthProvider";
+import { useAuth } from "./features/auth/useAuth";
+import AuthPage from "./features/auth/AuthPage";
+
+function AuthGate({ children }) {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--rw-bg, #0d0f12)", color: "white" }}>Loading...</div>;
+  }
+  
+  if (!user) {
+    return <AuthPage />;
+  }
+  
+  return children;
+}
 
 function App() {
   const [selectedPDF, setSelectedPDF] = useState(null);
@@ -15,11 +32,15 @@ function App() {
 
   return (
     <ThemeProvider>
-      {isQaMode ? (
-        <ThemeQAPage />
-      ) : (
-        <Home selectedPDF={selectedPDF} setSelectedPDF={setSelectedPDF} />
-      )}
+      <AuthProvider>
+        <AuthGate>
+          {isQaMode ? (
+            <ThemeQAPage />
+          ) : (
+            <Home selectedPDF={selectedPDF} setSelectedPDF={setSelectedPDF} />
+          )}
+        </AuthGate>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

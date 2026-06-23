@@ -73,13 +73,13 @@ const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScr
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, pointerEvents: isOpen ? "auto" : "none" }}>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", opacity: isAnimating ? 1 : 0, transition: "opacity 0.3s ease", zIndex: 9999, pointerEvents: "auto" }} />
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "var(--rw-overlay)", opacity: isAnimating ? 1 : 0, transition: "opacity 0.3s ease", zIndex: 9999, pointerEvents: "auto" }} />
       <div style={{
         position: "fixed", bottom: 0, left: 0, right: 0,
         height: `${heightPct}%`,
         background: "var(--rw-panel-bg)",
         borderTopLeftRadius: 16, borderTopRightRadius: 16,
-        boxShadow: "0 -4px 20px rgba(0,0,0,0.3)",
+        boxShadow: "var(--rw-shadow)",
         display: "flex", flexDirection: "column",
         transform: isAnimating ? "translateY(0)" : "translateY(100%)",
         transition: isDragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1), height 0.3s cubic-bezier(0.4,0,0.2,1)",
@@ -87,7 +87,7 @@ const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScr
       }}>
         <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
           style={{ width: "100%", height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "grab", touchAction: "none", flexShrink: 0 }}>
-          <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.2)" }} />
+          <div style={{ width: 40, height: 4, borderRadius: 2, background: "var(--rw-border)" }} />
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 20px 12px", borderBottom: "1px solid var(--rw-border)", flexShrink: 0 }}>
           <h2 style={{ margin: 0, fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: "var(--rw-text-primary)" }}>{title}</h2>

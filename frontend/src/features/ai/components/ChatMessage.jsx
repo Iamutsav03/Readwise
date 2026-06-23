@@ -135,7 +135,7 @@ export default function ChatMessage({ message, onRetry }) {
                 margin: 0,
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 13,
-                color: "var(--rw-panel-bg)",
+                color: "var(--rw-accent-text)",
                 fontWeight: 500,
                 lineHeight: 1.55,
               }}
@@ -191,11 +191,11 @@ export default function ChatMessage({ message, onRetry }) {
       <div
         style={{
           maxWidth: "88%",
-          background: message.status === "failed" ? "rgba(220, 53, 69, 0.1)" : "var(--rw-card-bg)",
-          border: message.status === "failed" ? "1px solid rgba(220, 53, 69, 0.3)" : "1px solid var(--rw-hover-bg)",
+          background: message.status === "failed" ? "color-mix(in srgb, var(--rw-danger) 10%, transparent)" : "var(--rw-card-bg)",
+          border: message.status === "failed" ? "1px solid color-mix(in srgb, var(--rw-danger) 30%, transparent)" : "1px solid var(--rw-hover-bg)",
           borderRadius: "4px 16px 16px 16px",
           padding: "10px 14px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+          boxShadow: "var(--rw-shadow)",
         }}
       >
         <div
@@ -213,7 +213,7 @@ export default function ChatMessage({ message, onRetry }) {
                 onClick={onRetry}
                 style={{
                   background: "transparent",
-                  border: "1px solid rgba(220, 53, 69, 0.5)",
+                  border: "1px solid color-mix(in srgb, var(--rw-danger) 50%, transparent)",
                   color: "var(--rw-danger)",
                   borderRadius: 4,
                   padding: "4px 12px",

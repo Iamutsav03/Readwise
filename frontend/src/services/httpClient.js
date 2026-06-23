@@ -12,7 +12,13 @@ const httpClient = axios.create({
 
 // ── Request interceptor ───────────────────────────────────────────────────────
 httpClient.interceptors.request.use(
-  (config) => config,
+  (config) => {
+    const token = localStorage.getItem("rw_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
   (error) => Promise.reject(error)
 );
 
@@ -22,6 +28,16 @@ httpClient.interceptors.response.use(
   (error) => {
     // Normalise error shape so callers always get { message, status }
     const status = error.response?.status;
+    
+    // Handle 401 globally
+    if (status === 401) {
+      localStorage.removeItem("rw_token");
+      // Force reload to let AuthProvider pick up the cleared token and redirect
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
+      }
+    }
+
     const message =
       error.response?.data?.message ||
       error.response?.data?.error ||

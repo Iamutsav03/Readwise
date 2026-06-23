@@ -21,6 +21,12 @@ const highlightSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
     pageNumber: {
       type: Number,
       required: true,

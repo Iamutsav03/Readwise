@@ -17,6 +17,14 @@ const pdfSchema = new mongoose.Schema(
       required: true,
     },
 
+    // User who uploaded the file
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+
     // File size in bytes
     fileSize: {
       type: Number,

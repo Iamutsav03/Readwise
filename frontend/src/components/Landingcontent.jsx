@@ -16,17 +16,18 @@ const useBreakpoints = () => {
   return { isMobileOrSmaller: w < 640 };
 };
 
-/* ─── Design tokens ──────────────────────────────────────────────────────── */
+/* ─── Design tokens (page-level: contrasted against appBg) ──────────────── */
 const T = {
-  accent: "var(--rw-accent)",
-  panel: "var(--rw-panel-bg)",
-  appBg: "var(--rw-app-bg)",
-  card: "var(--rw-card-bg)",
-  border: "var(--rw-border)",
-  textPrim: "var(--rw-text-primary)",
-  textSec: "var(--rw-text-secondary)",
-  textMuted: "var(--rw-text-muted)",
-  toolbar: "var(--rw-toolbar-bg)",
+  accent:    "var(--rw-accent)",
+  panel:     "var(--rw-panel-bg)",
+  darkBg:    "var(--rw-sidebar-bg)",   // sidebar dark for CTA page
+  appBg:     "var(--rw-app-bg)",
+  card:      "var(--rw-page-card-bg)",  // card surface on appBg
+  border:    "var(--rw-page-border)",   // border visible on appBg
+  textPrim:  "var(--rw-page-text)",     // readable text on appBg
+  textSec:   "var(--rw-page-text-sec)", // secondary text on appBg
+  textMuted: "var(--rw-page-text-mute)",// muted text on appBg
+  toolbar:   "var(--rw-toolbar-bg)",
 };
 
 /* ─── Per-page accent colours & icons ───────────────────────────────────── */
@@ -44,10 +45,10 @@ const PAGE_META = [
 /* ─── Shared style snippets ──────────────────────────────────────────────── */
 const S = {
   tag: { fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 500, color: T.textSec, textTransform: "uppercase", letterSpacing: "0.11em", margin: "0 0 5px" },
-  h2: { fontFamily: "'Playfair Display',serif", fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 600, color: T.panel, margin: "0 0 6px", letterSpacing: "-0.02em" },
+  h2: { fontFamily: "'Playfair Display',serif", fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 600, color: T.textPrim, margin: "0 0 6px", letterSpacing: "-0.02em" },
   sub: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: T.textSec, margin: "0 0 14px", fontWeight: 300, lineHeight: 1.6 },
   pageNum: { position: "absolute", bottom: 14, right: 18, fontFamily: "'Playfair Display',serif", fontSize: 11, color: T.textSec, fontStyle: "italic", zIndex: 5 },
-  wrap: { height: "100%", display: "flex", flexDirection: "column", padding: "20px 22px", position: "relative", overflow: "hidden" },
+  wrap: { height: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column", padding: "20px 22px", position: "relative", overflow: "hidden" },
 };
 
 /* ─── Global animations ──────────────────────────────────────────────────── */
@@ -75,24 +76,24 @@ ${FONTS}
 .rw-stagger-3 { animation: slideUp .55s cubic-bezier(.4,0,.2,1) .26s both }
 .rw-stagger-4 { animation: slideUp .55s cubic-bezier(.4,0,.2,1) .37s both }
 
-.rw-icon-btn  { border:1px solid rgba(0,0,0,.05); background:transparent; color:${T.textMuted}; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; border-radius:7px; }
-.rw-icon-btn:hover { background:rgba(0,0,0,.06); color:${T.panel}; }
-.rw-icon-btn.on   { background:${T.panel}; color:${T.textPrim}; }
+.rw-icon-btn  { border:1px solid var(--rw-page-border); background:transparent; color:${T.textMuted}; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; border-radius:7px; }
+.rw-icon-btn:hover { background:var(--rw-page-hover-bg); color:${T.textPrim}; }
+.rw-icon-btn.on   { background:var(--rw-accent); color:var(--rw-accent-text); }
 
-.rw-row:hover { background:rgba(184,150,106,.07); }
+.rw-row:hover { background:var(--rw-page-hover-bg); }
 .rw-row-actions { display:flex; gap:4px; }
-.rw-doc-btn { border:none; border-radius:6px; background:transparent; color:#8a7a60; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; width:44px; height:44px; }
-.rw-doc-btn:hover { background:rgba(184,150,106,.18); color:${T.panel}; }
+.rw-doc-btn { border:none; border-radius:6px; background:transparent; color:${T.textMuted}; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; width:44px; height:44px; }
+.rw-doc-btn:hover { background:var(--rw-page-hover-bg); color:${T.textPrim}; }
 .rw-doc-btn.star-on { color:${T.accent}; }
 
 .rw-sel-btn { border:none; background:transparent; color:${T.textPrim}; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .13s,transform .1s; border-radius:8px; }
-.rw-sel-btn:hover { background:var(--rw-hover-bg); transform:scale(1.1); }
+.rw-sel-btn:hover { background:var(--rw-page-hover-bg); transform:scale(1.1); }
 
-.study-tool-card { background:var(--rw-card-bg); border:1px solid var(--rw-border); border-radius:10px; padding:13px 11px; cursor:pointer; text-align:left; transition:all .2s; }
+.study-tool-card { background:var(--rw-page-card-bg); border:1px solid var(--rw-page-border); border-radius:10px; padding:13px 11px; cursor:pointer; text-align:left; transition:all .2s; }
 .study-tool-card:hover  { transform:translateY(-2px); }
 .study-tool-card.active { background:var(--rw-accent-muted); border-color:var(--rw-border-strong); }
 
-.rw-continue-card:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.1); }
+.rw-continue-card:hover { transform:translateY(-1px); box-shadow:var(--rw-shadow); }
 
 .rw-zone-left,.rw-zone-right { position:absolute; top:50%; transform:translateY(-50%); z-index:60; cursor:pointer; }
 .rw-zone-left  { left:7px; }
@@ -103,24 +104,24 @@ ${FONTS}
 
 /* ─── Progress ribbon ───────────────────────────────────────────────────── */
 const ProgressRibbon = ({ current, total, accentColor }) => (
-  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, zIndex: 200, background: "rgba(0,0,0,.08)", pointerEvents: "none" }}>
+  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, zIndex: 200, background: "var(--rw-border)", pointerEvents: "none" }}>
     <div style={{ height: "100%", width: `${((current + 1) / total) * 100}%`, background: accentColor || T.accent, transition: "width .45s cubic-bezier(.4,0,.2,1)", borderRadius: "0 2px 2px 0" }} />
   </div>
 );
 
 /* ─── Feature header — replaces old Caption ─────────────────────────────── */
-const FeatureHeader = ({ pageIdx, title, sub, dark }) => {
+const FeatureHeader = ({ pageIdx, title, sub }) => {
   const meta = PAGE_META[pageIdx] || PAGE_META[0];
   const Icon = meta.icon;
   return (
-    <div className="rw-stagger-1" style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
-      <div style={{ width: 42, height: 42, borderRadius: 11, background: dark ? "rgba(255,255,255,.1)" : `${meta.accent}1a`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: `1.5px solid ${dark ? "rgba(255,255,255,.12)" : `${meta.accent}33`}` }}>
-        <Icon size={20} color={dark ? meta.accent : meta.accent} />
+    <div className="rw-stagger-1" style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14, flexShrink: 0 }}>
+      <div style={{ width: 42, height: 42, borderRadius: 11, background: "var(--rw-hover-bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1.5px solid var(--rw-border)" }}>
+        <Icon size={20} color={meta.accent} />
       </div>
       <div style={{ minWidth: 0 }}>
         <p style={{ ...S.tag, color: meta.accent, margin: "0 0 2px" }}>{meta.label}</p>
-        <h2 style={{ ...S.h2, color: dark ? T.textPrim : T.panel, margin: 0, fontSize: "clamp(16px,2vw,21px)" }}>{title}</h2>
-        {sub && <p style={{ ...S.sub, color: dark ? "rgba(255,255,255,.45)" : T.textSec, margin: "3px 0 0", fontSize: 13 }}>{sub}</p>}
+        <h2 style={{ ...S.h2, color: T.textPrim, margin: 0, fontSize: "clamp(16px,2vw,21px)" }}>{title}</h2>
+        {sub && <p style={{ ...S.sub, color: T.textSec, margin: "3px 0 0", fontSize: 13 }}>{sub}</p>}
       </div>
     </div>
   );
@@ -128,8 +129,8 @@ const FeatureHeader = ({ pageIdx, title, sub, dark }) => {
 
 /* ─── "Try it" coach mark ────────────────────────────────────────────────── */
 const TryIt = ({ text, done }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 13px", background: "rgba(184,150,106,.12)", border: "1px dashed rgba(184,150,106,.4)", borderRadius: 30, fontSize: 12, fontFamily: "'DM Sans',sans-serif", color: "#8a6a40", opacity: done ? 0 : 1, transition: "opacity .4s ease", pointerEvents: "none", alignSelf: "flex-start" }}>
-    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#b8966a", display: "inline-block", animation: "pulseDot 1.4s ease-in-out infinite" }} />
+  <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 13px", background: "var(--rw-accent-muted)", border: "1px dashed var(--rw-border-strong)", borderRadius: 30, fontSize: 12, fontFamily: "'DM Sans',sans-serif", color: T.textSec, opacity: done ? 0 : 1, transition: "opacity .4s ease", pointerEvents: "none", alignSelf: "flex-start" }}>
+    <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.accent, display: "inline-block", animation: "pulseDot 1.4s ease-in-out infinite" }} />
     {text}
   </div>
 );
@@ -163,12 +164,12 @@ const Page1 = ({ onNext }) => {
 
       <div style={{ opacity: v ? 1 : 0, transform: v ? "translateY(0)" : "translateY(10px)", transition: "opacity .65s ease .18s, transform .65s ease .18s" }}>
         <p style={{ ...S.tag, marginBottom: 10 }}>ReadWise · AI Reading Platform</p>
-        <h1 style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: "clamp(26px,5vw,38px)", fontWeight: 700, color: T.panel, lineHeight: 1.15, letterSpacing: "-0.03em", margin: "0 0 12px" }}>
+        <h1 style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: "clamp(26px,5vw,38px)", fontWeight: 700, color: T.textPrim, lineHeight: 1.15, letterSpacing: "-0.03em", margin: "0 0 12px" }}>
           Reading should feel<br /><em style={{ color: T.accent, fontStyle: "italic" }}>effortless.</em>
         </h1>
         <p style={{ ...S.sub, maxWidth: 300, margin: "0 auto 26px", fontSize: 14 }}>One tool. Every feature you need to read, understand, and remember.</p>
         <button onClick={onNext}
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 26px", background: T.panel, color: T.textPrim, border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: ".03em", transition: "all .2s ease", minHeight: 44 }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 26px", background: T.accent, color: "var(--rw-accent-text)", border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: ".03em", transition: "all .2s ease", minHeight: 44 }}
           onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}>
           See the features <ArrowRight size={15} />
@@ -215,20 +216,20 @@ const Page2 = () => {
 
       {/* Continue card */}
       <div className="rw-continue-card rw-stagger-2"
-        style={{ background: "rgba(200,164,106,.11)", border: "1px solid var(--rw-border)", borderRadius: 12, padding: "13px 14px", marginBottom: 10, cursor: "pointer", transition: "transform .15s,box-shadow .15s" }}
+        style={{ background: "var(--rw-accent-muted)", border: "1px solid var(--rw-border)", borderRadius: 12, padding: "13px 14px", marginBottom: 10, cursor: "pointer", transition: "transform .15s,box-shadow .15s" }}
         onClick={() => showHint("Opening document…")}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
           <div>
             <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: T.accent, textTransform: "uppercase", letterSpacing: ".05em" }}>Continue Reading</p>
-            <p style={{ margin: "2px 0 0", fontSize: 15, fontWeight: 600, color: T.panel, fontFamily: "'Playfair Display',serif" }}>Deep Work</p>
+            <p style={{ margin: "2px 0 0", fontSize: 15, fontWeight: 600, color: T.textPrim, fontFamily: "'Playfair Display',serif" }}>Deep Work</p>
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "#8a7a60", fontStyle: "italic", fontFamily: "'DM Sans',sans-serif" }}>2h ago</p>
+          <p style={{ margin: 0, fontSize: 12, color: T.textMuted, fontStyle: "italic", fontFamily: "'DM Sans',sans-serif" }}>2h ago</p>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-          <p style={{ margin: 0, fontSize: 12, color: "#8a7a60" }}>Page 187 / 240</p>
+          <p style={{ margin: 0, fontSize: 12, color: T.textMuted }}>Page 187 / 240</p>
           <p style={{ margin: 0, fontSize: 12, color: T.accent, fontWeight: 500 }}>78%</p>
         </div>
-        <div style={{ width: "100%", height: 4, background: "rgba(184,150,106,.2)", borderRadius: 2, overflow: "hidden" }}>
+        <div style={{ width: "100%", height: 4, background: "var(--rw-border)", borderRadius: 2, overflow: "hidden" }}>
           <div style={{ width: "78%", height: "100%", background: T.accent, borderRadius: 2 }} />
         </div>
       </div>
@@ -238,29 +239,29 @@ const Page2 = () => {
         onDragOver={e => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={e => { e.preventDefault(); setDragOver(false); showHint("PDF uploading…"); }}
-        style={{ border: `1.5px dashed ${dragOver ? T.accent : "var(--rw-border)"}`, borderRadius: 10, padding: "11px 14px", marginBottom: 10, display: "flex", alignItems: "center", gap: 11, background: dragOver ? "rgba(200,164,106,.08)" : "var(--rw-card-bg)", cursor: "pointer", transition: "all .2s", minHeight: 44 }}
+        style={{ border: `1.5px dashed ${dragOver ? T.accent : "var(--rw-border)"}`, borderRadius: 10, padding: "11px 14px", marginBottom: 10, display: "flex", alignItems: "center", gap: 11, background: dragOver ? "var(--rw-accent-muted)" : "var(--rw-card-bg)", cursor: "pointer", transition: "all .2s", minHeight: 44 }}
         onClick={() => showHint("Opening file picker…")}>
-        <div style={{ background: T.accent, color: T.panel, padding: 7, borderRadius: 7, display: "flex", flexShrink: 0 }}><UploadCloud size={17} /></div>
+        <div style={{ background: T.accent, color: "var(--rw-accent-text)", padding: 7, borderRadius: 7, display: "flex", flexShrink: 0 }}><UploadCloud size={17} /></div>
         <div>
-          <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 500, color: T.panel }}>Upload PDF</p>
-          <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "#8a7a60" }}>{isMobileOrSmaller ? "Tap to browse" : "Drag & drop or click to browse"}</p>
+          <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 500, color: T.textPrim }}>Upload PDF</p>
+          <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: T.textMuted }}>{isMobileOrSmaller ? "Tap to browse" : "Drag & drop or click to browse"}</p>
         </div>
       </div>
 
       {/* Search */}
       <div className="rw-stagger-3" style={{ position: "relative", marginBottom: 10 }}>
-        <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#8a7a60", display: "flex" }}><Search size={14} /></span>
+        <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: T.textMuted, display: "flex" }}><Search size={14} /></span>
         <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search PDFs…"
-          style={{ width: "100%", padding: "10px 10px 10px 34px", fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.panel, background: "#faf3e8", border: "1px solid var(--rw-border)", borderRadius: 9, outline: "none", boxSizing: "border-box", minHeight: 44 }} />
+          style={{ width: "100%", padding: "10px 10px 10px 34px", fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, background: "var(--rw-hover-bg)", border: "1px solid var(--rw-border)", borderRadius: 9, outline: "none", boxSizing: "border-box", minHeight: 44 }} />
         {searchQuery && (
-          <button onClick={() => setSearchQuery("")} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "rgba(184,150,106,.15)", border: "none", borderRadius: "50%", width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#8a7a60" }}><X size={14} /></button>
+          <button onClick={() => setSearchQuery("")} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "var(--rw-border)", border: "none", borderRadius: "50%", width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.textMuted }}><X size={14} /></button>
         )}
       </div>
 
       <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: T.textSec, textTransform: "uppercase", letterSpacing: ".08em", margin: "0 0 5px 4px" }}>Recent</p>
 
       {/* Doc list */}
-      <div className="rw-stagger-4" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", paddingBottom: 6 }}>
+      <div className="rw-stagger-4" style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", paddingBottom: 6 }}>
         {filtered.map(doc => (
           <div key={doc.id} className="rw-row"
             style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 8px", borderRadius: 10, cursor: "pointer", transition: "background .15s", position: "relative" }}
@@ -269,9 +270,9 @@ const Page2 = () => {
             onTouchEnd={handleTouchEnd} onTouchMove={handleTouchEnd}>
 
             {/* Thumbnail */}
-            <div style={{ width: 34, height: 44, background: "#fff", borderRadius: 4, position: "relative", overflow: "hidden", border: "1px solid rgba(0,0,0,.1)", flexShrink: 0 }}>
+            <div style={{ width: 34, height: 44, background: "var(--rw-reader-bg)", borderRadius: 4, position: "relative", overflow: "hidden", border: "1px solid var(--rw-border)", flexShrink: 0 }}>
               <div style={{ position: "absolute", top: 5, left: 4, right: 4, display: "flex", flexDirection: "column", gap: 3 }}>
-                {[80, 90, 60, 85, 75].map((w, i) => <div key={i} style={{ height: 2, background: "#e0e0e0", borderRadius: 1, width: `${w}%` }} />)}
+                {[80, 90, 60, 85, 75].map((w, i) => <div key={i} style={{ height: 2, background: "var(--rw-border)", borderRadius: 1, width: `${w}%` }} />)}
               </div>
             </div>
 
@@ -280,14 +281,14 @@ const Page2 = () => {
               {renamingId === doc.id ? (
                 <input value={renameVal} onChange={e => setRenameVal(e.target.value)} onBlur={commitRename}
                   onKeyDown={e => e.key === "Enter" && commitRename()} autoFocus
-                  style={{ width: "100%", fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.panel, background: "#faf3e8", border: `1.5px solid ${T.accent}`, borderRadius: 5, padding: "2px 6px", outline: "none" }}
+                  style={{ width: "100%", fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, background: "var(--rw-hover-bg)", border: `1.5px solid ${T.accent}`, borderRadius: 5, padding: "2px 6px", outline: "none" }}
                   onClick={e => e.stopPropagation()} />
               ) : (
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: T.panel, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: "'DM Sans',sans-serif" }}>{doc.name}</p>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: T.textPrim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: "'DM Sans',sans-serif" }}>{doc.name}</p>
               )}
-              <p style={{ margin: "2px 0 0", fontSize: 12, color: "#8a7a60", fontFamily: "'DM Sans',sans-serif" }}>Page {doc.page} / {doc.total}</p>
+              <p style={{ margin: "2px 0 0", fontSize: 12, color: T.textMuted, fontFamily: "'DM Sans',sans-serif" }}>Page {doc.page} / {doc.total}</p>
               <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 4 }}>
-                <div style={{ flex: 1, height: 3, background: "rgba(184,150,106,.18)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ flex: 1, height: 3, background: "var(--rw-border)", borderRadius: 2, overflow: "hidden" }}>
                   <div style={{ width: `${doc.pct}%`, height: "100%", background: T.accent, borderRadius: 2 }} />
                 </div>
                 <p style={{ margin: 0, fontSize: 11, color: T.accent, fontWeight: 500, fontFamily: "'DM Sans',sans-serif", flexShrink: 0 }}>{doc.pct}%</p>
@@ -302,7 +303,7 @@ const Page2 = () => {
                 <button className="rw-doc-btn" onClick={() => setMenuOpenId(menuOpenId === doc.id ? null : doc.id)} style={{ width: 44, height: 44 }}><MoreHorizontal size={16} /></button>
                 {menuOpenId === doc.id && (
                   <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 4, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 9, padding: 4, zIndex: 10, minWidth: 90 }}>
-                    <button onClick={e => handleDelete(doc.id, e)} style={{ width: "100%", textAlign: "left", padding: "10px 13px", background: "transparent", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 14, color: "#e07060", fontFamily: "'DM Sans',sans-serif" }}>Delete</button>
+                    <button onClick={e => handleDelete(doc.id, e)} style={{ width: "100%", textAlign: "left", padding: "10px 13px", background: "transparent", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 14, color: "var(--rw-danger)", fontFamily: "'DM Sans',sans-serif" }}>Delete</button>
                   </div>
                 )}
               </div>
@@ -398,20 +399,15 @@ const Page3 = () => {
 
       {/* Page surface */}
       <div 
-        style={{ flex: 1, position: "relative", background: focusMode ? "#1c1c1c" : "#f9f9f9", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", margin: isMobileOrSmaller ? "0 -18px" : "0 -22px", overflow: "hidden", transition: "background .3s ease", touchAction: isMobileOrSmaller ? "pan-y" : "auto" }}
+        style={{ flex: 1, minHeight: 0, position: "relative", background: focusMode ? "var(--rw-sidebar-bg)" : "var(--rw-app-bg)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", margin: isMobileOrSmaller ? "0 -18px" : "0 -22px", overflow: "hidden", transition: "background .3s ease", touchAction: isMobileOrSmaller ? "pan-y" : "auto" }}
         onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
       >
-        <div className="rw-stagger-2" style={{ ...pageBoxStyle, background: "#fff", boxShadow: focusMode ? "0 8px 32px rgba(0,0,0,.4)" : "0 4px 20px rgba(0,0,0,.06)", border: "1px solid #e0e0e0", borderRadius: 4, display: "flex", flexDirection: "column", padding: "9% 8%", transition: isDragging ? "none" : "all .32s cubic-bezier(.4,0,.2,1)", position: "relative", transform: `perspective(1000px) translateX(${dragX}px) rotateY(${dragX / 5}deg)` }}>
-          <div style={{ width: "40%", height: 14, background: "#e0e0e0", marginBottom: 18, borderRadius: 2 }} />
-          {[100, 95, 100, 80, 100, 92].map((w, i) => <div key={i} style={{ width: `${w}%`, height: 7, background: i === 2 ? "rgba(255,200,60,.55)" : "#f0f0f0", marginBottom: 9, borderRadius: 2 }} />)}
-          <span style={{ position: "absolute", bottom: 10, right: 14, fontFamily: "'Playfair Display',serif", fontSize: 10, color: "#9a9a9a", fontStyle: "italic" }}>{page}</span>
-        </div>
 
-        {toast && <div style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", background: "rgba(0,0,0,.78)", color: "#fff", padding: "8px 18px", borderRadius: 20, fontSize: 13, fontFamily: "'DM Sans',sans-serif", animation: "noteIn .18s ease", whiteSpace: "nowrap" }}>{toast}</div>}
+        {toast && <div style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", background: "var(--rw-card-bg)", color: T.textPrim, border: "1px solid var(--rw-border)", padding: "8px 18px", borderRadius: 20, fontSize: 13, fontFamily: "'DM Sans',sans-serif", animation: "noteIn .18s ease", whiteSpace: "nowrap", boxShadow: "var(--rw-shadow)" }}>{toast}</div>}
 
         {focusMode && isMobileOrSmaller && (
           <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)" }}>
-            <button onClick={() => { setFocusMode(false); flash("Focus off"); }} style={{ padding: "11px 22px", borderRadius: 22, background: "rgba(255,255,255,.15)", color: "#fff", border: "none", fontSize: 14, backdropFilter: "blur(4px)", display: "flex", alignItems: "center", gap: 6, minHeight: 44 }}><Lock size={16} /> Exit Focus</button>
+            <button onClick={() => { setFocusMode(false); flash("Focus off"); }} style={{ padding: "11px 22px", borderRadius: 22, background: "var(--rw-hover-bg)", color: T.textPrim, border: "1px solid var(--rw-border)", fontSize: 14, backdropFilter: "blur(4px)", display: "flex", alignItems: "center", gap: 6, minHeight: 44 }}><Lock size={16} /> Exit Focus</button>
           </div>
         )}
       </div>
@@ -424,7 +420,7 @@ const Page3 = () => {
 
         {isMobileOrSmaller ? (
           <div style={{ background: "var(--rw-toolbar-bg)", borderTop: "1px solid var(--rw-border)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px", borderBottom: "1px solid rgba(0,0,0,.04)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px", borderBottom: "1px solid var(--rw-border)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <button className="rw-icon-btn" style={{ width: BTN, height: BTN }} onClick={() => nav("prev")}><ChevronLeft size={iconSz} /></button>
                 <span style={{ fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, minWidth: 66, textAlign: "center" }}>{page} / {totalPages}</span>
@@ -511,15 +507,15 @@ const Page4 = () => {
         <FeatureHeader pageIdx={3} title="Select any text to understand it." sub="Quick Explain, Deep Explain, definitions — one tap." />
       </div>
 
-      <div className="rw-stagger-2" style={{ flex: 1, background: "#f9f9f9", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 -2px" }}>
-        <div style={{ width: "88%", maxWidth: 460, background: "#fff", padding: isMobileOrSmaller ? "22px 18px" : "30px 32px", borderRadius: 10, boxShadow: "0 4px 20px rgba(0,0,0,.05)", position: "relative", border: "1px solid #eaeaea" }}>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: isMobileOrSmaller ? 15.5 : 14.5, color: T.panel, lineHeight: 1.85, margin: 0 }}>
+      <div className="rw-stagger-2" style={{ flex: 1, minHeight: 0, background: "var(--rw-page-card-bg)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 -2px" }}>
+        <div style={{ width: "88%", maxWidth: 460, background: "var(--rw-app-bg)", padding: isMobileOrSmaller ? "22px 18px" : "30px 32px", borderRadius: 10, boxShadow: "var(--rw-shadow)", position: "relative", border: "1px solid var(--rw-page-border)" }}>
+          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: isMobileOrSmaller ? 15.5 : 14.5, color: T.textPrim, lineHeight: 1.85, margin: 0 }}>
             Reading complex documents is difficult. Select any text to instantly unlock understanding.
             <br /><br />
             <span 
               ref={containerRef} 
               onClick={() => setToolbarOpen(!toolbarOpen)}
-              style={{ background: toolbarOpen ? "rgba(184,150,106,.4)" : "rgba(184,150,106,.25)", position: "relative", borderRadius: 2, padding: "2px 0", cursor: "pointer", transition: "background 0.2s" }}
+              style={{ background: toolbarOpen ? "var(--rw-selection-color)" : "var(--rw-accent-muted)", position: "relative", borderRadius: 2, padding: "2px 0", cursor: "pointer", transition: "background 0.2s" }}
             >
               This makes processing academic papers effortless.
               {/* Toolbar — above on desktop, below on mobile */}
@@ -531,7 +527,7 @@ const Page4 = () => {
                 left: "50%", transform: `translateX(-50%) scale(${toolbarOpen ? 1 : 0.95})`,
                 display: "flex", gap: 3, padding: "5px 7px",
                 background: "var(--rw-card-bg)", border: "1px solid var(--rw-border-strong)",
-                borderRadius: 14, boxShadow: "0 8px 28px rgba(0,0,0,.18)",
+                borderRadius: 14, boxShadow: "var(--rw-shadow)",
                 alignItems: "center", zIndex: 100,
                 opacity: toolbarOpen ? 1 : 0,
                 pointerEvents: toolbarOpen ? "auto" : "none",
@@ -552,7 +548,7 @@ const Page4 = () => {
           </div>
 
           {/* Action toast */}
-          <div style={{ position: "absolute", bottom: -50, left: "50%", transform: "translateX(-50%)", background: T.accent, color: T.panel, padding: isMobileOrSmaller ? "9px 22px" : "7px 18px", borderRadius: 22, fontSize: 13, fontFamily: "'DM Sans',sans-serif", fontWeight: 600, whiteSpace: "nowrap", boxShadow: "0 4px 14px rgba(0,0,0,.15)", opacity: actionLabel ? 1 : 0, transition: "opacity .3s", pointerEvents: "none", animation: actionLabel ? "scalePop .25s ease" : "none" }}>
+          <div style={{ position: "absolute", bottom: -50, left: "50%", transform: "translateX(-50%)", background: T.accent, color: "var(--rw-accent-text)", padding: isMobileOrSmaller ? "9px 22px" : "7px 18px", borderRadius: 22, fontSize: 13, fontFamily: "'DM Sans',sans-serif", fontWeight: 600, whiteSpace: "nowrap", boxShadow: "var(--rw-shadow)", opacity: actionLabel ? 1 : 0, transition: "opacity .3s", pointerEvents: "none", animation: actionLabel ? "scalePop .25s ease" : "none" }}>
             {actionLabel}
           </div>
         </div>
@@ -578,10 +574,14 @@ const Page5 = () => {
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [tried, setTried] = useState(false);
-  const endRef = useRef(null);
+  const scrollRef = useRef(null);
   const bodyFS = isMobileOrSmaller ? 14 : 13;
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, isTyping]);
+  useEffect(() => { 
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    }
+  }, [messages, isTyping]);
 
   const simulateSend = (text) => {
     if (!text?.trim()) return;
@@ -596,9 +596,9 @@ const Page5 = () => {
   const suggestions = ["Summarise Chapter 3", "Give me 5 key takeaways", "Explain 'attention residue'"];
 
   return (
-    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 18px 0" : "18px 20px 0", background: T.panel }}>
+    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 18px 0" : "18px 20px 0" }}>
       <div className="rw-stagger-1">
-        <FeatureHeader pageIdx={4} title="Your PDF answers back." sub="RAG-powered answers grounded in your document." dark />
+        <FeatureHeader pageIdx={4} title="Your PDF answers back." sub="RAG-powered answers grounded in your document." />
       </div>
 
       {/* Suggestion chips */}
@@ -606,7 +606,7 @@ const Page5 = () => {
         <div className="rw-stagger-2" style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
           {suggestions.map((s, i) => (
             <button key={i} onClick={() => simulateSend(s)}
-              style={{ padding: "7px 13px", background: "var(--rw-hover-bg)", border: "1px solid var(--rw-border)", borderRadius: 22, fontSize: 12, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, cursor: "pointer", minHeight: 36, transition: "background .15s" }}>
+              style={{ padding: "7px 13px", background: "var(--rw-page-hover-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 22, fontSize: 12, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, cursor: "pointer", minHeight: 36, transition: "background .15s" }}>
               {s}
             </button>
           ))}
@@ -614,7 +614,7 @@ const Page5 = () => {
       )}
 
       {/* Messages */}
-      <div className="rw-stagger-3" style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto", paddingBottom: 10 }}>
+      <div ref={scrollRef} className="rw-stagger-3" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto", paddingBottom: 10 }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.type === "user" ? "flex-end" : "flex-start", gap: 8 }}>
             {m.type === "ai" && (
@@ -622,7 +622,7 @@ const Page5 = () => {
                 <Sparkles size={isMobileOrSmaller ? 15 : 13} />
               </div>
             )}
-            <div style={{ background: "var(--rw-card-bg)", border: m.type === "user" ? "1px solid var(--rw-border)" : "1px solid var(--rw-hover-bg)", padding: isMobileOrSmaller ? "12px 15px" : "10px 13px", borderRadius: m.type === "user" ? "16px 4px 16px 16px" : "4px 16px 16px 16px", maxWidth: "85%", animation: "fadeInUp .25s ease" }}>
+            <div style={{ background: "var(--rw-page-card-bg)", border: m.type === "user" ? "1px solid var(--rw-page-border)" : "1px solid var(--rw-page-hover-bg)", padding: isMobileOrSmaller ? "12px 15px" : "10px 13px", borderRadius: m.type === "user" ? "16px 4px 16px 16px" : "4px 16px 16px 16px", maxWidth: "85%", animation: "fadeInUp .25s ease" }}>
               <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: bodyFS, color: T.textPrim, lineHeight: 1.65 }}>{m.text}</p>
             </div>
           </div>
@@ -633,18 +633,17 @@ const Page5 = () => {
             <div style={{ fontSize: 13, color: T.accent, fontFamily: "'DM Sans',sans-serif", fontStyle: "italic", alignSelf: "center" }}>Thinking…</div>
           </div>
         )}
-        <div ref={endRef} />
       </div>
 
       {/* Input */}
-      <div className="rw-stagger-4" style={{ padding: "10px 0 14px" }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 12, padding: isMobileOrSmaller ? "10px 12px" : "8px 10px" }}>
+      <div className="rw-stagger-4" style={{ padding: "10px 0 14px", flexShrink: 0 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 12, padding: isMobileOrSmaller ? "10px 12px" : "8px 10px" }}>
           <input type="text" value={inputVal} onChange={e => setInputVal(e.target.value)}
             onKeyDown={e => e.key === "Enter" && simulateSend(inputVal)}
             placeholder="Ask anything about this PDF…"
             style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontFamily: "'DM Sans',sans-serif", fontSize: bodyFS, color: T.textPrim, minHeight: 24 }} />
           <button onClick={() => simulateSend(inputVal)}
-            style={{ width: isMobileOrSmaller ? 42 : 32, height: isMobileOrSmaller ? 42 : 32, borderRadius: 9, background: "var(--rw-hover-bg)", border: "none", color: T.textMuted, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+            style={{ width: isMobileOrSmaller ? 42 : 32, height: isMobileOrSmaller ? 42 : 32, borderRadius: 9, background: "var(--rw-page-hover-bg)", border: "none", color: T.textMuted, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
             <Send size={isMobileOrSmaller ? 18 : 14} />
           </button>
         </div>
@@ -652,7 +651,7 @@ const Page5 = () => {
           <TryIt text="Type a question or tap a suggestion above" done={tried} />
         </div>
       </div>
-      <div style={{ ...S.pageNum, color: "rgba(255,255,255,.2)" }}>5</div>
+      <div style={{ ...S.pageNum, color: T.textMuted }}>5</div>
     </div>
   );
 };
@@ -688,21 +687,22 @@ const Page6 = () => {
   const out = output ? STUDY_OUTPUT[output] : null;
 
   return (
-    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 18px 10px" : "18px 20px 10px", background: T.panel }}>
+    <div style={{ ...S.wrap, padding: isMobileOrSmaller ? "18px 18px 10px" : "18px 20px 10px" }}>
       <div className="rw-stagger-1">
-        <FeatureHeader pageIdx={5} title="Study smarter, not harder." sub="Pick a tool, pick a scope, generate instantly." dark />
+        <FeatureHeader pageIdx={5} title="Study smarter, not harder." sub="Pick a tool, pick a scope, generate instantly." />
       </div>
 
       {/* Tool selector — horizontal scrollable pills on mobile */}
       {isMobileOrSmaller ? (
-        <div className="rw-stagger-2" style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 12, scrollbarWidth: "none" }}>
+        <div className="rw-stagger-2" style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 12, flexShrink: 0, scrollbarWidth: "none", touchAction: "pan-x" }}
+             onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()}>
           <style>{`.no-scrollbar::-webkit-scrollbar{display:none}`}</style>
           {TOOLS.map(t => (
             <button key={t.id} className="no-scrollbar"
               onClick={() => { setActiveTool(t.id); setOutput(null); }}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "10px 16px", background: activeTool === t.id ? T.accent : "var(--rw-card-bg)", border: `1.5px solid ${activeTool === t.id ? T.accent : "var(--rw-border)"}`, borderRadius: 12, cursor: "pointer", flexShrink: 0, minHeight: 44, transition: "all .2s" }}>
-              <t.icon size={18} color={activeTool === t.id ? T.panel : T.accent} />
-              <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: activeTool === t.id ? 600 : 400, color: activeTool === t.id ? T.panel : T.textPrim, whiteSpace: "nowrap" }}>{t.label}</span>
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "10px 16px", background: activeTool === t.id ? T.accent : "var(--rw-page-card-bg)", border: `1.5px solid ${activeTool === t.id ? T.accent : "var(--rw-page-border)"}`, borderRadius: 12, cursor: "pointer", flexShrink: 0, minHeight: 44, transition: "all .2s" }}>
+              <t.icon size={18} color={activeTool === t.id ? "var(--rw-accent-text)" : T.accent} />
+              <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: activeTool === t.id ? 600 : 400, color: activeTool === t.id ? "var(--rw-accent-text)" : T.textPrim, whiteSpace: "nowrap" }}>{t.label}</span>
             </button>
           ))}
         </div>
@@ -719,10 +719,10 @@ const Page6 = () => {
       )}
 
       {/* Scope toggle */}
-      <div className="rw-stagger-3" style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+      <div className="rw-stagger-3" style={{ display: "flex", gap: 6, marginBottom: 10, flexShrink: 0 }}>
         {[{ id: "current", l: "Current page" }, { id: "chapter", l: "Chapter" }].map(s => (
           <button key={s.id} onClick={() => setScope(s.id)}
-            style={{ flex: 1, padding: isMobileOrSmaller ? "11px" : "7px", background: scope === s.id ? T.accent : "var(--rw-hover-bg)", color: scope === s.id ? T.panel : T.textPrim, border: "none", borderRadius: 8, fontSize: 13, fontWeight: scope === s.id ? 600 : 400, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", minHeight: 44, transition: "all .2s" }}>
+            style={{ flex: 1, padding: isMobileOrSmaller ? "11px" : "7px", background: scope === s.id ? T.accent : "var(--rw-page-hover-bg)", color: scope === s.id ? "var(--rw-accent-text)" : T.textPrim, border: "none", borderRadius: 8, fontSize: 13, fontWeight: scope === s.id ? 600 : 400, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", minHeight: 44, transition: "all .2s" }}>
             {s.l}
           </button>
         ))}
@@ -730,14 +730,14 @@ const Page6 = () => {
 
       {/* Generate button */}
       <button className="rw-stagger-4" onClick={generate} disabled={loading}
-        style={{ width: "100%", padding: isMobileOrSmaller ? "15px" : "11px", background: `linear-gradient(135deg,${T.accent},#d9a05b)`, color: T.panel, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "center", alignItems: "center", gap: 7, cursor: loading ? "default" : "pointer", fontFamily: "'DM Sans',sans-serif", marginBottom: 12, minHeight: 48, opacity: loading ? .7 : 1, transition: "opacity .2s" }}>
+        style={{ width: "100%", flexShrink: 0, padding: isMobileOrSmaller ? "15px" : "11px", background: T.accent, color: "var(--rw-accent-text)", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "center", alignItems: "center", gap: 7, cursor: loading ? "default" : "pointer", fontFamily: "'DM Sans',sans-serif", marginBottom: 12, minHeight: 48, opacity: loading ? .7 : 1, transition: "opacity .2s" }}>
         {loading ? "Generating…" : <><Sparkles size={17} /> Generate</>}
       </button>
 
       {/* Output */}
       <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
         {out && !loading && (
-          <div style={{ background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 11, padding: isMobileOrSmaller ? 16 : 13, animation: "noteIn .25s ease" }}>
+          <div style={{ background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 11, padding: isMobileOrSmaller ? 16 : 13, animation: "noteIn .25s ease" }}>
             {out.body && <p style={{ margin: 0, fontFamily: "'DM Sans',sans-serif", fontSize: bodyFS, color: T.textPrim, lineHeight: 1.65, fontWeight: 300 }}>{out.body}</p>}
             {out.items && (
               <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: 8 }}>
@@ -756,7 +756,7 @@ const Page6 = () => {
                 {out.cards.map((c, i) => (
                   <div key={i} className={`flip-card ${flipped[i] ? "flipped" : ""}`} onClick={() => setFlipped(f => ({ ...f, [i]: !f[i] }))}>
                     <div className="flip-inner">
-                      <div className="flip-face" style={{ background: "var(--rw-hover-bg)" }}>
+                      <div className="flip-face" style={{ background: "var(--rw-page-hover-bg)" }}>
                         <p style={{ margin: 0, fontSize: bodyFS, color: T.textPrim, fontWeight: 500, fontFamily: "'DM Sans',sans-serif" }}>Q: {c.q}</p>
                       </div>
                       <div className="flip-face flip-back" style={{ background: "var(--rw-accent-muted)" }}>
@@ -776,7 +776,7 @@ const Page6 = () => {
           </div>
         )}
       </div>
-      <div style={{ ...S.pageNum, color: "rgba(255,255,255,.2)" }}>6</div>
+      <div style={{ ...S.pageNum, color: T.textMuted }}>6</div>
     </div>
   );
 };
@@ -862,14 +862,14 @@ const Page7 = () => {
 
       <div ref={pdfRef} onClick={handleSurfaceClick}
         className="rw-stagger-2"
-        style={{ flex: 1, background: "#fdfaf3", border: "1px solid var(--rw-border)", borderRadius: 12, padding: "18px 18px", position: "relative", cursor: notes.length < MAX && activeId === null ? "crosshair" : "default", overflow: "hidden" }}>
+        style={{ flex: 1, minHeight: 0, background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 12, padding: "18px 18px", position: "relative", cursor: notes.length < MAX && activeId === null ? "crosshair" : "default", overflow: "hidden" }}>
 
         {/* Fake text lines */}
         {[78, 92, 85, 70, 95, 80, 60, 88, 76, 90, 72, 85, 65, 90].map((w, i) => (
-          <div key={i} style={{ height: 5, borderRadius: 3, background: "rgba(42,32,16,.08)", width: `${w}%`, marginBottom: isMobileOrSmaller ? 11 : 9 }} />
+          <div key={i} style={{ height: 5, borderRadius: 3, background: "var(--rw-page-border)", width: `${w}%`, marginBottom: isMobileOrSmaller ? 11 : 9 }} />
         ))}
 
-        <div style={{ position: "absolute", bottom: 12, left: 18, fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "#9a8870", pointerEvents: "none" }}>
+        <div style={{ position: "absolute", bottom: 12, left: 18, fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: T.textMuted, pointerEvents: "none" }}>
           {notes.length < MAX && activeId === null
             ? (isMobileOrSmaller ? "Tap anywhere to drop a note" : "Click anywhere · drag pins to move")
             : activeId !== null ? "Tap outside to close"
@@ -883,14 +883,14 @@ const Page7 = () => {
               onMouseDown={e => handlePinDown(note.id, e)}
               onTouchStart={e => handlePinDown(note.id, e)}
               onClick={e => { e.stopPropagation(); if (dragMoved.current) return; setActiveId(activeId === note.id ? null : note.id); setEditingId(null); }}
-              style={{ width: PIN, height: PIN, borderRadius: "50% 50% 50% 4px", background: T.panel, border: `2px solid ${T.accent}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: dragId === note.id ? "grabbing" : "grab", transform: `translate(-50%,-50%) scale(${dragId === note.id ? 1.14 : 1})`, boxShadow: dragId === note.id ? "0 6px 18px rgba(0,0,0,.25)" : "0 2px 8px rgba(0,0,0,.18)", transition: dragId === note.id ? "none" : "transform .15s,box-shadow .15s", color: T.accent, touchAction: dragId === note.id ? "none" : "auto" }}>
+              style={{ width: PIN, height: PIN, borderRadius: "50% 50% 50% 4px", background: "var(--rw-page-card-bg)", border: `2px solid ${T.accent}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: dragId === note.id ? "grabbing" : "grab", transform: `translate(-50%,-50%) scale(${dragId === note.id ? 1.14 : 1})`, boxShadow: "var(--rw-shadow)", transition: dragId === note.id ? "none" : "transform .15s,box-shadow .15s", color: T.accent, touchAction: dragId === note.id ? "none" : "auto" }}>
               <MessageSquare size={PIN_ICON} fill={dragId === note.id ? T.accent : "none"} />
             </div>
 
             {/* Card */}
             {activeId === note.id && (
               <div className="note-card" onClick={e => e.stopPropagation()}
-                style={{ position: "absolute", left: isMobileOrSmaller ? "-70px" : "32px", top: isMobileOrSmaller ? "30px" : "-10px", width: isMobileOrSmaller ? 220 : 185, background: "var(--rw-text-primary)", border: "1px solid var(--rw-border)", borderRadius: 12, padding: isMobileOrSmaller ? "14px 16px" : "11px 13px", boxShadow: "0 4px 18px rgba(0,0,0,.14)", zIndex: 20, animation: "noteIn .2s ease" }}>
+                style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", top: "30px", width: isMobileOrSmaller ? 220 : 185, maxWidth: "calc(100vw - 60px)", background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 12, padding: isMobileOrSmaller ? "14px 16px" : "11px 13px", boxShadow: "var(--rw-shadow)", zIndex: 20, animation: "noteIn .2s ease" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   {editingId === note.id ? (
                     <input value={editVal} onChange={e => setEditVal(e.target.value)}
@@ -902,7 +902,7 @@ const Page7 = () => {
                   )}
                   <button onClick={e => removeNote(note.id, e)} style={{ background: "none", border: "none", cursor: "pointer", color: T.textMuted, fontSize: 18, lineHeight: 1, padding: "0 2px", minWidth: 24, minHeight: 24, display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                 </div>
-                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: isMobileOrSmaller ? 13.5 : 12, color: "#3a2e20", margin: 0, lineHeight: 1.55, fontWeight: 300 }}>{note.text}</p>
+                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: isMobileOrSmaller ? 13.5 : 12, color: T.textPrim, margin: 0, lineHeight: 1.55, fontWeight: 300 }}>{note.text}</p>
               </div>
             )}
           </div>
@@ -924,40 +924,39 @@ const Page8 = ({ onUploadClick }) => {
   const [v, setV] = useState(false);
   useEffect(() => { const t = setTimeout(() => setV(true), 100); return () => clearTimeout(t); }, []);
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 28px", textAlign: "center", background: T.panel, position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", width: 240, height: 240, borderRadius: "50%", background: "radial-gradient(circle, rgba(184,150,106,.1) 0%, transparent 70%)", top: "50%", left: "50%", transform: "translate(-50%,-50%)", pointerEvents: "none" }} />
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 28px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, var(--rw-page-border) 0%, transparent 70%)", top: "50%", left: "50%", transform: "translate(-50%,-50%)", pointerEvents: "none" }} />
 
       <div style={{ opacity: v ? 1 : 0, transform: v ? "translateY(0)" : "translateY(14px)", transition: "opacity .7s ease, transform .7s ease" }}>
-        <div style={{ fontSize: 26, marginBottom: 18, opacity: .55 }}>✦</div>
+        <div style={{ fontSize: 26, marginBottom: 18, color: T.textPrim }}>✦</div>
         <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 500, color: T.accent, textTransform: "uppercase", letterSpacing: ".14em", margin: "0 0 18px" }}>ReadWise</p>
         <p style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: "clamp(17px,2.5vw,24px)", fontStyle: "italic", color: T.textPrim, lineHeight: 1.55, margin: "0 0 8px", fontWeight: 500 }}>"The best reading tool<br />disappears."</p>
         <p style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(15px,2vw,20px)", color: T.textPrim, lineHeight: 1.5, margin: "0 0 30px", fontWeight: 600 }}>Only understanding remains.</p>
         <button onClick={onUploadClick}
-          style={{ display: "inline-flex", alignItems: "center", gap: 9, padding: "13px 28px", background: T.textPrim, color: T.panel, border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: ".02em", transition: "all .22s ease", minHeight: 48 }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 9, padding: "13px 28px", background: T.accent, color: "var(--rw-accent-text)", border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: ".02em", transition: "all .22s ease", minHeight: 48 }}
           onMouseEnter={e => { e.currentTarget.style.opacity = ".88"; e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}>
           Upload your first PDF <ArrowRight size={15} />
         </button>
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,.22)", marginTop: 14 }}>No account needed · Free to start</p>
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: T.textMuted, marginTop: 14 }}>No account needed · Free to start</p>
       </div>
 
-      <div style={{ position: "absolute", bottom: 16, right: 20, fontFamily: "'Playfair Display',serif", fontSize: 11, color: "rgba(255,255,255,.18)", fontStyle: "italic" }}>8</div>
+      <div style={{ position: "absolute", bottom: 16, right: 20, fontFamily: "'Playfair Display',serif", fontSize: 11, color: T.textMuted, fontStyle: "italic", opacity: 0.4 }}>8</div>
     </div>
   );
 };
 
 /* ─── Page registry ──────────────────────────────────────────────────────── */
 const PAGES = [Page1, Page2, Page3, Page4, Page5, Page6, Page7, Page8];
-const DARK_PAGES = new Set([4, 5, 7]);
 
 /* ═══════════════════════════════════════════════════════════════════════════
    BOTTOM NAV — dot indicators for mobile
 ═══════════════════════════════════════════════════════════════════════════ */
-const BottomNav = ({ current, total, onGo, isDark }) => (
-  <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0 14px", background: isDark ? T.panel : "var(--rw-app-bg)" }}>
+const BottomNav = ({ current, total, onGo }) => (
+  <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0 14px", background: "var(--rw-app-bg)" }}>
     {Array.from({ length: total }).map((_, i) => (
       <button key={i} onClick={() => onGo(i)}
-        style={{ width: i === current ? 22 : 7, height: 7, borderRadius: 4, background: i === current ? T.accent : (isDark ? "rgba(255,255,255,.2)" : "rgba(0,0,0,.15)"), border: "none", cursor: "pointer", padding: 0, transition: "all .3s cubic-bezier(.4,0,.2,1)", minWidth: 7 }} />
+        style={{ width: i === current ? 22 : 7, height: 7, borderRadius: 4, background: i === current ? T.accent : "var(--rw-border)", border: "none", cursor: "pointer", padding: 0, transition: "all .3s cubic-bezier(.4,0,.2,1)", minWidth: 7 }} />
     ))}
   </div>
 );
@@ -1005,17 +1004,15 @@ const BookContainer = ({ onUploadClick }) => {
 
   useEffect(() => () => clearTimeout(indicatorTimer.current), []);
 
-  const isDarkCurrent = DARK_PAGES.has(currentPage);
 
   const renderPaper = (idx) => {
     const PageComp = PAGES[idx];
-    const isDark = DARK_PAGES.has(idx);
     return (
-      <div style={{ position: "absolute", inset: 0, background: isDark ? T.panel : "var(--rw-app-bg)", overflow: "hidden" }}>
-        {!isDark && (
+      <div style={{ position: "absolute", inset: 0, background: "var(--rw-app-bg)", overflow: "hidden" }}>
+        {idx === 0 && (
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
-            {Array.from({ length: 32 }).map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${3 + i * 3.1}%`, height: "0.5px", background: "rgba(196,182,164,.15)" }} />)}
-            <div style={{ position: "absolute", left: 44, top: 0, bottom: 0, width: "0.5px", background: "rgba(196,182,164,.22)" }} />
+            {Array.from({ length: 32 }).map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${3 + i * 3.1}%`, height: "0.5px", background: "var(--rw-border)", opacity: 0.5 }} />)}
+            <div style={{ position: "absolute", left: 44, top: 0, bottom: 0, width: "0.5px", background: "var(--rw-border)", opacity: 0.65 }} />
           </div>
         )}
         <div style={{ position: "relative", zIndex: 1, height: "100%" }}>
@@ -1032,13 +1029,13 @@ const BookContainer = ({ onUploadClick }) => {
         onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
 
         {/* Depth layers */}
-        <div style={{ position: "absolute", inset: 0, transform: "translateX(6px) translateY(9px)", background: "rgba(26,21,16,.09)", filter: "blur(6px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", inset: 0, transform: "translateX(3px) translateY(4px)", background: "rgba(26,21,16,.05)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", inset: 0, background: "#ece6da", border: "1px solid #d4ccbf", transform: "translate(2px,2px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", inset: 0, background: "#f2ece2", border: "1px solid #ddd5c8", transform: "translate(1px,1px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, transform: "translateX(6px) translateY(9px)", background: "var(--rw-border)", opacity: 0.35, filter: "blur(6px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, transform: "translateX(3px) translateY(4px)", background: "var(--rw-border)", opacity: 0.2, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, background: "var(--rw-hover-bg)", border: "1px solid var(--rw-border)", transform: "translate(2px,2px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", transform: "translate(1px,1px)", pointerEvents: "none" }} />
 
         {/* Book frame */}
-        <div style={{ position: "absolute", inset: 0, border: `1px solid ${isDarkCurrent ? "var(--rw-hover-bg)" : "#e2dbd0"}`, overflow: "hidden", boxShadow: "inset 3px 0 12px rgba(0,0,0,.03)" }}>
+        <div style={{ position: "absolute", inset: 0, border: "1px solid var(--rw-border)", overflow: "hidden", boxShadow: "inset 3px 0 6px rgba(0,0,0,.03)" }}>
           {renderPaper(flip ? flip.to : currentPage)}
 
           {flip && (
@@ -1061,21 +1058,21 @@ const BookContainer = ({ onUploadClick }) => {
           {/* Arrow nav */}
           {currentPage > 0 && (
             <div className="rw-zone-left" onClick={() => goTo(currentPage - 1)}>
-              <div className="rw-arrow" style={{ background: isDarkCurrent ? "var(--rw-border)" : "rgba(26,21,16,.07)", color: isDarkCurrent ? T.textPrim : "#3a2e20" }}>‹</div>
+              <div className="rw-arrow" style={{ background: "var(--rw-hover-bg)", color: T.textPrim }}>‹</div>
             </div>
           )}
           {currentPage < total - 1 && (
             <div className="rw-zone-right" onClick={() => goTo(currentPage + 1)}>
-              <div className="rw-arrow" style={{ background: isDarkCurrent ? "var(--rw-border)" : "rgba(26,21,16,.07)", color: isDarkCurrent ? T.textPrim : "#3a2e20" }}>›</div>
+              <div className="rw-arrow" style={{ background: "var(--rw-hover-bg)", color: T.textPrim }}>›</div>
             </div>
           )}
         </div>
 
         {/* Page indicator */}
         <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", pointerEvents: "none", zIndex: 70, animation: showIndicator ? "indicatorFade 1.8s ease forwards" : "none", opacity: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, background: isDarkCurrent ? "rgba(255,255,255,.07)" : "rgba(26,21,16,.06)", backdropFilter: "blur(6px)", border: `1px solid ${isDarkCurrent ? "var(--rw-border)" : "rgba(26,21,16,.07)"}` }}>
-            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, letterSpacing: ".06em", color: isDarkCurrent ? "rgba(232,216,184,.7)" : "rgba(58,46,32,.5)" }}>{currentPage + 1} / {total}</span>
-            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, letterSpacing: ".04em", color: isDarkCurrent ? "rgba(184,150,106,.6)" : "rgba(184,150,106,.8)" }}>{PAGE_META[currentPage]?.label}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, background: "var(--rw-hover-bg)", backdropFilter: "blur(6px)", border: "1px solid var(--rw-border)" }}>
+            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, letterSpacing: ".06em", color: T.textSec }}>{currentPage + 1} / {total}</span>
+            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, letterSpacing: ".04em", color: T.accent }}>{PAGE_META[currentPage]?.label}</span>
           </div>
         </div>
       </div>
@@ -1135,10 +1132,8 @@ const MobileCarousel = ({ onUploadClick }) => {
     setIsDragging(false);
   };
 
-  const isDark = DARK_PAGES.has(current);
-
   return (
-    <div style={{ height: "100dvh", width: "100vw", display: "flex", flexDirection: "column", overflow: "hidden", background: isDark ? T.panel : "var(--rw-app-bg)" }}>
+    <div style={{ height: "100%", width: "100%", display: "flex", flexDirection: "column", overflow: "hidden", background: "var(--rw-app-bg)" }}>
       {/* Global progress ribbon */}
       <ProgressRibbon current={current} total={total} accentColor={PAGE_META[current]?.accent} />
 
@@ -1152,20 +1147,19 @@ const MobileCarousel = ({ onUploadClick }) => {
           if (!visible) return null;
           const offset = (idx - current) * 100;
           const translateX = offset + (dragX / window.innerWidth) * 100;
-          const pageIsDark = DARK_PAGES.has(idx);
           return (
             <div key={idx} style={{
               position: "absolute", inset: 0,
               transform: `translateX(${translateX}%)`,
               transition: isDragging ? "none" : "transform .42s cubic-bezier(.35,.9,.45,1)",
               willChange: "transform",
-              background: pageIsDark ? T.panel : "var(--rw-app-bg)",
+              background: "var(--rw-app-bg)",
               overflow: "hidden",
             }}>
-              {/* Ruled paper lines for light pages */}
-              {!pageIsDark && (
+              {/* Ruled paper lines only on first page */}
+              {idx === 0 && (
                 <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0 }}>
-                  {Array.from({ length: 28 }).map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${4 + i * 3.5}%`, height: "0.5px", background: "rgba(196,182,164,.13)" }} />)}
+                  {Array.from({ length: 28 }).map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${4 + i * 3.5}%`, height: "0.5px", background: "var(--rw-border)", opacity: 0.45 }} />)}
                 </div>
               )}
               <div style={{ position: "relative", zIndex: 1, height: "100%" }}>
@@ -1177,7 +1171,7 @@ const MobileCarousel = ({ onUploadClick }) => {
       </div>
 
       {/* Bottom nav */}
-      <BottomNav current={current} total={total} onGo={goTo} isDark={isDark} />
+      <BottomNav current={current} total={total} onGo={goTo} />
     </div>
   );
 };

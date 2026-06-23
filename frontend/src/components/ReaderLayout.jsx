@@ -27,7 +27,10 @@ const ReaderLayout = ({
 }) => {
   const scrollHostRef = useRef(null);
   const { isMobileOrSmaller: isMobile } = useBreakpoints();
-  const [fitMode, setFitMode] = useState(() => localStorage.getItem("rw_fit_mode") || (isMobile ? "width" : "page"));
+  const [fitMode, setFitMode] = useState(() => {
+    const saved = localStorage.getItem("rw_fit_mode");
+    return (saved && saved !== "null") ? saved : (isMobile ? "width" : "page");
+  });
   const [initialExplainContext, setInitialExplainContext] = useState(null);
   const [activeTab, setActiveTab] = useState(null);
   const [focusedHighlightId, setFocusedHighlightId] = useState(null);

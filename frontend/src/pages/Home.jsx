@@ -26,6 +26,10 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
   const fileInputRef = useRef(null);
   const viewerRef = useRef(null);
   const { isMobileOrSmaller } = useBreakpoints();
+  
+  // Swipe detection refs
+  const touchStart = useRef({ x: null, y: null });
+  const touchEnd = useRef({ x: null, y: null });
 
   const { openPdf, closePdf, goBackToLibrary } = usePdfNavigation(pdfs, selectedPDF, setSelectedPDF);
 
@@ -181,6 +185,33 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
   const favCount = pdfs.filter((p) => p.isFavorite).length;
   const mostRecent = pdfs[0] || null; // already sorted by lastOpenedAt desc
 
+  // ── Swipe to toggle mobile menu ───────────────────────────────────────────
+  const onTouchStart = (e) => {
+    touchEnd.current = { x: null, y: null };
+    touchStart.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
+  };
+
+  const onTouchMove = (e) => {
+    touchEnd.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart.current.x || !touchEnd.current.x) return;
+    const dx = touchStart.current.x - touchEnd.current.x;
+    const dy = Math.abs(touchStart.current.y - touchEnd.current.y);
+    
+    // Ignore if mostly scrolling vertically
+    if (dy > 40) return;
+
+    if (dx > 50 && isSidebarOpen) {
+      // Swiped left
+      setIsSidebarOpen(false);
+    } else if (dx < -50 && !isSidebarOpen && touchStart.current.x < 100) {
+      // Swiped right from the left edge (to avoid accidental menu opening)
+      setIsSidebarOpen(true);
+    }
+  };
+
   return (
     <div 
       onDragEnter={handleGlobalDragEnter}
@@ -243,7 +274,12 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
       )}
 
       {/* ── Library / Home Mode ─────────────────────────────────────────────── */}
-      <div style={{ display: selectedPDF ? "none" : "flex", flex: 1, overflow: "hidden", position: "relative" }}>
+      <div 
+        onTouchStart={isMobileOrSmaller && !selectedPDF ? onTouchStart : undefined}
+        onTouchMove={isMobileOrSmaller && !selectedPDF ? onTouchMove : undefined}
+        onTouchEnd={isMobileOrSmaller && !selectedPDF ? onTouchEnd : undefined}
+        style={{ display: selectedPDF ? "none" : "flex", flex: 1, overflow: "hidden", position: "relative" }}
+      >
         {/* Mobile backdrop overlay */}
         {isMobileOrSmaller && isSidebarOpen && (
           <div 
@@ -269,7 +305,7 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
         />
-        <main id="lc-scroll-host" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", position: "relative" }}>
+        <main id="lc-scroll-host" style={{ flex: 1, overflow: "hidden", position: "relative" }}>
           {isMobileOrSmaller && (
             <button 
               onClick={() => setIsSidebarOpen(true)}

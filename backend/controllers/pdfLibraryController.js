@@ -13,6 +13,8 @@ const Note = require("../models/Note");
 const AiChatMessage = require("../models/AiChatMessage");
 const SavedWord = require("../models/SavedWord");
 const UserVocabulary = require("../models/UserVocabulary");
+const ReadingProgress = require("../models/ReadingProgress");
+const mongoose = require("mongoose");
 
 const aiCacheService = require("../services/aiCacheService");
 const { extractPagesText, saveExtractedPages } = require("../services/pdfPageService");
@@ -34,6 +36,7 @@ const uploadPDF = async (req, res) => {
       fileName: req.file.filename,
       fileSize: req.file.size,
       filePath: req.file.path,
+      userId: req.user.id,
     });
 
     // Fire-and-forget: don't block the HTTP response
@@ -63,6 +66,7 @@ const uploadPDF = async (req, res) => {
 const getAllPDFs = async (req, res) => {
   try {
     const pdfs = await PDF.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(req.user.id) } },
       { $addFields: { sortKey: { $ifNull: ["$lastOpenedAt", "$createdAt"] } } },
       { $sort: { sortKey: -1 } },
     ]);
@@ -79,11 +83,16 @@ const getAllPDFs = async (req, res) => {
  * GET /api/pdfs/view/:filename
  * Serve a PDF file for in-browser viewing.
  */
-const viewPDF = (req, res) => {
+const viewPDF = async (req, res) => {
   try {
+    const pdf = await PDF.findOne({ fileName: req.params.filename, userId: req.user.id });
+    if (!pdf) {
+      return res.status(403).json({ message: "Forbidden or file not found." });
+    }
+
     const filePath = path.join(__dirname, "../uploads", req.params.filename);
     if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: "File not found." });
+      return res.status(404).json({ message: "File not found on disk." });
     }
     res.sendFile(filePath);
   } catch (error) {
@@ -100,7 +109,7 @@ const viewPDF = (req, res) => {
  */
 const toggleFavorite = async (req, res) => {
   try {
-    const pdf = await PDF.findById(req.params.id);
+    const pdf = await PDF.findOne({ _id: req.params.id, userId: req.user.id });
     if (!pdf) return res.status(404).json({ message: "PDF not found." });
 
     pdf.isFavorite = !pdf.isFavorite;
@@ -129,8 +138,8 @@ const renamePDF = async (req, res) => {
       return res.status(400).json({ message: "Name must be 1–120 characters." });
     }
 
-    const pdf = await PDF.findByIdAndUpdate(
-      req.params.id,
+    const pdf = await PDF.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
       { originalName: trimmed },
       { new: true }
     );
@@ -151,8 +160,8 @@ const renamePDF = async (req, res) => {
  */
 const updateLastOpened = async (req, res) => {
   try {
-    const pdf = await PDF.findByIdAndUpdate(
-      req.params.id,
+    const pdf = await PDF.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
       { lastOpenedAt: new Date() },
       { new: true }
     );
@@ -172,7 +181,7 @@ const updateLastOpened = async (req, res) => {
  */
 const deletePDF = async (req, res) => {
   try {
-    const pdf = await PDF.findById(req.params.id);
+    const pdf = await PDF.findOne({ _id: req.params.id, userId: req.user.id });
     if (!pdf) return res.status(404).json({ message: "PDF not found." });
 
     // 1. Remove file from disk
@@ -184,24 +193,27 @@ const deletePDF = async (req, res) => {
     const { deletedCount: pages } = await PDFPage.deleteMany({ pdfId: pdf._id });
     console.log(`🗑️  Removed ${pages} page record(s) for "${pdf.originalName}"`);
 
-    const { deletedCount: bookmarks } = await Bookmark.deleteMany({ pdfId: pdf._id });
+    const { deletedCount: bookmarks } = await Bookmark.deleteMany({ pdfId: pdf._id, userId: req.user.id });
     console.log(`🗑️  Removed ${bookmarks} bookmark(s) for "${pdf.originalName}"`);
 
-    const { deletedCount: highlights } = await Highlight.deleteMany({ pdfId: pdf._id });
+    const { deletedCount: highlights } = await Highlight.deleteMany({ pdfId: pdf._id, userId: req.user.id });
     console.log(`🗑️  Removed ${highlights} highlight(s) for "${pdf.originalName}"`);
 
-    const { deletedCount: notes } = await Note.deleteMany({ pdfId: pdf._id });
+    const { deletedCount: notes } = await Note.deleteMany({ pdfId: pdf._id, userId: req.user.id });
     console.log(`🗑️  Removed ${notes} note(s) for "${pdf.originalName}"`);
+
+    const { deletedCount: progressCount } = await ReadingProgress.deleteMany({ pdfId: pdf._id, userId: req.user.id });
+    console.log(`🗑️  Removed ${progressCount} reading progress record(s) for "${pdf.originalName}"`);
 
     // 3. Auxiliary cascade (non-fatal — logged but never blocks deletion)
     try {
-      const { deletedCount: msgs } = await AiChatMessage.deleteMany({ pdfId: pdf._id });
+      const { deletedCount: msgs } = await AiChatMessage.deleteMany({ pdfId: pdf._id, userId: req.user.id });
       console.log(`🗑️  Removed ${msgs} AI message(s) for "${pdf.originalName}"`);
 
-      const { deletedCount: words } = await SavedWord.deleteMany({ pdfId: pdf._id });
+      const { deletedCount: words } = await SavedWord.deleteMany({ pdfId: pdf._id, userId: req.user.id });
       console.log(`🗑️  Removed ${words} saved word(s) for "${pdf.originalName}"`);
 
-      const { deletedCount: vocab } = await UserVocabulary.deleteMany({ pdfId: pdf._id });
+      const { deletedCount: vocab } = await UserVocabulary.deleteMany({ pdfId: pdf._id, userId: req.user.id });
       console.log(`🗑️  Removed ${vocab} vocabulary entry(ies) for "${pdf.originalName}"`);
     } catch (auxErr) {
       console.error(

@@ -12,7 +12,11 @@ const PdfThumbnail = ({ pdf, active }) => {
   const [error, setError] = useState(false);
   const { ref, inView } = useInView({ triggerOnce: true, rootMargin: "200px 0px" });
 
-  const url = useMemo(() => getPDFViewURL(pdf.fileName), [pdf.fileName]);
+  const fileObj = useMemo(() => {
+    const viewUrl = getPDFViewURL(pdf.fileName);
+    const token = localStorage.getItem("rw_token");
+    return token ? { url: viewUrl, httpHeaders: { Authorization: `Bearer ${token}` } } : viewUrl;
+  }, [pdf.fileName]);
 
   const onDocumentLoadSuccess = ({ numPages }) => setNumPages(numPages);
   const onDocumentLoadError = () => setError(true);
@@ -33,7 +37,7 @@ const PdfThumbnail = ({ pdf, active }) => {
     >
       {inView && !error ? (
         <Document
-          file={url}
+          file={fileObj}
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={onDocumentLoadError}
           loading={<FileText size={16} opacity={0.3} />}

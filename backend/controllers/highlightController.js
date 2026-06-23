@@ -20,6 +20,7 @@ const addHighlight = async (req, res) => {
 
     const highlight = await Highlight.create({
       pdfId,
+      userId: req.user.id,
       pageNumber: Number(pageNumber),
       selectedText: selectedText.trim(),
       color,
@@ -46,7 +47,7 @@ const getHighlights = async (req, res) => {
       return res.status(400).json({ message: "pdfId is required." });
     }
 
-    const highlights = await Highlight.find({ pdfId }).sort({
+    const highlights = await Highlight.find({ pdfId, userId: req.user.id }).sort({
       pageNumber: 1,
       createdAt: 1,
     });
@@ -65,7 +66,7 @@ const getHighlights = async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const deleteHighlight = async (req, res) => {
   try {
-    const deleted = await Highlight.findByIdAndDelete(req.params.id);
+    const deleted = await Highlight.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
 
     if (!deleted) {
       return res.status(404).json({ message: "Highlight not found." });

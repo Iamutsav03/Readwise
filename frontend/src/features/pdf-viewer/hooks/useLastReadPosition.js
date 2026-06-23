@@ -16,6 +16,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { loadPosition, savePosition } from "../../../utils/readingStorage";
+import { useAuth } from "../../auth/useAuth";
+import { getProgress, saveProgress } from "../../../services/progressService";
 
 const SAVE_DEBOUNCE_MS = 800;
 
@@ -29,39 +31,46 @@ export function useLastReadPosition({
     onScaleChange,
     onActiveTabChange,
 }) {
+    const { user } = useAuth();
     const [positionLoaded, setPositionLoaded] = useState(false);
     const saveTimer = useRef(null);
-    // Track the id we last loaded so switching PDFs always restores correctly.
     const lastLoadedId = useRef(null);
 
     // ── Restore on PDF open ──────────────────────────────────────────────────
     useEffect(() => {
-        if (!pdfId || lastLoadedId.current === pdfId) return;
+        if (!pdfId || !user || lastLoadedId.current === pdfId) return;
         lastLoadedId.current = pdfId;
         setPositionLoaded(false);
 
-        const saved = loadPosition(pdfId);
-        if (saved) {
-            onPageChange(saved.pageNumber);
-            onScaleChange(saved.scale);
-            if (saved.activeTab && onActiveTabChange) {
-                onActiveTabChange(saved.activeTab);
+        const restore = (saved) => {
+            if (saved) {
+                if (saved.pageNumber) onPageChange(saved.pageNumber);
+                if (saved.scale) onScaleChange(saved.scale);
+                if (saved.activeTab && onActiveTabChange) onActiveTabChange(saved.activeTab);
             }
-        }
-        // Mark as loaded whether or not there was saved state.
-        // (A short rAF gives state setters time to flush before the viewer renders.)
-        requestAnimationFrame(() => setPositionLoaded(true));
-    }, [pdfId, onPageChange, onScaleChange]);
+            requestAnimationFrame(() => setPositionLoaded(true));
+        };
+
+        // Try API first, fallback to localStorage
+        getProgress(pdfId).then((progress) => {
+            restore(progress);
+        }).catch(() => {
+            restore(loadPosition(user.id, pdfId));
+        });
+
+    }, [pdfId, user, onPageChange, onScaleChange, onActiveTabChange]);
 
     // ── Persist on change (debounced) ────────────────────────────────────────
     useEffect(() => {
-        if (!pdfId || !positionLoaded) return;
+        if (!pdfId || !user || !positionLoaded) return;
         clearTimeout(saveTimer.current);
         saveTimer.current = setTimeout(() => {
-            savePosition(pdfId, { pageNumber, numPages, scale, activeTab });
+            const data = { pageNumber, numPages, scale, activeTab };
+            savePosition(user.id, pdfId, data);
+            saveProgress(pdfId, data).catch(err => console.error("Failed to sync progress to DB", err));
         }, SAVE_DEBOUNCE_MS);
         return () => clearTimeout(saveTimer.current);
-    }, [pdfId, pageNumber, numPages, scale, activeTab, positionLoaded]);
+    }, [pdfId, user, pageNumber, numPages, scale, activeTab, positionLoaded]);
 
     return { positionLoaded };
 }

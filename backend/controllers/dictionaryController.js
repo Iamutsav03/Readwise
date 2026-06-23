@@ -251,14 +251,15 @@ exports.saveWord = async (req, res) => {
 
     const normalized = normalizeWord(word);
 
-    // Prevent duplicates for the same PDF in UserVocabulary
-    const existing = await UserVocabulary.findOne({ pdfId, word: normalized });
+    // Prevent duplicates for the same PDF in UserVocabulary per user
+    const existing = await UserVocabulary.findOne({ pdfId, word: normalized, userId: req.user.id });
     if (existing) {
       return res.status(200).json({ success: true, savedWord: existing, message: "Word already saved" });
     }
 
     const savedWord = await UserVocabulary.create({
       pdfId,
+      userId: req.user.id,
       word: normalized,
       meaning,
       pageNumber: pageNumber || null,

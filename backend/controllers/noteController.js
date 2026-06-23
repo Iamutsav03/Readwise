@@ -18,6 +18,7 @@ const addNote = async (req, res) => {
 
     const note = await Note.create({
       pdfId,
+      userId: req.user.id,
       pageNumber: Number(pageNumber),
       content: content !== undefined ? content : "",
       title: title !== undefined ? title : "",
@@ -48,7 +49,7 @@ const getNotes = async (req, res) => {
       return res.status(400).json({ message: "pdfId is required." });
     }
 
-    const notes = await Note.find({ pdfId }).sort({ pageNumber: 1, createdAt: 1 });
+    const notes = await Note.find({ pdfId, userId: req.user.id }).sort({ pageNumber: 1, createdAt: 1 });
     res.status(200).json(notes);
   } catch (error) {
     console.error("Get notes error:", error.message);
@@ -75,8 +76,8 @@ const updateNote = async (req, res) => {
     if (y !== undefined) updateFields.y = Number(y);
     if (pageNumber !== undefined) updateFields.pageNumber = Number(pageNumber);
 
-    const updatedNote = await Note.findByIdAndUpdate(
-      req.params.id,
+    const updatedNote = await Note.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
       { $set: updateFields },
       { new: true, runValidators: true }
     );
@@ -99,7 +100,7 @@ const updateNote = async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const deleteNote = async (req, res) => {
   try {
-    const deleted = await Note.findByIdAndDelete(req.params.id);
+    const deleted = await Note.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
 
     if (!deleted) {
       return res.status(404).json({ message: "Note not found." });

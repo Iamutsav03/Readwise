@@ -5,13 +5,21 @@
 const express = require("express");
 const router = express.Router();
 
-router.use("/test",       require("./testRoutes"));
-router.use("/pdfs",       require("./pdfRoutes"));
-router.use("/search",     require("./searchRoutes"));
-router.use("/bookmarks",  require("./bookmarkRoutes"));
-router.use("/highlights", require("./highlightRoutes"));
-router.use("/notes",      require("./noteRoutes"));
-router.use("/ai",         require("./aiRoutes"));
-router.use("/dictionary", require("./dictionaryRoutes"));
+const { protect } = require("../middleware/auth");
+const { aiLimiter, dictionaryLimiter } = require("../middleware/rateLimiter");
+
+// Public routes
+router.use("/test", require("./testRoutes"));
+router.use("/auth", require("./authRoutes")); // authLimiter is applied inside authRoutes
+
+// Protected routes
+router.use("/pdfs",       protect, require("./pdfRoutes"));
+router.use("/search",     protect, require("./searchRoutes"));
+router.use("/bookmarks",  protect, require("./bookmarkRoutes"));
+router.use("/highlights", protect, require("./highlightRoutes"));
+router.use("/notes",      protect, require("./noteRoutes"));
+router.use("/progress",   protect, require("./progressRoutes"));
+router.use("/ai",         protect, aiLimiter, require("./aiRoutes"));
+router.use("/dictionary", protect, dictionaryLimiter, require("./dictionaryRoutes"));
 
 module.exports = router;

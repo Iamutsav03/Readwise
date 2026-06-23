@@ -1,5 +1,5 @@
 // src/components/PDFViewer.jsx
-import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from "react";
+import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle, useMemo } from "react";
 import { Document, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -44,7 +44,11 @@ const PDFViewer = forwardRef(function PDFViewer({
     });
   };
 
-  const pdfURL = getPDFViewURL(pdf.fileName);
+  const fileObj = useMemo(() => {
+    const viewUrl = getPDFViewURL(pdf.fileName);
+    const token = localStorage.getItem("rw_token");
+    return token ? { url: viewUrl, httpHeaders: { Authorization: `Bearer ${token}` } } : viewUrl;
+  }, [pdf.fileName]);
 
   const fitToScreen = useCallback(() => {
     if (!pageWidthRef.current || !pageHeightRef.current) return;
@@ -107,10 +111,10 @@ const PDFViewer = forwardRef(function PDFViewer({
   }, [onScaleChange]);
 
   return (
-    <div ref={containerRef} style={{ width: "fit-content", minWidth: "100%", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#000", padding: isFocusMode || isMobile ? "0" : "8px 0" }}>
+    <div ref={containerRef} style={{ width: "fit-content", minWidth: "100%", minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "#000", padding: isFocusMode || isMobile ? "0" : "8px 0" }}>
       <style>{`
         .pdf-page-layer { background: transparent; transition: opacity 0.2s; overflow: hidden; will-change: transform; }
-        .react-pdf__Page { overflow: hidden !important; }
+        .react-pdf__Page { overflow: hidden !important; background-color: transparent !important; }
         .pdf-page-layer.on-top { box-shadow: 4px 0 16px rgba(0,0,0,0.15); }
         .slide-out-left { animation: slideOutLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards; transform: translateZ(0); }
         .slide-in-left { animation: slideInLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards; transform: translateZ(0); }
@@ -121,7 +125,7 @@ const PDFViewer = forwardRef(function PDFViewer({
       `}</style>
 
       <Document
-        file={pdfURL} onLoadSuccess={onDocumentLoadSuccess}
+        file={fileObj} onLoadSuccess={onDocumentLoadSuccess}
         loading={<div className="flex items-center justify-center" style={{ width: "100%", height: "100%" }}><div className="animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600 w-12 h-12" /></div>}
         error={<div className="flex items-center justify-center text-red-500 text-sm" style={{ width: "100%", height: "100%" }}>Failed to load PDF.</div>}
       >

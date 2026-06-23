@@ -31,6 +31,13 @@ const PDFCanvasLayer = ({
   onHoverNoteChange,
   onUpdateNote,
 }) => {
+  const [hasRendered, setHasRendered] = React.useState(false);
+
+  const handleRenderSuccess = (page) => {
+    setHasRendered(true);
+    onPageRenderSuccess(page, pageData.id);
+  };
+
   const isSizingLayer = isCurrent ? isCurrentRendered || !isPrev : isPrev && !isCurrentRendered;
   let className = "pdf-page-layer";
   let style = {
@@ -73,9 +80,9 @@ const PDFCanvasLayer = ({
         scale={scale}
         renderAnnotationLayer={false}
         renderTextLayer={true}
-        onRenderSuccess={(page) => onPageRenderSuccess(page, pageData.id)}
+        onRenderSuccess={handleRenderSuccess}
         customTextRenderer={customTextRenderer}
-        loading={
+        loading={hasRendered ? null : (
           <div style={{
             position: "absolute", inset: 0,
             background: "linear-gradient(90deg, var(--rw-app-bg) 0%, var(--rw-card-bg) 50%, var(--rw-app-bg) 100%)",
@@ -86,7 +93,7 @@ const PDFCanvasLayer = ({
           }}>
             <div className="animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600 w-8 h-8" />
           </div>
-        }
+        )}
       />
       <PDFHighlightLayer
         highlights={pageHighlights}

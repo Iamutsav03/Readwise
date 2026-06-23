@@ -25,7 +25,10 @@ export const sendChatMessage = async (
 ) => {
   const response = await fetch(`${BASE}/chat`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("rw_token")}`
+    },
     body: JSON.stringify({
       pdfId,
       message,
@@ -63,7 +66,10 @@ export const sendExplainSelection = async (
 ) => {
   const response = await fetch(`${BASE}/explain-selection`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("rw_token")}`
+    },
     body: JSON.stringify({ pdfId, pageNumber, selectedText, retryMessageId }),
   });
 
@@ -82,7 +88,9 @@ export const sendExplainSelection = async (
  * @returns {Promise<ChatMessage[]>}
  */
 export async function fetchChatHistory(pdfId) {
-  const res = await fetch(`${BASE}/history/${pdfId}`);
+  const res = await fetch(`${BASE}/history/${pdfId}`, {
+    headers: { "Authorization": `Bearer ${localStorage.getItem("rw_token")}` }
+  });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to fetch chat history.");
   return data.messages;
@@ -93,7 +101,10 @@ export async function fetchChatHistory(pdfId) {
  * @param {string} pdfId
  */
 export async function clearChatHistory(pdfId) {
-  const res = await fetch(`${BASE}/history/${pdfId}`, { method: "DELETE" });
+  const res = await fetch(`${BASE}/history/${pdfId}`, { 
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${localStorage.getItem("rw_token")}` }
+  });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to clear chat history.");
   return data;
