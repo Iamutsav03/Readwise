@@ -13,9 +13,12 @@ const URL = "/highlights";
  * @param {string}   selectedText
  * @param {string}   color        - 'yellow' | 'green' | 'blue' | 'pink'
  * @param {Rect[]}   rects        - Fractions of page dimensions
+ * @param {string}   textQuote    - Context or exact text of the highlight
+ * @param {number}   startOffset  - Text offset
+ * @param {number}   endOffset    - Text offset
  */
-export const createHighlight = async (pdfId, pageNumber, selectedText, color, rects) => {
-  const res = await httpClient.post(URL, { pdfId, pageNumber, selectedText, color, rects });
+export const createHighlight = async (pdfId, pageNumber, selectedText, color, rects, textQuote, startOffset, endOffset) => {
+  const res = await httpClient.post(URL, { pdfId, pageNumber, selectedText, color, rects, textQuote, startOffset, endOffset });
   return res.data;
 };
 

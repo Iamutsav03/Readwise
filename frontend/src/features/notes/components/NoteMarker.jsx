@@ -11,18 +11,50 @@ export default function NoteMarker({
   onUpdateNote,
 }) {
   const [localHover, setLocalHover] = useState(false);
-  const [dragPos, setDragPos] = useState({ x: note.x, y: note.y });
-  // isDraggingState drives visual re-renders (cursor, z-index, transitions)
-  // isDraggingRef is the synchronous source-of-truth inside event handlers
+  // Draggable position state — used for coordinate-based (page) notes
+  const [dragPos, setDragPos] = useState({ x: note.x || 10, y: note.y || 10 });
   const [isDraggingState, setIsDraggingState] = useState(false);
-
-  // Use refs for drag tracking — avoids stale-closure / async-state bugs
   const isDraggingRef = useRef(false);
-  const didMoveRef = useRef(false);      // true if the pointer actually moved during mousedown
-  const finalPosRef = useRef({ x: note.x, y: note.y }); // always holds the most recent position
-
+  const didMoveRef = useRef(false);
+  const finalPosRef = useRef({ x: note.x || 10, y: note.y || 10 });
   const colors = NOTE_COLORS[note.color] || NOTE_COLORS.yellow;
 
+  // Text-anchored note: created from a text selection in Reading Mode.
+  // These notes don't have meaningful PDF coordinates.
+  // Render as a small non-draggable badge anchored to top-right of the page overlay.
+  const hasTextAnchor = (note.startOffset != null || note.textQuote) && note.x === 0 && note.y === 0;
+
+  if (hasTextAnchor) {
+    return (
+      <div
+        onClick={() => onClick(note._id)}
+        onMouseEnter={() => { setLocalHover(true); if (onHoverChange) onHoverChange(note._id, true); }}
+        onMouseLeave={() => { setLocalHover(false); if (onHoverChange) onHoverChange(note._id, false); }}
+        title={note.textQuote ? `Note on: "${note.textQuote.slice(0, 40)}…"` : "Note"}
+        style={{
+          position: "absolute",
+          top: "6px",
+          right: "6px",
+          width: 22,
+          height: 22,
+          borderRadius: "50%",
+          background: colors.accent,
+          border: `2px solid var(--rw-text-primary)`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          zIndex: 60,
+          boxShadow: (isActive || localHover)
+            ? `0 0 0 3px ${colors.accent}, 0 4px 12px rgba(0,0,0,0.2)`
+            : "0 2px 6px rgba(0,0,0,0.15)",
+          transition: "box-shadow 0.15s",
+        }}
+      >
+        <Edit2 size={10} style={{ color: "var(--rw-text-primary)", transform: "none" }} />
+      </div>
+    );
+  }
   // Sync display position when the note prop changes (e.g. after save confirmation)
   useEffect(() => {
     if (!isDraggingRef.current) {

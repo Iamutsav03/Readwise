@@ -12,6 +12,7 @@ const {
   toggleFavorite,
   renamePDF,
   updateLastOpened,
+  getPdfPages,
 } = require("../controllers/pdfLibraryController");
 
 // POST   /api/pdfs/upload         — Upload a new PDF
@@ -19,6 +20,9 @@ router.post("/upload", upload.single("pdf"), uploadPDF);
 
 // GET    /api/pdfs                — List all uploaded PDFs (sorted by lastOpenedAt)
 router.get("/", getAllPDFs);
+
+// GET    /api/pdfs/:id/pages      — Retrieve extracted structured pages
+router.get("/:id/pages", getPdfPages);
 
 // GET    /api/pdfs/view/:filename — Serve a PDF file to the browser
 router.get("/view/:filename", viewPDF);

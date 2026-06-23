@@ -49,6 +49,24 @@ const noteSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Linking to text instead of coordinates (Reading Mode support)
+    highlightId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Highlight",
+      required: false,
+    },
+    startOffset: {
+      type: Number,
+      required: false,
+    },
+    endOffset: {
+      type: Number,
+      required: false,
+    },
+    textQuote: {
+      type: String,
+      required: false,
+    },
   },
   {
     timestamps: true,

@@ -41,7 +41,7 @@ const uploadPDF = async (req, res) => {
 
     // Fire-and-forget: don't block the HTTP response
     extractPagesText(req.file.path)
-      .then((pages) => saveExtractedPages(newPDF._id, pages))
+      .then((result) => saveExtractedPages(newPDF._id, result))
       .then(() => console.log(`✅ Text extracted: "${newPDF.originalName}" (${newPDF._id})`))
       .catch((err) =>
         console.error(`⚠️  Text extraction failed for "${newPDF.originalName}":`, err.message)
@@ -235,6 +235,28 @@ const deletePDF = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/pdfs/:id/pages
+ * Retrieve the structured text content for a PDF's pages (used by Reading Mode)
+ */
+const getPdfPages = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if PDF belongs to user
+    const pdf = await PDF.findOne({ _id: id, userId: req.user.id });
+    if (!pdf) {
+      return res.status(404).json({ message: "PDF not found." });
+    }
+
+    const pages = await PDFPage.find({ pdfId: id }).sort({ pageNumber: 1 });
+    res.status(200).json({ pages, extractionQuality: pdf.extractionQuality || "pending" });
+  } catch (error) {
+    console.error("[PDFLibrary] getPdfPages error:", error.message);
+    res.status(500).json({ message: "Server error retrieving PDF pages." });
+  }
+};
+
 module.exports = {
   uploadPDF,
   getAllPDFs,
@@ -243,4 +265,5 @@ module.exports = {
   toggleFavorite,
   renamePDF,
   updateLastOpened,
+  getPdfPages,
 };

@@ -7,6 +7,7 @@ const {
   addHighlight,
   getHighlights,
   deleteHighlight,
+  updateHighlight,
 } = require("../controllers/highlightController");
 
 // POST   /api/highlights          — Create a new highlight
@@ -17,5 +18,8 @@ router.get("/:pdfId", getHighlights);
 
 // DELETE /api/highlights/:id      — Delete a highlight by _id
 router.delete("/:id", deleteHighlight);
+
+// PATCH  /api/highlights/:id      — Update rects/color on a highlight
+router.patch("/:id", updateHighlight);
 
 module.exports = router;

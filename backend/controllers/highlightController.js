@@ -10,7 +10,7 @@ const Highlight = require("../models/Highlight");
 // ─────────────────────────────────────────────────────────────────────────────
 const addHighlight = async (req, res) => {
   try {
-    const { pdfId, pageNumber, selectedText, color, rects } = req.body;
+    const { pdfId, pageNumber, selectedText, color, rects, startOffset, endOffset, textQuote } = req.body;
 
     if (!pdfId || pageNumber == null || !selectedText || !color) {
       return res.status(400).json({
@@ -25,6 +25,9 @@ const addHighlight = async (req, res) => {
       selectedText: selectedText.trim(),
       color,
       rects: Array.isArray(rects) ? rects : [],
+      startOffset,
+      endOffset,
+      textQuote,
     });
 
     res.status(201).json(highlight);
@@ -79,4 +82,40 @@ const deleteHighlight = async (req, res) => {
   }
 };
 
-module.exports = { addHighlight, getHighlights, deleteHighlight };
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Patch a highlight (used to persist dynamically-computed rects)
+// @route   PATCH /api/highlights/:id
+// @access  Private
+// ─────────────────────────────────────────────────────────────────────────────
+const updateHighlight = async (req, res) => {
+  try {
+    const { rects, rectVersion, color } = req.body;
+
+    // Only allow patching safe fields
+    const update = {};
+    if (Array.isArray(rects))     update.rects = rects;
+    if (rectVersion != null)      update.rectVersion = rectVersion;
+    if (color)                    update.color = color;
+
+    if (Object.keys(update).length === 0) {
+      return res.status(400).json({ message: "Nothing to update." });
+    }
+
+    const highlight = await Highlight.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
+      update,
+      { new: true }
+    );
+
+    if (!highlight) {
+      return res.status(404).json({ message: "Highlight not found." });
+    }
+
+    res.status(200).json(highlight);
+  } catch (error) {
+    console.error("Update highlight error:", error.message);
+    res.status(500).json({ message: "Server error updating highlight." });
+  }
+};
+
+module.exports = { addHighlight, getHighlights, deleteHighlight, updateHighlight };

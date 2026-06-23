@@ -49,16 +49,47 @@ export function useTextSelection(containerRef) {
         return;
       }
 
-      // Find the page number
+      // Find the page number (supports both react-pdf and Reading Mode structured content)
       const node = range.commonAncestorContainer.nodeType === 3
         ? range.commonAncestorContainer.parentElement
         : range.commonAncestorContainer;
 
-      const pageEl = node?.closest ? node.closest(".react-pdf__Page") : null;
+      const pageEl = node?.closest ? (node.closest(".react-pdf__Page") || node.closest("[data-page]")) : null;
       if (!pageEl) return;
 
-      const pageNumber = parseInt(pageEl.getAttribute("data-page-number"), 10);
+      const pageNumberAttr = pageEl.getAttribute("data-page-number") || pageEl.getAttribute("data-page");
+      const pageNumber = parseInt(pageNumberAttr, 10);
       if (isNaN(pageNumber)) return;
+
+      // Extract text offsets if in Reading Mode (which uses [data-start-offset] blocks)
+      let startOffset = null;
+      let endOffset = null;
+      let textQuote = text;
+      
+      const startBlock = range.startContainer.nodeType === 3 ? range.startContainer.parentElement.closest("[data-start-offset]") : (range.startContainer.closest ? range.startContainer.closest("[data-start-offset]") : null);
+      const endBlock = range.endContainer.nodeType === 3 ? range.endContainer.parentElement.closest("[data-start-offset]") : (range.endContainer.closest ? range.endContainer.closest("[data-start-offset]") : null);
+
+      if (startBlock && endBlock) {
+        const getOffsetWithinBlock = (blockNode, targetContainer, targetOffset) => {
+          let offset = 0;
+          const walk = document.createTreeWalker(blockNode, NodeFilter.SHOW_TEXT, null, false);
+          let curr = walk.nextNode();
+          while (curr) {
+            if (curr === targetContainer) return offset + targetOffset;
+            offset += curr.textContent.length;
+            curr = walk.nextNode();
+          }
+          return offset;
+        };
+        
+        const blockStart = parseInt(startBlock.getAttribute("data-start-offset") || "0", 10);
+        startOffset = blockStart + getOffsetWithinBlock(startBlock, range.startContainer, range.startOffset);
+        
+        const blockEnd = parseInt(endBlock.getAttribute("data-start-offset") || "0", 10);
+        endOffset = blockEnd + getOffsetWithinBlock(endBlock, range.endContainer, range.endOffset);
+        
+        textQuote = text;
+      }
 
       const rect = range.getBoundingClientRect();
 
@@ -70,6 +101,9 @@ export function useTextSelection(containerRef) {
 
       setSelectionInfo({
         text,
+        textQuote,
+        startOffset,
+        endOffset,
         range,
         pageNumber,
         pageEl,

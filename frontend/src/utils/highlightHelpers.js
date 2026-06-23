@@ -23,6 +23,7 @@ export const COLOR_MAP = HIGHLIGHT_COLORS.reduce((acc, c) => {
  */
 export const getSelectionRects = (range, container) => {
   if (!range || !container) return [];
+  if (!container.classList.contains("react-pdf__Page")) return [];
 
   const clientRects = Array.from(range.getClientRects());
   const containerRect = container.getBoundingClientRect();

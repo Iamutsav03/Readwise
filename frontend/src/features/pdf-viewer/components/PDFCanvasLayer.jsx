@@ -1,16 +1,11 @@
 // features/pdf-viewer/components/PDFCanvasLayer.jsx
-import React from "react";
+// v2: Tracks text layer readiness via a MutationObserver on the page wrapper.
+// Passes textLayerReady + pageEl to PDFHighlightLayer to eliminate the race condition.
+import React, { useRef, useState, useEffect } from "react";
 import { Page } from "react-pdf";
 import PDFHighlightLayer from "./PDFHighlightLayer";
 import NoteMarker from "../../../features/notes/components/NoteMarker";
 
-/**
- * PDFCanvasLayer manages the rendering of a single PDF page using react-pdf,
- * along with its superimposed highlight and note marker layers.
- * 
- * (Note: react-pdf's Page component internally handles both canvas and text layers.
- *  This component serves as the unified page layer wrapper).
- */
 const PDFCanvasLayer = ({
   pageData,
   isCurrent,
@@ -31,19 +26,51 @@ const PDFCanvasLayer = ({
   onHoverNoteChange,
   onUpdateNote,
 }) => {
-  const [hasRendered, setHasRendered] = React.useState(false);
+  const [hasRendered, setHasRendered] = useState(false);
+  const [textLayerReady, setTextLayerReady] = useState(false);
+  const wrapperRef = useRef(null);
 
   const handleRenderSuccess = (page) => {
     setHasRendered(true);
     onPageRenderSuccess(page, pageData.id);
   };
 
+  // Watch for the text layer to appear in the DOM after page renders
+  useEffect(() => {
+    if (!hasRendered || !wrapperRef.current) return;
+
+    // The text layer might already be there synchronously after a render
+    const existing = wrapperRef.current.querySelector(".react-pdf__Page__textContent");
+    if (existing && existing.childNodes.length > 0) {
+      setTextLayerReady(true);
+      return;
+    }
+
+    // Otherwise observe for it
+    const observer = new MutationObserver(() => {
+      const el = wrapperRef.current && wrapperRef.current.querySelector(".react-pdf__Page__textContent");
+      if (el && el.childNodes.length > 0) {
+        setTextLayerReady(true);
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(wrapperRef.current, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [hasRendered]);
+
+  // Reset text layer readiness when page changes
+  useEffect(() => {
+    setTextLayerReady(false);
+    setHasRendered(false);
+  }, [pageData.page]);
+
   const isSizingLayer = isCurrent ? isCurrentRendered || !isPrev : isPrev && !isCurrentRendered;
   let className = "pdf-page-layer";
   let style = {
     position: isSizingLayer ? "relative" : "absolute",
     top: 0, left: 0, width: "100%", height: "100%",
-    opacity: 1, // Keep visible to show loading state
+    opacity: 1,
   };
 
   if (isPrev && transitionDir === 1) {
@@ -70,6 +97,7 @@ const PDFCanvasLayer = ({
 
   return (
     <div
+      ref={wrapperRef}
       className={className}
       style={style}
       onAnimationEnd={() => handleAnimationEnd(pageData.id)}
@@ -99,6 +127,8 @@ const PDFCanvasLayer = ({
         highlights={pageHighlights}
         scale={scale}
         focusedHighlightId={focusedHighlightId}
+        textLayerReady={textLayerReady}
+        pageEl={wrapperRef.current}
       />
       <div
         style={{

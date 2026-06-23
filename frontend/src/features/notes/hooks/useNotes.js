@@ -41,9 +41,7 @@ export function useNotes(pdfId) {
     if (!pdfId) return null;
     setError(null);
 
-    // Calculate a default position: at the end of the page's notes or offset
     const pageNotes = notes.filter((n) => n.pageNumber === pageNumber);
-    const defaultY = pageNotes.length * 200; // Visual stacked offset
 
     const payload = {
       pdfId,
@@ -52,11 +50,15 @@ export function useNotes(pdfId) {
       color: initialData.color || "yellow",
       width: initialData.width || 280,
       height: initialData.height || 180,
-      x: initialData.x !== undefined ? initialData.x : 10, // Default percent x
-      y: initialData.y !== undefined ? initialData.y : 10 + pageNotes.length * 15, // Default percent y
+      x: initialData.x !== undefined ? initialData.x : 10,
+      y: initialData.y !== undefined ? initialData.y : 10 + pageNotes.length * 15,
+      // Text anchor fields (optional — only set when created from a text selection)
+      ...(initialData.highlightId  && { highlightId:  initialData.highlightId  }),
+      ...(initialData.startOffset  !== undefined && { startOffset:  initialData.startOffset  }),
+      ...(initialData.endOffset    !== undefined && { endOffset:    initialData.endOffset    }),
+      ...(initialData.textQuote    && { textQuote:    initialData.textQuote    }),
     };
 
-    // Optimistic temporary note
     const tempId = `temp-${Date.now()}`;
     const tempNote = {
       _id: tempId,
@@ -80,7 +82,6 @@ export function useNotes(pdfId) {
     } catch (err) {
       console.error("Error creating note:", err);
       setError("Failed to create note. Rolling back.");
-      // Rollback optimistic update
       setNotes((prev) => prev.filter((n) => n._id !== tempId));
       throw err;
     }

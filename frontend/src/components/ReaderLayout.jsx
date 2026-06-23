@@ -18,6 +18,9 @@ import AppearanceModal from "../features/themes/components/AppearanceModal";
 import ReaderSidebar from "../features/pdf-viewer/components/ReaderSidebar";
 import ReaderToolbar from "../features/pdf-viewer/components/ReaderToolbar";
 import ReaderContent from "../features/pdf-viewer/components/ReaderContent";
+import ReadingMode from "../features/pdf-viewer/components/ReadingMode";
+import SelectionToolbar from "../features/ai/components/SelectionToolbar";
+import DictionaryPopup from "../features/dictionary/components/DictionaryPopup";
 
 const ReaderLayout = ({
   pdf, viewerRef, pageNumber, numPages, scale,
@@ -26,6 +29,7 @@ const ReaderLayout = ({
   onZoomIn, onZoomOut, onFit, fileInputRef, onFileChange,
 }) => {
   const scrollHostRef = useRef(null);
+  const selectionHostRef = useRef(null);
   const { isMobileOrSmaller: isMobile } = useBreakpoints();
   const [fitMode, setFitMode] = useState(() => {
     const saved = localStorage.getItem("rw_fit_mode");
@@ -41,11 +45,32 @@ const ReaderLayout = ({
     const saved = localStorage.getItem("rw_focus_mode");
     return saved !== null ? saved === "true" : isMobile;
   });
+  
+  const [viewMode, setViewMode] = useState(() => {
+    const saved = localStorage.getItem("rw_view_mode");
+    if (isMobile) return "reading"; // mobile defaults to reading mode
+    return saved || "pdf";
+  });
+  
+  const [readingSettings, setReadingSettings] = useState(() => {
+    const saved = localStorage.getItem("rw_reading_settings");
+    return saved ? JSON.parse(saved) : { fontSize: 16, lineSpacing: 1.6, contentWidth: "700px" };
+  });
+
   const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
   const [showFocusHint, setShowFocusHint] = useState(false);
 
   useEffect(() => { localStorage.setItem("rw_fit_mode", fitMode); }, [fitMode]);
   useEffect(() => { localStorage.setItem("rw_focus_mode", isFocusMode); }, [isFocusMode]);
+  useEffect(() => { localStorage.setItem("rw_view_mode", viewMode); }, [viewMode]);
+  useEffect(() => { localStorage.setItem("rw_reading_settings", JSON.stringify(readingSettings)); }, [readingSettings]);
+
+  // Fallback from split view if resized to mobile
+  useEffect(() => {
+    if (isMobile && viewMode === "split") {
+      setViewMode("reading");
+    }
+  }, [isMobile, viewMode]);
 
   useEffect(() => {
     const handleKeyDown = (e) => { if (e.key === "Escape" && isFocusMode) setIsFocusMode(false); };
@@ -61,14 +86,14 @@ const ReaderLayout = ({
 
   const highlightState = useHighlights(pdf?._id);
   const history = useHighlightHistory(pdf?._id, highlightState.setHighlights);
-  const { selectionInfo, clearSelection } = useTextSelection(scrollHostRef);
+  const { selectionInfo, clearSelection } = useTextSelection(selectionHostRef);
   const [dictPopupOpen, setDictPopupOpen] = useState(false);
   const dictionary = useDictionary(pdf?._id);
 
   useEffect(() => {
     setDictPopupOpen(false);
-    if (selectionInfo) dictionary.clear();
-  }, [selectionInfo?.text, dictionary, selectionInfo]);
+    dictionary.clear();
+  }, [selectionInfo?.text]); // reset only when selection text changes — not on every render
 
   const searchState = usePdfSearch(pdf?._id);
   const customTextRenderer = useSearchHighlight(searchState.query);
@@ -103,23 +128,53 @@ const ReaderLayout = ({
     if (!selectionInfo) return;
     const rects = getSelectionRects(selectionInfo.range, selectionInfo.pageEl);
     try {
-      const savedHighlight = await highlightState.addHighlight(selectionInfo.pageNumber, selectionInfo.text, color, rects);
+      const savedHighlight = await highlightState.addHighlight(
+        selectionInfo.pageNumber, 
+        selectionInfo.text, 
+        color, 
+        rects,
+        selectionInfo.textQuote || selectionInfo.text,
+        selectionInfo.startOffset,
+        selectionInfo.endOffset
+      );
       history.pushAction({ type: "add", highlight: savedHighlight });
     } catch (err) { console.error("Failed to add highlight", err); }
     clearSelection();
   };
 
-  const handleToolbarAction = useCallback((action) => {
+  const handleToolbarAction = useCallback(async (action) => {
     if (!selectionInfo) return;
-    const { text, pageNumber: pageNum } = selectionInfo;
-    if (action === "meaning") { dictionary.lookup(text, pageNum); setDictPopupOpen(true); return; }
-    
+    const { text, pageNumber: pageNum, textQuote, startOffset, endOffset } = selectionInfo;
+
+    if (action === "meaning") {
+      dictionary.lookup(text, pageNum);
+      setDictPopupOpen(true);
+      return;
+    }
+
+    // Create a text-anchored note from the selection
+    if (action === "note") {
+      try {
+        await notesState.createNote(pageNum, {
+          content: `"${text}"`,
+          textQuote: textQuote || text,
+          startOffset,
+          endOffset,
+        });
+        setActiveTab("notes");
+      } catch (err) {
+        console.error("Failed to create note from selection:", err);
+      }
+      clearSelection();
+      return;
+    }
+
     const mode = action.split('_')[0] === "quick" ? "quick" : action === "deep_explain" ? "deep" : "summary";
     setInitialExplainContext({ text, pageNumber: pageNum, mode, timestamp: Date.now() });
     setActiveTab("ai");
     clearSelection();
     setDictPopupOpen(false);
-  }, [selectionInfo, clearSelection, setActiveTab, dictionary]);
+  }, [selectionInfo, clearSelection, setActiveTab, dictionary, notesState]);
 
   const handleDictClose = useCallback(() => { setDictPopupOpen(false); dictionary.clear(); }, [dictionary]);
   const handleDictSave = useCallback(() => { if (dictionary.result) dictionary.save(dictionary.result); }, [dictionary]);
@@ -160,17 +215,62 @@ const ReaderLayout = ({
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "row", flex: 1, minHeight: 0, overflow: "hidden" }}>
-        <ReaderContent 
-          scrollHostRef={scrollHostRef} viewerRef={viewerRef}
-          selectionInfo={selectionInfo} handleColorPick={handleColorPick} handleToolbarAction={handleToolbarAction} clearSelection={clearSelection}
-          handleDictClose={handleDictClose} dictPopupOpen={dictPopupOpen} dictionary={dictionary} handleDictSave={handleDictSave} handleDictExplainFurther={handleDictExplainFurther}
-          pdf={pdf} pageNumber={pageNumber} scale={scale} fitMode={fitMode}
-          onPageChange={onPageChange} onScaleChange={onScaleChange} onNumPagesChange={onNumPagesChange}
-          customTextRenderer={customTextRenderer} searchState={searchState} highlightState={highlightState} focusedHighlightId={focusedHighlightId} bottomSheetHeightPct={bottomSheetHeightPct}
-          notesState={notesState} activeNoteId={activeNoteId} hoveredNoteId={hoveredNoteId}
-          setActiveTab={setActiveTab} setActiveNoteId={setActiveNoteId} setHoveredNoteId={setHoveredNoteId} isFocusMode={isFocusMode}
-        />
+      <div ref={selectionHostRef} style={{ display: "flex", flexDirection: "row", flex: 1, minHeight: 0, overflow: "hidden" }}>
+        {(viewMode === "pdf" || viewMode === "split") && (
+          <ReaderContent 
+            scrollHostRef={scrollHostRef} viewerRef={viewerRef}
+            selectionInfo={selectionInfo} handleColorPick={handleColorPick} handleToolbarAction={handleToolbarAction} clearSelection={clearSelection}
+            handleDictClose={handleDictClose} dictPopupOpen={dictPopupOpen} dictionary={dictionary} handleDictSave={handleDictSave} handleDictExplainFurther={handleDictExplainFurther}
+            pdf={pdf} pageNumber={pageNumber} scale={scale} fitMode={fitMode}
+            onPageChange={onPageChange} onScaleChange={onScaleChange} onNumPagesChange={onNumPagesChange}
+            customTextRenderer={customTextRenderer} searchState={searchState} highlightState={highlightState} focusedHighlightId={focusedHighlightId} bottomSheetHeightPct={bottomSheetHeightPct}
+            notesState={notesState} activeNoteId={activeNoteId} hoveredNoteId={hoveredNoteId}
+            setActiveTab={setActiveTab} setActiveNoteId={setActiveNoteId} setHoveredNoteId={setHoveredNoteId} isFocusMode={isFocusMode}
+          />
+        )}
+        
+        {/* Split View Divider */}
+        {viewMode === "split" && (
+          <div style={{ width: "1px", background: "var(--rw-border)", zIndex: 10 }} />
+        )}
+
+        {(viewMode === "reading" || viewMode === "split") && (
+          <ReadingMode
+            pdf={pdf}
+            pageNumber={pageNumber}
+            onPageChange={onPageChange}
+            readingSettings={readingSettings}
+            setReadingSettings={setReadingSettings}
+            highlightState={highlightState}
+            notesState={notesState}
+          />
+        )}
+
+        {/* Global floating components tied to selectionHostRef */}
+        {selectionInfo && (
+          <SelectionToolbar
+            position={selectionInfo.toolbarPosition}
+            selectionText={selectionInfo.text}
+            pageNumber={selectionInfo.pageNumber}
+            onColorPick={handleColorPick}
+            onAction={handleToolbarAction}
+            onClose={() => { clearSelection(); handleDictClose(); }}
+          />
+        )}
+
+        {dictPopupOpen && selectionInfo && (
+          <DictionaryPopup
+            result={dictionary.result}
+            error={dictionary.error}
+            isLoading={dictionary.isLoading}
+            isSaved={dictionary.isSaved}
+            isSaving={dictionary.isSaving}
+            onSave={handleDictSave}
+            onExplainFurther={handleDictExplainFurther}
+            onClose={handleDictClose}
+            position={selectionInfo.toolbarPosition}
+          />
+        )}
         
         <ReaderSidebar
           pdfId={pdf?._id} pageNumber={pageNumber} numPages={pdf?.numPages}
@@ -198,6 +298,8 @@ const ReaderLayout = ({
         setIsFocusMode={setIsFocusMode} setShowFocusHint={setShowFocusHint} setActiveTab={setActiveTab}
         bookmarkState={bookmarkState} onUploadClick={onUploadClick} onRemove={onRemove}
         isOverflowOpen={isOverflowOpen} setIsOverflowOpen={setIsOverflowOpen} setIsAppearanceOpen={setIsAppearanceOpen}
+        viewMode={viewMode} setViewMode={setViewMode} readingSettings={readingSettings} setReadingSettings={setReadingSettings}
+
       />
     </div>
   );

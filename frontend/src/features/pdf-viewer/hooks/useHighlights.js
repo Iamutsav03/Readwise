@@ -1,8 +1,9 @@
 // features/pdf-viewer/hooks/useHighlights.js
 // Hook for managing highlights in the PDF viewer.
-// Moved from src/components/hooks/useHighlights.js
+// v2: Adds a highlightsByPage index (useMemo) for O(1) lookup, avoiding 
+// full-array scans when the document has 100–1000+ highlights.
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { createHighlight, getHighlightsForPdf, deleteHighlight as apiDeleteHighlight } from "../../../services/highlightService";
 
 export function useHighlights(pdfId) {
@@ -35,16 +36,31 @@ export function useHighlights(pdfId) {
     return () => { isMounted = false; };
   }, [pdfId]);
 
-  const addHighlight = useCallback(async (pageNumber, selectedText, color, rects) => {
+  /**
+   * Page-indexed map: { [pageNumber]: Highlight[] }
+   * Rebuilt only when the highlights array reference changes.
+   * Allows PDFCanvasLayer and ReadingMode to get highlights for a specific
+   * page in O(1) without re-filtering the entire array.
+   */
+  const highlightsByPage = useMemo(() => {
+    const index = {};
+    for (const h of highlights) {
+      if (!index[h.pageNumber]) index[h.pageNumber] = [];
+      index[h.pageNumber].push(h);
+    }
+    return index;
+  }, [highlights]);
+
+  const addHighlight = useCallback(async (pageNumber, selectedText, color, rects, textQuote, startOffset, endOffset) => {
     const tempId = `temp_${Date.now()}`;
     const newHighlight = {
-      _id: tempId, pdfId, pageNumber, selectedText, color, rects, createdAt: new Date().toISOString(),
+      _id: tempId, pdfId, pageNumber, selectedText, color, rects, textQuote, startOffset, endOffset, createdAt: new Date().toISOString(),
     };
 
     setHighlights((prev) => [...prev, newHighlight]);
 
     try {
-      const saved = await createHighlight(pdfId, pageNumber, selectedText, color, rects);
+      const saved = await createHighlight(pdfId, pageNumber, selectedText, color, rects, textQuote, startOffset, endOffset);
       setHighlights((prev) => prev.map((h) => (h._id === tempId ? saved : h)));
       return saved;
     } catch (err) {
@@ -71,10 +87,10 @@ export function useHighlights(pdfId) {
   }, [highlights]);
 
   const highlightsForPage = useCallback((pageNumber) => {
-    return highlights.filter((h) => h.pageNumber === pageNumber);
-  }, [highlights]);
+    return highlightsByPage[pageNumber] || [];
+  }, [highlightsByPage]);
 
   return {
-    highlights, isLoading, error, addHighlight, removeHighlight, highlightsForPage, setHighlights,
+    highlights, highlightsByPage, isLoading, error, addHighlight, removeHighlight, highlightsForPage, setHighlights,
   };
 }

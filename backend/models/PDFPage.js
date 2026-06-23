@@ -26,6 +26,25 @@ const pdfPageSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+
+        // Extracted structured content optimized for Reading Mode
+        structuredContent: {
+            type: [
+                {
+                    type: { type: String, enum: ["paragraph", "heading", "list", "section", "table", "figure"] },
+                    text: { type: String },
+                    startOffset: { type: Number },
+                    endOffset: { type: Number },
+                }
+            ],
+            default: [],
+        },
+
+        // MD5 hash of this page's raw text — used to invalidate stale highlight rect caches
+        textHash: {
+            type: String,
+            default: "",
+        },
     },
     {
         timestamps: true,

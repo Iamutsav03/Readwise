@@ -43,6 +43,13 @@ const pdfSchema = new mongoose.Schema(
       default: false,
     },
 
+    // Quality of the backend text extraction pipeline
+    extractionQuality: {
+      type: String,
+      enum: ["pending", "good", "poor"],
+      default: "pending",
+    },
+
     // Timestamp of the last time the user opened this PDF
     lastOpenedAt: {
       type: Date,

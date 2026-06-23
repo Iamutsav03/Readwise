@@ -5,7 +5,7 @@
 import React, { useState, useLayoutEffect, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { HIGHLIGHT_COLORS } from "../../../utils/highlightHelpers";
-import { BookOpen, Zap, Sparkles, Copy, Palette, FileText } from "lucide-react";
+import { BookOpen, Zap, Sparkles, Copy, Palette, FileText, StickyNote } from "lucide-react";
 import { useBreakpoints } from "../../../hooks/useBreakpoints";
 import MobileBottomSheet from "../../../components/MobileBottomSheet";
 
@@ -213,6 +213,18 @@ const SelectionToolbar = ({
 
               {divider}
 
+              {/* Add Note */}
+              <button
+                className="sel-btn"
+                style={btnStyle}
+                onClick={(e) => handleAction(e, "note")}
+                title="Add Note"
+              >
+                <StickyNote size={16} />
+              </button>
+
+              {divider}
+
               {/* Copy */}
               <button
                 className="sel-btn"
@@ -300,6 +312,11 @@ const SelectionToolbar = ({
               onClick={(e) => { handleAction(e, "summary"); onClose(); }}
             />
           )}
+          <MobileActionBtn
+            icon={<StickyNote size={18} />}
+            label="Add Note"
+            onClick={(e) => { handleAction(e, "note"); onClose(); }}
+          />
           <MobileActionBtn
             icon={<Copy size={18} />}
             label="Copy"

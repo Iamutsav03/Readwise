@@ -2,7 +2,7 @@
 // Extracted from ReaderLayout.jsx to reduce file size.
 
 import React from "react";
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, MoreVertical, Maximize2, Maximize, Sparkles, Search, Edit2, Highlighter, Bookmark as BookmarkIcon, Palette, Lock, UploadCloud, FileX } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, MoreVertical, Maximize2, Maximize, Sparkles, Search, Edit2, Highlighter, Bookmark as BookmarkIcon, Palette, Lock, UploadCloud, FileX, BookOpen, Layout, Settings } from "lucide-react";
 import { BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
 import { BookmarkIcon as BookmarkOutline } from "@heroicons/react/24/outline";
 
@@ -76,7 +76,18 @@ export const ReaderToolbar = ({
   isOverflowOpen,
   setIsOverflowOpen,
   setIsAppearanceOpen,
+  viewMode,
+  setViewMode,
+  readingSettings,
+  setReadingSettings,
 }) => {
+  const isSplitDisabled = isMobile;
+
+  const handleModeChange = (mode) => {
+    if (mode === "split" && isSplitDisabled) return;
+    setViewMode(mode);
+  };
+
   return (
     <div className={`focus-transition ${isFocusMode ? "focus-hide-y" : ""}`} style={{ position: "relative", flexShrink: 0, zIndex: 50 }}>
       <ReadingProgress progressPct={progressPct} showBadge={false} />
@@ -138,6 +149,20 @@ export const ReaderToolbar = ({
                   
                   <div style={{ height: "1px", background: "var(--rw-border)", margin: "4px 0" }} />
                   
+                  <div style={{ padding: "4px 8px", fontSize: 11, color: "var(--rw-text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Reading Mode</div>
+                  <div style={{ display: "flex", gap: "4px", padding: "4px 8px" }}>
+                    <button 
+                      style={{ flex: 1, padding: "6px", borderRadius: "6px", background: viewMode === "pdf" ? "var(--rw-accent)" : "transparent", color: viewMode === "pdf" ? "white" : "var(--rw-text-primary)", border: "1px solid var(--rw-border)", cursor: "pointer", fontSize: 12, fontWeight: 500 }}
+                      onClick={() => { handleModeChange("pdf"); setIsOverflowOpen(false); }}
+                    >PDF</button>
+                    <button 
+                      style={{ flex: 1, padding: "6px", borderRadius: "6px", background: viewMode === "reading" ? "var(--rw-accent)" : "transparent", color: viewMode === "reading" ? "white" : "var(--rw-text-primary)", border: "1px solid var(--rw-border)", cursor: "pointer", fontSize: 12, fontWeight: 500 }}
+                      onClick={() => { handleModeChange("reading"); setIsOverflowOpen(false); }}
+                    >Read</button>
+                  </div>
+                  
+                  <div style={{ height: "1px", background: "var(--rw-border)", margin: "4px 0" }} />
+
                   <div style={{ padding: "4px 8px", fontSize: 11, color: "var(--rw-text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Tools</div>
                   <button className="rw-overflow-item" onClick={() => { setActiveTab("ai"); setIsOverflowOpen(false); }}>
                     <span>AI Chat</span><Sparkles size={14} />
@@ -179,6 +204,41 @@ export const ReaderToolbar = ({
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <FitControls fitMode={fitMode} onFitPage={handleFitPage} onFitWidth={handleFitWidth} />
+              <Divider />
+              {/* View Mode Switcher */}
+              <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "8px", padding: "2px", border: "1px solid var(--rw-border)" }}>
+                <button
+                  onClick={() => handleModeChange("pdf")}
+                  title="PDF View"
+                  style={{ background: viewMode === "pdf" ? "var(--rw-card-bg)" : "transparent", color: viewMode === "pdf" ? "var(--rw-text-primary)" : "var(--rw-text-muted)", border: "none", borderRadius: "6px", padding: "4px 10px", fontSize: "12px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: viewMode === "pdf" ? "0 2px 5px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}
+                >
+                  PDF
+                </button>
+                <button
+                  onClick={() => handleModeChange("reading")}
+                  title="Reading View"
+                  style={{ background: viewMode === "reading" ? "var(--rw-card-bg)" : "transparent", color: viewMode === "reading" ? "var(--rw-text-primary)" : "var(--rw-text-muted)", border: "none", borderRadius: "6px", padding: "4px 10px", fontSize: "12px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: viewMode === "reading" ? "0 2px 5px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}
+                >
+                  <BookOpen size={14} /> Read
+                </button>
+                <button
+                  onClick={() => handleModeChange("split")}
+                  title="Split View"
+                  style={{ background: viewMode === "split" ? "var(--rw-card-bg)" : "transparent", color: viewMode === "split" ? "var(--rw-text-primary)" : "var(--rw-text-muted)", border: "none", borderRadius: "6px", padding: "4px 10px", fontSize: "12px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: viewMode === "split" ? "0 2px 5px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}
+                >
+                  <Layout size={14} /> Split
+                </button>
+              </div>
+              {viewMode !== "pdf" && (
+                <>
+                  <Divider />
+                  <ToolbarIconBtn onClick={() => {
+                    // Simple cycle for now; in a full implementation this would open a popover
+                    const newSize = readingSettings.fontSize >= 24 ? 14 : readingSettings.fontSize + 2;
+                    setReadingSettings({ ...readingSettings, fontSize: newSize });
+                  }} title={`Font Size: ${readingSettings?.fontSize}px (Click to increase)`}><Settings size={16} /></ToolbarIconBtn>
+                </>
+              )}
               <Divider />
               <ToolbarIconBtn onClick={handleZoomOut} title="Zoom out"><ZoomOut size={16} /></ToolbarIconBtn>
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "var(--rw-text-secondary)", minWidth: 38, textAlign: "center", letterSpacing: "0.01em", cursor: "default", userSelect: "none" }}>{Math.round(scale * 100)}%</span>

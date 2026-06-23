@@ -31,6 +31,15 @@ const highlightSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    // Cache invalidation fields for dynamic rects
+    rectVersion: {
+      type: Number,
+      default: 1,
+    },
+    pdfTextHash: {
+      type: String,
+      required: false,
+    },
     selectedText: {
       type: String,
       required: true,
@@ -40,9 +49,21 @@ const highlightSchema = new mongoose.Schema(
       enum: ["yellow", "green", "blue", "pink"],
       default: "yellow",
     },
+    textQuote: {
+      type: String, // Context surrounding the highlight or exact match
+    },
+    startOffset: {
+      type: Number, // Character index in the extracted PDF page text
+    },
+    endOffset: {
+      type: Number,
+    },
     // Bounding boxes stored as fractions (0–1) of page dimensions at scale=1.
-    // Scale-independent: overlay rendering multiplies by current rendered dimensions.
-    rects: [rectSchema],
+    // Used as a fast rendering cache for PDF mode. If missing, dynamically generated.
+    rects: {
+      type: [rectSchema],
+      default: [],
+    },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

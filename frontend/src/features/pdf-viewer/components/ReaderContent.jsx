@@ -1,8 +1,6 @@
 // features/pdf-viewer/components/ReaderContent.jsx
 import React from "react";
 import PDFViewer from "../../../components/PDFViewer";
-import SelectionToolbar from "../../../features/ai/components/SelectionToolbar";
-import DictionaryPopup from "../../../features/dictionary/components/DictionaryPopup";
 
 export const ReaderContent = ({
   scrollHostRef,
@@ -44,31 +42,6 @@ export const ReaderContent = ({
       }}
       className="custom-scrollbar"
     >
-      {selectionInfo && (
-        <SelectionToolbar
-          position={selectionInfo.toolbarPosition}
-          selectionText={selectionInfo.text}
-          pageNumber={selectionInfo.pageNumber}
-          onColorPick={handleColorPick}
-          onAction={handleToolbarAction}
-          onClose={() => { clearSelection(); handleDictClose(); }}
-        />
-      )}
-
-      {dictPopupOpen && selectionInfo && (
-        <DictionaryPopup
-          result={dictionary.result}
-          error={dictionary.error}
-          isLoading={dictionary.isLoading}
-          isSaved={dictionary.isSaved}
-          isSaving={dictionary.isSaving}
-          onSave={handleDictSave}
-          onExplainFurther={handleDictExplainFurther}
-          onClose={handleDictClose}
-          position={selectionInfo.toolbarPosition}
-        />
-      )}
-
       <PDFViewer
         ref={viewerRef}
         scrollHostRef={scrollHostRef}
