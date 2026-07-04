@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from "react";
 
-export function usePdfNavigation(pdfs, selectedPDF, setSelectedPDF) {
+export function usePdfNavigation(pdfs, selectedPDF, setSelectedPDF, activeView, setActiveView) {
   // Initialize the base history state if not present, and handle deep links
   useEffect(() => {
     // Check if URL is a deep link like /reader/:id
@@ -13,14 +13,17 @@ export function usePdfNavigation(pdfs, selectedPDF, setSelectedPDF) {
       if (found) {
         window.history.replaceState({ view: "reader", pdfId: pdfIdFromUrl }, "", `/reader/${pdfIdFromUrl}`);
         setSelectedPDF(found);
+        setActiveView("reader");
         return;
       }
     }
 
-    if (!window.history.state || window.history.state.view !== "library") {
-      // If we are currently showing a PDF (e.g. from hot-reload), ensure history state reflects it.
-      if (selectedPDF) {
+    if (!window.history.state || window.history.state.view !== activeView) {
+      // Ensure history state reflects initial active view
+      if (activeView === "reader" && selectedPDF) {
         window.history.replaceState({ view: "reader", pdfId: selectedPDF._id }, "", `/reader/${selectedPDF._id}`);
+      } else if (activeView === "vocabulary") {
+        window.history.replaceState({ view: "vocabulary" }, "", "/vault");
       } else {
         window.history.replaceState({ view: "library" }, "", "/");
       }
@@ -35,14 +38,20 @@ export function usePdfNavigation(pdfs, selectedPDF, setSelectedPDF) {
         const pdf = pdfs.find((p) => p._id === state.pdfId);
         if (pdf) {
           setSelectedPDF(pdf);
+          setActiveView("reader");
         } else {
           // If PDF was deleted or not found, fall back to library
           window.history.replaceState({ view: "library" }, "", "/");
           setSelectedPDF(null);
+          setActiveView("library");
         }
+      } else if (state && state.view === "vocabulary") {
+        setSelectedPDF(null);
+        setActiveView("vocabulary");
       } else {
         // State is library or null
         setSelectedPDF(null);
+        setActiveView("library");
       }
     };
 
@@ -62,19 +71,30 @@ export function usePdfNavigation(pdfs, selectedPDF, setSelectedPDF) {
     // Push new state
     window.history.pushState({ view: "reader", pdfId: pdf._id }, "", `/reader/${pdf._id}`);
     setSelectedPDF(pdf);
-  }, [setSelectedPDF]);
+    setActiveView("reader");
+  }, [setSelectedPDF, setActiveView]);
+
+  const openVault = useCallback(() => {
+    const currentState = window.history.state;
+    if (currentState && currentState.view === "vocabulary") return;
+
+    window.history.pushState({ view: "vocabulary" }, "", "/vault");
+    setActiveView("vocabulary");
+  }, [setActiveView]);
 
   const closePdf = useCallback(() => {
     // If we're already at the library state, do nothing
     const currentState = window.history.state;
     if (currentState && currentState.view === "library") {
       setSelectedPDF(null);
+      setActiveView("library");
       return;
     }
 
     window.history.pushState({ view: "library" }, "", "/");
     setSelectedPDF(null);
-  }, [setSelectedPDF]);
+    setActiveView("library");
+  }, [setSelectedPDF, setActiveView]);
 
   const goBackToLibrary = useCallback(() => {
     // If the history indicates we came from the library, use native back
@@ -83,7 +103,7 @@ export function usePdfNavigation(pdfs, selectedPDF, setSelectedPDF) {
     // if we know the previous state was the library.
     // A robust way: if we are in "reader" state, just call back().
     // The popstate listener will handle setting selectedPDF to null.
-    if (window.history.state && window.history.state.view === "reader") {
+    if (window.history.state && (window.history.state.view === "reader" || window.history.state.view === "vocabulary")) {
       window.history.back();
     } else {
       // Fallback
@@ -91,5 +111,5 @@ export function usePdfNavigation(pdfs, selectedPDF, setSelectedPDF) {
     }
   }, [closePdf]);
 
-  return { openPdf, closePdf, goBackToLibrary };
+  return { openPdf, closePdf, openVault, goBackToLibrary };
 }

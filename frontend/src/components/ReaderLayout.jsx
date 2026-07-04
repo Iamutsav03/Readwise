@@ -151,6 +151,12 @@ const ReaderLayout = ({
       setDictPopupOpen(true);
       return;
     }
+    
+    if (action === "quick_explain") {
+      dictionary.quickExplain(text, pageNum);
+      setDictPopupOpen(true);
+      return;
+    }
 
     // Create a text-anchored note from the selection
     if (action === "note") {
@@ -169,7 +175,7 @@ const ReaderLayout = ({
       return;
     }
 
-    const mode = action.split('_')[0] === "quick" ? "quick" : action === "deep_explain" ? "deep" : "summary";
+    const mode = action === "deep_explain" ? "deep" : "summary";
     setInitialExplainContext({ text, pageNumber: pageNum, mode, timestamp: Date.now() });
     setActiveTab("ai");
     clearSelection();
@@ -177,7 +183,12 @@ const ReaderLayout = ({
   }, [selectionInfo, clearSelection, setActiveTab, dictionary, notesState]);
 
   const handleDictClose = useCallback(() => { setDictPopupOpen(false); dictionary.clear(); }, [dictionary]);
-  const handleDictSave = useCallback(() => { if (dictionary.result) dictionary.save(dictionary.result); }, [dictionary]);
+  const handleDictSave = useCallback(() => { 
+    if (dictionary.result) {
+      const sourceType = dictionary.result.source === "ai" && !dictionary.result.partOfSpeech ? "quick_meaning" : "dictionary";
+      dictionary.save(dictionary.result, sourceType); 
+    }
+  }, [dictionary]);
   const handleDictExplainFurther = useCallback(() => {
     if (!selectionInfo && !dictionary.result) return;
     setInitialExplainContext({ text: dictionary.result?.word || selectionInfo?.text, pageNumber: selectionInfo?.pageNumber, timestamp: Date.now() });
@@ -243,6 +254,11 @@ const ReaderLayout = ({
             setReadingSettings={setReadingSettings}
             highlightState={highlightState}
             notesState={notesState}
+            activeNoteId={activeNoteId}
+            hoveredNoteId={hoveredNoteId}
+            setActiveNoteId={setActiveNoteId}
+            setHoveredNoteId={setHoveredNoteId}
+            setActiveTab={setActiveTab}
           />
         )}
 

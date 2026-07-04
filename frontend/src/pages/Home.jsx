@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import LandingContent from "../components/Landingcontent";
 import ReaderLayout from "../components/ReaderLayout";
+import VocabularyVault from "../features/vocabulary/components/VocabularyVault";
 import { Menu } from "lucide-react";
 import { fetchAllPDFs, uploadPDF, updatePdfLastOpened } from "../utils/api";
 import { deletePdf, toggleFavorite, renamePdf } from "../services/pdfActions";
@@ -10,6 +11,7 @@ import { useBreakpoints } from "../hooks/useBreakpoints";
 
 const Home = ({ selectedPDF, setSelectedPDF }) => {
   const [pdfs, setPdfs] = useState([]);
+  const [activeView, setActiveView] = useState("library"); // library, reader, vocabulary
   const [pageNumber, setPageNumber] = useState(1);
   const [numPages, setNumPages] = useState(0);
   const [scale, setScale] = useState(() => {
@@ -31,7 +33,7 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
   const touchStart = useRef({ x: null, y: null });
   const touchEnd = useRef({ x: null, y: null });
 
-  const { openPdf, closePdf, goBackToLibrary } = usePdfNavigation(pdfs, selectedPDF, setSelectedPDF);
+  const { openPdf, closePdf, openVault, goBackToLibrary } = usePdfNavigation(pdfs, selectedPDF, setSelectedPDF, activeView, setActiveView);
 
   useEffect(() => {
     fetchAllPDFs().then(setPdfs).catch(console.error);
@@ -98,27 +100,34 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
     formData.append("pdf", file);
     uploadPDF(formData)
       .then((data) => handleUploadSuccess(data.pdf))
-      .catch(() => alert("Upload failed. Make sure the backend is running."));
+      .catch((err) => {
+        console.error("Home upload error:", err);
+        alert(`Upload failed: ${err.message || "Unknown error"}`);
+      })
   }, [handleUploadSuccess]);
 
   // ── Select / open a PDF (also updates lastOpenedAt) ─────────────────────────
-  const handleSelectPdf = useCallback(async (pdf) => {
-    // Optimistically update local state
-    const now = new Date().toISOString();
-    setPdfs((prev) =>
-      prev.map((p) => p._id === pdf._id ? { ...p, lastOpenedAt: now } : p)
-    );
-    
-    // openPdf handles history and setSelectedPDF
-    openPdf({ ...pdf, lastOpenedAt: now });
-    
-    setPageNumber(1); setNumPages(0);
-
-    // Persist to DB silently
+  const handleSelectPdf = useCallback((pdf) => {
+    if (isMobileOrSmaller) setIsSidebarOpen(false);
     updatePdfLastOpened(pdf._id).catch(console.error);
-  }, [openPdf]);
+    const updated = { ...pdf, lastOpenedAt: new Date().toISOString() };
+    setPdfs(prev => prev.map(p => p._id === pdf._id ? updated : p));
+    openPdf(updated);
+  }, [isMobileOrSmaller, openPdf]);
 
   // ── Remove / clear ─────────────────────────────────────────────────────────
+  const handleGoBack = useCallback(() => {
+    goBackToLibrary();
+  }, [goBackToLibrary]);
+
+  const handleJumpToSource = useCallback((pdfId, pageNum) => {
+    const pdf = pdfs.find(p => String(p._id) === String(pdfId));
+    if (pdf) {
+      handleSelectPdf(pdf);
+      setPageNumber(pageNum || 1);
+    }
+  }, [pdfs, handleSelectPdf]);
+
   const handleRemovePdf = useCallback(() => {
     closePdf();
     setPageNumber(1); setNumPages(0);
@@ -249,7 +258,7 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
       />
       
       {/* ── Reader Mode ───────────────────────────────────────────────────────── */}
-      {selectedPDF && (
+      {activeView === "reader" && selectedPDF && (
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
           <ReaderLayout
             pdf={selectedPDF}
@@ -273,12 +282,23 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
         </div>
       )}
 
+      {/* ── Vocabulary Vault ──────────────────────────────────────────────────── */}
+      {activeView === "vocabulary" && (
+        <div style={{ flex: 1, overflow: "auto", padding: "20px" }}>
+          <VocabularyVault 
+            pdfs={pdfs} 
+            onJumpToSource={handleJumpToSource}
+            onBack={handleGoBack}
+          />
+        </div>
+      )}
+
       {/* ── Library / Home Mode ─────────────────────────────────────────────── */}
       <div 
-        onTouchStart={isMobileOrSmaller && !selectedPDF ? onTouchStart : undefined}
-        onTouchMove={isMobileOrSmaller && !selectedPDF ? onTouchMove : undefined}
-        onTouchEnd={isMobileOrSmaller && !selectedPDF ? onTouchEnd : undefined}
-        style={{ display: selectedPDF ? "none" : "flex", flex: 1, overflow: "hidden", position: "relative" }}
+        onTouchStart={isMobileOrSmaller && activeView === "library" ? onTouchStart : undefined}
+        onTouchMove={isMobileOrSmaller && activeView === "library" ? onTouchMove : undefined}
+        onTouchEnd={isMobileOrSmaller && activeView === "library" ? onTouchEnd : undefined}
+        style={{ display: activeView === "library" ? "flex" : "none", flex: 1, overflow: "hidden", position: "relative" }}
       >
         {/* Mobile backdrop overlay */}
         {isMobileOrSmaller && isSidebarOpen && (
@@ -298,10 +318,11 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
           selectedPDF={selectedPDF}
           onUploadSuccess={handleUploadSuccess}
           onSelect={handleSelectPdf}
-          fileInputRef={fileInputRef}
+          onOpenVault={() => { openVault(); if (isMobileOrSmaller) setIsSidebarOpen(false); }}
           onRemovePdf={handleDeletePdf}
           onFavorite={handleFavorite}
           onRename={handleRename}
+          fileInputRef={fileInputRef}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
         />

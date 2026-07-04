@@ -47,18 +47,39 @@ export async function lookupAIFallback(word, pdfId, pageNumber) {
 }
 
 /**
+ * AI quick explain for sentences or phrases.
+ * @param {string} text
+ * @param {string} pdfId
+ * @param {number} pageNumber
+ */
+export async function quickExplainText(text, pdfId, pageNumber) {
+  const res = await fetch(`${BASE}/quick-explain`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("rw_token")}`
+    },
+    body: JSON.stringify({ text, pdfId, pageNumber }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return data;
+}
+
+/**
  * Save a word to the user's vocabulary for a specific PDF.
  * @param {string} pdfId
  * @param {object} wordData
+ * @param {string} sourceType ("dictionary" | "quick_meaning")
  */
-export async function saveWord(pdfId, wordData) {
+export async function saveWord(pdfId, wordData, sourceType = "dictionary") {
   const res = await fetch(`${BASE}/save`, {
     method: "POST",
     headers: { 
       "Content-Type": "application/json",
       "Authorization": `Bearer ${localStorage.getItem("rw_token")}`
     },
-    body: JSON.stringify({ pdfId, ...wordData }),
+    body: JSON.stringify({ pdfId, ...wordData, sourceType }),
   });
   const data = await res.json();
   if (!res.ok) throw data;

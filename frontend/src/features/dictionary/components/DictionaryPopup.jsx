@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { useBreakpoints } from "../../../hooks/useBreakpoints";
 import MobileBottomSheet from "../../../components/MobileBottomSheet";
-import { Bookmark, Sparkles, X } from "lucide-react";
+import { Bookmark, Sparkles, X, Copy } from "lucide-react";
 
 /**
  * Action registry for the dictionary popup.
@@ -21,6 +21,12 @@ const ACTION_REGISTRY = [
     icon: <Sparkles size={14} />,
     label: "Explain Further",
     type: "explain",
+  },
+  {
+    id: "copy",
+    icon: <Copy size={14} />,
+    label: "Copy",
+    type: "copy",
   },
 ];
 
@@ -154,6 +160,7 @@ export default function DictionaryPopup({
   isSaving,
   onSave,
   onExplainFurther,
+  onOpenVault,
   onClose,
   position,
 }) {
@@ -220,6 +227,9 @@ export default function DictionaryPopup({
       onSave();
     } else if (actionId === "explain") {
       onExplainFurther();
+    } else if (actionId === "copy") {
+      const textToCopy = result?.meaning ? `${result.word}: ${result.meaning}` : result?.word;
+      if (textToCopy) navigator.clipboard.writeText(textToCopy);
     }
   };
 
@@ -361,6 +371,29 @@ export default function DictionaryPopup({
                   </button>
                 );
               })}
+              {isSaved && onOpenVault && (
+                <button
+                  className="rw-dict-btn"
+                  onClick={onOpenVault}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--rw-accent)",
+                    color: "var(--rw-accent)",
+                    borderRadius: 6,
+                    padding: "8px 12px",
+                    minHeight: 44,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 13,
+                    cursor: "pointer",
+                    fontFamily: "'DM Sans', sans-serif",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  <Bookmark size={14} /> Open Vault
+                </button>
+              )}
               <button className="rw-dict-btn" onClick={onClose} style={styles.closeBtn} title="Close"><X size={16} /></button>
             </div>
           </>

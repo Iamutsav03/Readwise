@@ -30,6 +30,27 @@ const userVocabularySchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    sourceType: {
+      type: String,
+      enum: ["dictionary", "quick_meaning"],
+      default: "dictionary",
+    },
+    pdfTitle: {
+      type: String,
+      default: "Unknown Document",
+    },
+    reviewCount: {
+      type: Number,
+      default: 0,
+    },
+    lastReviewed: {
+      type: Date,
+      default: null,
+    },
+    nextReviewDate: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

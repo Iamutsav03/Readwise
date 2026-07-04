@@ -39,6 +39,7 @@ const PAGE_META = [
   { accent: "#9b7bc4", icon: Sparkles, label: "AI Chat" },
   { accent: "#c4a47b", icon: Lightbulb, label: "Study Tools" },
   { accent: "#7bbfc4", icon: MessageSquare, label: "Sticky Notes" },
+  { accent: "#b86a8a", icon: BookOpen, label: "Vocabulary Vault" },
   { accent: "#b8966a", icon: ArrowRight, label: "Get Started" },
 ];
 
@@ -918,9 +919,73 @@ const Page7 = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PAGE 8 — CTA
+   PAGE 8 — Vocabulary Vault
 ═══════════════════════════════════════════════════════════════════════════ */
-const Page8 = ({ onUploadClick }) => {
+const Page8 = () => {
+  const { isMobileOrSmaller } = useBreakpoints();
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setStep((s) => (s + 1) % 5);
+    }, 2500);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div style={{ ...S.wrap, padding: "18px 18px 14px" }}>
+      <div className="rw-stagger-1">
+        <FeatureHeader pageIdx={7} title="Turn reading into long-term memory." sub="Save words and review them with spaced repetition." />
+      </div>
+
+      <div className="rw-stagger-2" style={{ flex: 1, minHeight: 0, background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 12, padding: "18px 18px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", gap: 16 }}>
+        
+        {/* Step 1: Text Selection / Dictionary */}
+        <div style={{ opacity: step === 0 ? 1 : 0.4, transition: "opacity 0.3s", display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step === 0 ? "var(--rw-accent)" : "var(--rw-border)", color: step === 0 ? "var(--rw-accent-text)" : "var(--rw-text-muted)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>1</div>
+          <div style={{ flex: 1, background: "var(--rw-hover-bg)", padding: 12, borderRadius: 8, border: step === 0 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-text-primary)" }}>Look up a difficult word in the PDF.</p>
+            {step === 0 && <div style={{ marginTop: 8, padding: 8, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}><span style={{ fontSize: 12, fontWeight: 600 }}>Ephemeral</span> <button style={{ fontSize: 11, padding: "4px 8px", background: "var(--rw-accent)", color: "var(--rw-accent-text)", border: "none", borderRadius: 4 }}>Save Word</button></div>}
+          </div>
+        </div>
+
+        {/* Step 2: Vault Saved */}
+        <div style={{ opacity: step === 1 ? 1 : 0.4, transition: "opacity 0.3s", display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step === 1 ? "var(--rw-accent)" : "var(--rw-border)", color: step === 1 ? "var(--rw-accent-text)" : "var(--rw-text-muted)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>2</div>
+          <div style={{ flex: 1, background: "var(--rw-hover-bg)", padding: 12, borderRadius: 8, border: step === 1 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-text-primary)" }}>It's instantly added to your Vault.</p>
+            {step === 1 && <div style={{ marginTop: 8, padding: 8, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 6, display: "flex", gap: 8 }}><BookOpen size={14} color="var(--rw-accent)" /> <span style={{ fontSize: 12 }}>Saved Words (1)</span></div>}
+          </div>
+        </div>
+
+        {/* Step 3: Flashcards */}
+        <div style={{ opacity: step === 2 || step === 3 ? 1 : 0.4, transition: "opacity 0.3s", display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step >= 2 && step <= 3 ? "var(--rw-accent)" : "var(--rw-border)", color: step >= 2 && step <= 3 ? "var(--rw-accent-text)" : "var(--rw-text-muted)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>3</div>
+          <div style={{ flex: 1, background: "var(--rw-hover-bg)", padding: 12, borderRadius: 8, border: step >= 2 && step <= 3 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-text-primary)" }}>Review using Spaced Repetition Flashcards.</p>
+            {step === 2 && <div style={{ marginTop: 8, height: 60, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 600 }}>Ephemeral</div>}
+            {step === 3 && <div style={{ marginTop: 8, height: 60, background: "var(--rw-card-bg)", border: "1px solid var(--rw-accent)", borderRadius: 6, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}><span style={{ fontSize: 14, fontWeight: 600 }}>Ephemeral</span><span style={{ fontSize: 11, color: "var(--rw-text-secondary)" }}>lasting for a very short time</span></div>}
+          </div>
+        </div>
+
+        {/* Step 4: Insights */}
+        <div style={{ opacity: step === 4 ? 1 : 0.4, transition: "opacity 0.3s", display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step === 4 ? "var(--rw-accent)" : "var(--rw-border)", color: step === 4 ? "var(--rw-accent-text)" : "var(--rw-text-muted)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>4</div>
+          <div style={{ flex: 1, background: "var(--rw-hover-bg)", padding: 12, borderRadius: 8, border: step === 4 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-text-primary)" }}>Track your progress over time.</p>
+            {step === 4 && <div style={{ marginTop: 8, height: 6, background: "var(--rw-border)", borderRadius: 3, width: "100%", overflow: "hidden" }}><div style={{ height: "100%", width: "100%", background: "var(--rw-accent)", animation: "progressFill 1s ease" }} /></div>}
+          </div>
+        </div>
+      </div>
+      <div style={S.pageNum}>8</div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE 9 — CTA
+═══════════════════════════════════════════════════════════════════════════ */
+const Page9 = ({ onUploadClick }) => {
   const [v, setV] = useState(false);
   useEffect(() => { const t = setTimeout(() => setV(true), 100); return () => clearTimeout(t); }, []);
   return (
@@ -941,13 +1006,13 @@ const Page8 = ({ onUploadClick }) => {
         <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: T.textMuted, marginTop: 14 }}>No account needed · Free to start</p>
       </div>
 
-      <div style={{ position: "absolute", bottom: 16, right: 20, fontFamily: "'Playfair Display',serif", fontSize: 11, color: T.textMuted, fontStyle: "italic", opacity: 0.4 }}>8</div>
+      <div style={{ position: "absolute", bottom: 16, right: 20, fontFamily: "'Playfair Display',serif", fontSize: 11, color: T.textMuted, fontStyle: "italic", opacity: 0.4 }}>9</div>
     </div>
   );
 };
 
 /* ─── Page registry ──────────────────────────────────────────────────────── */
-const PAGES = [Page1, Page2, Page3, Page4, Page5, Page6, Page7, Page8];
+const PAGES = [Page1, Page2, Page3, Page4, Page5, Page6, Page7, Page8, Page9];
 
 /* ═══════════════════════════════════════════════════════════════════════════
    BOTTOM NAV — dot indicators for mobile

@@ -2,10 +2,10 @@
 // v2: Virtualized via react-virtuoso. Reports visible page back to global state
 // via IntersectionObserver-style rangeChanged callback with 50% threshold + 200ms debounce.
 // Handles extraction quality warnings with an "Open Anyway" escape hatch.
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Virtuoso } from "react-virtuoso";
+import React, { useState, useEffect, useRef } from "react";
 import { useBreakpoints } from "../../../hooks/useBreakpoints";
 import httpClient from "../../../services/httpClient";
+import NoteMarker from "../../../features/notes/components/NoteMarker";
 
 const COLOR_MAP_READING = {
   yellow: "rgba(252, 224, 114, 0.45)",
@@ -75,11 +75,6 @@ const PageBlock = React.memo(({ page, highlights, pageNotes, fontSize, lineSpaci
     (h) => h.pageNumber === page.pageNumber && h.startOffset !== undefined
   );
 
-  // Page notes = notes on this page that have no textQuote (they're generic page notes)
-  const genericPageNotes = (pageNotes || []).filter(
-    (n) => n.pageNumber === page.pageNumber && !n.textQuote
-  );
-
   return (
     <div
       data-page={page.pageNumber}
@@ -119,46 +114,6 @@ const PageBlock = React.memo(({ page, highlights, pageNotes, fontSize, lineSpaci
         </p>
       )}
 
-      {/* Page Notes Card */}
-      {genericPageNotes.length > 0 && (
-        <div
-          style={{
-            marginTop: "20px",
-            padding: "12px 16px",
-            border: "1px solid var(--rw-border)",
-            borderRadius: "8px",
-            backgroundColor: "var(--rw-card-bg)",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "0.8em",
-              fontWeight: 600,
-              color: "var(--rw-text-muted)",
-              marginBottom: "8px",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            📌 Page Notes ({genericPageNotes.length})
-          </div>
-          {genericPageNotes.map((note) => (
-            <div
-              key={note._id}
-              style={{
-                fontSize: "0.9em",
-                color: "var(--rw-text-primary)",
-                padding: "4px 0",
-                borderTop: "1px solid var(--rw-border)",
-              }}
-            >
-              • {note.content || <em style={{ color: "var(--rw-text-muted)" }}>Empty note</em>}
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Page divider */}
       <div
         style={{
@@ -187,15 +142,18 @@ const ReadingMode = ({
   readingSettings,
   highlightState,
   notesState,
+  activeNoteId,
+  hoveredNoteId,
+  setActiveNoteId,
+  setHoveredNoteId,
+  setActiveTab,
 }) => {
   const { isMobileOrSmaller } = useBreakpoints();
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [extractionQuality, setExtractionQuality] = useState("pending");
   const [openAnyway, setOpenAnyway] = useState(false);
-  const virtuosoRef = useRef(null);
-  const debounceRef = useRef(null);
-  const isScrollingToPageRef = useRef(false); // prevent feedback loop
+  const scrollContainerRef = useRef(null);
 
   const { fontSize = 16, lineSpacing = 1.6, contentWidth = "700px" } = readingSettings || {};
   const highlights = highlightState?.highlights || [];
@@ -218,33 +176,12 @@ const ReadingMode = ({
     fetchContent();
   }, [pdf._id]);
 
-  // Scroll to target page when global pageNumber changes (PDF Mode → Reading sync)
+  // Scroll to top when page changes
   useEffect(() => {
-    if (loading || pages.length === 0 || !virtuosoRef.current) return;
-    const idx = pages.findIndex((p) => p.pageNumber === pageNumber);
-    if (idx === -1) return;
-    isScrollingToPageRef.current = true;
-    virtuosoRef.current.scrollToIndex({ index: idx, align: "start", behavior: "auto" });
-    // Release lock after animation completes
-    setTimeout(() => { isScrollingToPageRef.current = false; }, 500);
-  }, [pageNumber, loading, pages]);
-
-  // When Virtuoso reports the visible range, debounce and sync back to global state
-  const handleRangeChanged = useCallback(
-    ({ startIndex }) => {
-      if (isScrollingToPageRef.current) return; // ignore programmatic scrolls
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        const visiblePage = pages[startIndex];
-        if (visiblePage && visiblePage.pageNumber !== pageNumber) {
-          onPageChange(visiblePage.pageNumber);
-        }
-      }, 200); // 200ms debounce to prevent jitter
-    },
-    [pages, pageNumber, onPageChange]
-  );
-
-  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [pageNumber]);
 
   // ─── Render states ──────────────────────────────────────────────────────────
 
@@ -290,9 +227,12 @@ const ReadingMode = ({
     );
   }
 
+  const currentPage = pages.find((p) => p.pageNumber === pageNumber);
+
   return (
     <div
-      className="reading-mode-container"
+      ref={scrollContainerRef}
+      className="reading-mode-container custom-scrollbar"
       style={{
         flex: 1,
         display: "flex",
@@ -302,10 +242,10 @@ const ReadingMode = ({
         fontFamily: "var(--rw-reading-font, 'Literata', 'Georgia', serif)",
         fontSize: `${fontSize}px`,
         lineHeight: lineSpacing,
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "auto",
       }}
     >
-      {/* Extraction quality banner (poor but opened anyway) */}
       {qualityIsPoor && openAnyway && (
         <div
           style={{
@@ -323,31 +263,46 @@ const ReadingMode = ({
         </div>
       )}
 
-      <Virtuoso
-        ref={virtuosoRef}
-        style={{ flex: 1 }}
-        data={pages}
-        overscan={3} // ±3 pages buffer to prevent pop-in
-        rangeChanged={handleRangeChanged}
-        itemContent={(index, page) => (
-          <div
-            key={page.pageNumber}
-            style={{
-              padding: isMobileOrSmaller ? "20px 16px" : "40px 0",
-            }}
-          >
-            <div style={{ maxWidth: contentWidth, margin: "0 auto" }}>
-              <PageBlock
-                page={page}
-                highlights={highlights}
-                pageNotes={notes}
-                fontSize={fontSize}
-                lineSpacing={lineSpacing}
-              />
+      {currentPage ? (
+        <div style={{ padding: isMobileOrSmaller ? "20px 16px" : "40px 0", flex: 1 }}>
+          <div style={{ maxWidth: contentWidth, margin: "0 auto", position: "relative" }}>
+            <PageBlock
+              page={currentPage}
+              highlights={highlights}
+              pageNotes={notes}
+              fontSize={fontSize}
+              lineSpacing={lineSpacing}
+            />
+
+            {/* Drag and Drop Note layer overlaid on top of PageBlock */}
+            <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 50 }}>
+              {notes
+                .filter((n) => n.pageNumber === pageNumber)
+                .map((note) => (
+                  <React.Fragment key={note._id}>
+                    <NoteMarker
+                      note={note}
+                      isActive={activeNoteId === note._id}
+                      isHovered={hoveredNoteId === note._id}
+                      onClick={(id) => {
+                        setActiveTab("notes");
+                        setTimeout(() => setActiveNoteId(id), 120);
+                      }}
+                      onHoverChange={(id, isHover) => {
+                        if (setHoveredNoteId) setHoveredNoteId(isHover ? id : null);
+                      }}
+                      onUpdateNote={notesState?.updateNote}
+                    />
+                  </React.Fragment>
+                ))}
             </div>
           </div>
-        )}
-      />
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center text-gray-500 italic">
+          Page {pageNumber} not available in text format.
+        </div>
+      )}
     </div>
   );
 };

@@ -81,12 +81,12 @@ A: [Answer]`;
 const FORMAT_EXPLAIN_WORD = `Return exactly this format:
 📘 Meaning
 🎯 Why It Matters
-🌎 Example`;
+🌎 Context-Related Short Example`;
 
 const FORMAT_EXPLAIN_SENTENCE = `Return exactly this format:
 📘 Explain Sentence
 🎯 Simplify Sentence
-🌎 Example`;
+🌎 Context-Related Short Example`;
 
 const FORMAT_EXPLAIN_PARAGRAPH = `Return exactly this format:
 📘 Summary
@@ -96,7 +96,7 @@ const FORMAT_EXPLAIN_PARAGRAPH = `Return exactly this format:
 const FORMAT_EXPLAIN_FORMULA = `Return exactly this format:
 📘 What It Means
 🎯 Variables Explained
-🌎 Worked Example`;
+🌎 Context-Related Short Example`;
 
 // ── Importance preambles ──────────────────────────────────────────────────────
 
@@ -233,7 +233,7 @@ ${formatInstruction}
 ${contextText}
 --- END SELECTED TEXT ---
 
-Please explain the selected text above based on the format provided.`;
+Please explain the selected text above based on the format provided. Ensure that your explanation is short (2-4 lines per section) and any examples provided are short and strictly related to the context of the selected text.`;
   }
 
   return `${TEACHER_PERSONA}

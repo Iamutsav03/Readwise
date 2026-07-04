@@ -21,5 +21,6 @@ router.use("/notes",      protect, require("./noteRoutes"));
 router.use("/progress",   protect, require("./progressRoutes"));
 router.use("/ai",         protect, aiLimiter, require("./aiRoutes"));
 router.use("/dictionary", protect, dictionaryLimiter, require("./dictionaryRoutes"));
+router.use("/vocabulary", protect, require("./vocabularyRoutes"));
 
 module.exports = router;

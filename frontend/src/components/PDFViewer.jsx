@@ -126,8 +126,18 @@ const PDFViewer = forwardRef(function PDFViewer({
 
       <Document
         file={fileObj} onLoadSuccess={onDocumentLoadSuccess}
-        loading={<div className="flex items-center justify-center" style={{ width: "100%", height: "100%" }}><div className="animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600 w-12 h-12" /></div>}
-        error={<div className="flex items-center justify-center text-red-500 text-sm" style={{ width: "100%", height: "100%" }}>Failed to load PDF.</div>}
+        loading={<div className="flex items-center justify-center" style={{ width: "100%", height: "100%", minHeight: "300px" }}><div className="animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600 w-12 h-12" /></div>}
+        error={
+          <div className="flex flex-col items-center justify-center" style={{ width: "100%", height: "100%", minHeight: "300px", color: "var(--rw-text-primary)", textAlign: "center", padding: "20px" }}>
+            <div style={{ fontSize: "3rem", marginBottom: "16px" }}>⚠️</div>
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 600, marginBottom: "8px" }}>PDF File Not Found</h3>
+            <p style={{ color: "var(--rw-text-muted)", maxWidth: "400px", fontSize: "0.95rem" }}>
+              The original file for this document is missing from the server. This often happens if the server was restarted and temporary uploads were cleared.
+              <br /><br />
+              Please return to the Library and re-upload the PDF to continue reading.
+            </p>
+          </div>
+        }
       >
         <div style={{ display: "block", width: isMobile ? "100%" : "fit-content", minWidth: "fit-content", margin: isMobile ? "0" : "0 auto", position: "relative", overflowX: "hidden" }}>
           {pageStack.map((p, i) => (

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { lookupWord, lookupAIFallback, saveWord } from "../api/dictionaryApi";
+import { quickExplainText } from "../../../services/dictionaryService";
 
 /**
  * Manages dictionary lookup state: loading, result, error, saved status.
@@ -66,13 +67,31 @@ export function useDictionary(pdfId) {
     }
   }, [isLoading, pdfId]);
 
+  const quickExplain = useCallback(async (text, pageNumber = null) => {
+    if (!text || isLoading) return;
 
-  const save = useCallback(async (wordData) => {
+    setIsLoading("quick_explain");
+    setError(null);
+    setResult(null);
+    setIsSaved(false);
+
+    try {
+      const data = await quickExplainText(text, pdfId, pageNumber);
+      setResult(data);
+    } catch (err) {
+      setError(err?.error || "Failed to generate quick explanation.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading, pdfId]);
+
+
+  const save = useCallback(async (wordData, sourceType = "dictionary") => {
     if (!pdfId || !wordData || isSaving) return;
 
     setIsSaving(true);
     try {
-      await saveWord(pdfId, wordData);
+      await saveWord(pdfId, wordData, sourceType);
       setIsSaved(true);
     } catch (err) {
       console.error("Save word error:", err);
@@ -95,6 +114,7 @@ export function useDictionary(pdfId) {
     isSaved,
     isSaving,
     lookup,
+    quickExplain,
     save,
     clear,
   };

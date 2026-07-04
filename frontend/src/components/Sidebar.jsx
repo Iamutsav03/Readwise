@@ -43,6 +43,7 @@ const Sidebar = ({
   fileInputRef,
   isOpen,     // for mobile drawer
   onClose,    // to close mobile drawer
+  onOpenVault,
 }) => {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -77,8 +78,9 @@ const Sidebar = ({
       const data = await uploadPDF(formData);
       onUploadSuccess(data.pdf);
       if (fileInputRef?.current) fileInputRef.current.value = null;
-    } catch {
-      setError("Upload failed. Is the backend running?");
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError(`Upload failed: ${err.message || "Unknown error"}`);
     } finally {
       setUploading(false);
     }
@@ -419,6 +421,34 @@ const Sidebar = ({
               </ul>
             )}
           </div>
+        </div>
+
+        {/* ── Vocabulary Vault Button ──────────────────────────────────────── */}
+        <div style={{ padding: "0 20px 12px", flexShrink: 0 }}>
+          <button
+            onClick={onOpenVault}
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              background: "var(--rw-accent)",
+              border: "none",
+              borderRadius: "8px",
+              color: "var(--rw-accent-text)",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: "13px",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              cursor: "pointer",
+              transition: "transform 0.15s ease",
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = "translateY(-1px)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
+          >
+            <BookOpen size={16} />
+            <span>Vocabulary Vault</span>
+          </button>
         </div>
 
         {/* ── Appearance Button ───────────────────────────────── */}

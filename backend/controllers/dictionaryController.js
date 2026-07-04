@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const DictionaryCache = require("../models/DictionaryCache");
 const UserVocabulary = require("../models/UserVocabulary");
+const PDF = require("../models/PDF");
 const geminiService = require("../services/geminiService");
 
 const TECHNICAL_TERMS = new Set([
@@ -233,6 +234,66 @@ Rules:
   }
 };
 
+/**
+ * POST /api/dictionary/quick-explain
+ * AI Quick Explain endpoint using Gemini for phrases/sentences.
+ */
+exports.quickExplain = async (req, res) => {
+  try {
+    const { text, pdfId, pageNumber } = req.body;
+    if (!text) {
+      return res.status(400).json({ success: false, error: "Text is required" });
+    }
+
+    const trimmed = text.trim();
+    console.log(`[DICT] AI QUICK EXPLAIN HIT: "${trimmed.substring(0, 50)}..."`);
+
+    const prompt = `You are an expert teacher.
+Provide a quick, simple explanation of the following text for a beginner. 
+Keep it concise (1-3 sentences max).
+
+Text:
+"${trimmed}"
+
+Return ONLY valid JSON with no markdown formatting. The JSON must exactly match this structure:
+{
+  "meaning": "Your short explanation here"
+}
+
+Rules:
+- Never use textbook language.
+- Keep response concise and easy.`;
+
+    const aiResult = await geminiService.generateAnswer(prompt, []);
+    
+    if (!aiResult.success) {
+      throw new Error(`Quick Explain failed: ${aiResult.error}`);
+    }
+
+    const aiText = aiResult.response;
+
+    let parsedResult;
+    try {
+      const cleanedJson = aiText.replace(/```json/g, "").replace(/```/g, "").trim();
+      parsedResult = JSON.parse(cleanedJson);
+    } catch (err) {
+      console.error("Failed to parse Quick Explain JSON:", err, aiText);
+      parsedResult = { meaning: aiText };
+    }
+
+    return res.status(200).json({
+      success: true,
+      word: trimmed.length > 30 ? trimmed.substring(0, 30) + "..." : trimmed,
+      meaning: parsedResult.meaning,
+      source: "ai",
+    });
+
+  } catch (error) {
+    console.error("Quick Explain error:", error);
+    return res.status(500).json({ success: false, error: "Failed to generate quick explanation." });
+  }
+};
+
 
 /**
  * POST /api/dictionary/save
@@ -240,7 +301,7 @@ Rules:
  */
 exports.saveWord = async (req, res) => {
   try {
-    const { pdfId, word, meaning, pageNumber } = req.body;
+    const { pdfId, word, meaning, pageNumber, sourceType } = req.body;
 
     if (!pdfId || !mongoose.Types.ObjectId.isValid(pdfId)) {
       return res.status(400).json({ success: false, error: "Valid pdfId is required" });
@@ -257,12 +318,18 @@ exports.saveWord = async (req, res) => {
       return res.status(200).json({ success: true, savedWord: existing, message: "Word already saved" });
     }
 
+    // Lookup the PDF title for denormalization
+    const pdf = await PDF.findById(pdfId).select("originalName").lean();
+    const pdfTitle = pdf?.originalName || "Unknown Document";
+
     const savedWord = await UserVocabulary.create({
       pdfId,
       userId: req.user.id,
       word: normalized,
       meaning,
       pageNumber: pageNumber || null,
+      sourceType: sourceType || "dictionary",
+      pdfTitle,
     });
 
     return res.status(201).json({ success: true, savedWord });
