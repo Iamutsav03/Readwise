@@ -54,7 +54,7 @@ export default function ThemeQAPage() {
             <button style={{ background: 'var(--rw-panel-bg)', color: 'var(--rw-text-primary)', padding: '8px 16px', borderRadius: '6px', border: '1px solid var(--rw-border)', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' }}>
               <Settings size={16} /> Secondary Button
             </button>
-            <button style={{ background: 'var(--rw-danger)', color: '#fff', padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button style={{ background: 'var(--rw-danger)', color: 'var(--rw-bg)', padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' }}>
               <AlertTriangle size={16} /> Danger Button
             </button>
             <input type="text" placeholder="Search placeholder..." style={{ background: 'var(--rw-bg)', color: 'var(--rw-text-primary)', border: '1px solid var(--rw-border-strong)', padding: '8px 16px', borderRadius: '6px', outline: 'none' }} />
@@ -88,7 +88,7 @@ export default function ThemeQAPage() {
         <section>
           <h3 style={{ color: 'var(--rw-text-muted)', textTransform: 'uppercase', fontSize: '12px', marginBottom: '1rem' }}>Reader Simulation</h3>
           <div style={{ background: 'var(--rw-reader-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--rw-border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ background: '#fff', color: '#000', padding: '2rem', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+            <div style={{ background: 'var(--rw-card-bg)', color: 'var(--rw-text-primary)', padding: '2rem', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
               <h1 style={{ margin: '0 0 1rem 0' }}>PDF Canvas Mock</h1>
               <p style={{ margin: 0 }}>This simulates a native PDF page. Notice it stays black and white regardless of theme.</p>
             </div>

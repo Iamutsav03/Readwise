@@ -80,11 +80,11 @@ const HighlightItem = ({ highlight, onJump, onDelete, onFocus }) => {
               borderRadius: 4,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#e07060";
-              e.currentTarget.style.background = "rgba(224, 112, 96, 0.1)";
+              e.currentTarget.style.color = "var(--rw-danger)";
+              e.currentTarget.style.background = "var(--rw-danger-bg, rgba(224, 112, 96, 0.1))";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = "#8a7a62";
+              e.currentTarget.style.color = "var(--rw-text-muted)";
               e.currentTarget.style.background = "transparent";
             }}
           >

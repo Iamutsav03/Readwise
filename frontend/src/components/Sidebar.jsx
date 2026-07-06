@@ -183,9 +183,9 @@ const Sidebar = ({
       `}</style>
 
       <aside className={`rw-sidebar ${isMobileOrSmaller && !isOpen ? 'closed' : 'open'}`} style={{
-        width: isMobileOrSmaller ? "100vw" : (isTablet ? "80px" : "340px"),
+        width: isMobileOrSmaller ? "100%" : (isTablet ? "80px" : "340px"),
         minWidth: isTablet ? "80px" : "300px",
-        maxWidth: isTablet ? "80px" : "360px",
+        maxWidth: isMobileOrSmaller ? "100%" : (isTablet ? "80px" : "360px"),
         height: "100dvh",
         display: isMobileOrSmaller && !isOpen ? "none" : "flex",
         flexDirection: "column",
@@ -322,7 +322,7 @@ const Sidebar = ({
                   )}
                 </div>
                 {error && (
-                  <p style={{ fontSize: 11.5, color: "#e07060", margin: "6px 0 0" }}>{error}</p>
+                  <p style={{ fontSize: 11.5, color: "var(--rw-danger)", margin: "6px 0 0" }}>{error}</p>
                 )}
                 <button
                   className="rw-upload-btn"
@@ -341,7 +341,7 @@ const Sidebar = ({
             ) : (
               <>
                 {error && (
-                  <p style={{ fontSize: 11.5, color: "#e07060", margin: "0 0 6px" }}>{error}</p>
+                  <p style={{ fontSize: 11.5, color: "var(--rw-danger)", margin: "0 0 6px" }}>{error}</p>
                 )}
                 <button
                   className="rw-upload-btn"

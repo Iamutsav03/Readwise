@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { useBreakpoints } from "../../../hooks/useBreakpoints";
-import MobileBottomSheet from "../../../components/MobileBottomSheet";
+import BottomSheet from "../../../components/ui/BottomSheet";
+import { useFocusTrap } from "../../../hooks/useFocusTrap";
 import { Bookmark, Sparkles, X, Copy } from "lucide-react";
 
 /**
@@ -167,6 +168,8 @@ export default function DictionaryPopup({
   const popupRef = useRef(null);
   const [adjustedPos, setAdjustedPos] = useState({ top: 0, left: 0 });
   const { isMobileOrSmaller: isMobile } = useBreakpoints();
+
+  useFocusTrap(!isMobile, popupRef, onClose);
 
   useLayoutEffect(() => {
     if (!position || !popupRef.current) return;
@@ -404,14 +407,14 @@ export default function DictionaryPopup({
 
   if (isMobile) {
     return (
-      <MobileBottomSheet
+      <BottomSheet
         isOpen={true}
         onClose={onClose}
         title="Dictionary"
         fullScreen={false}
       >
         {popupContent}
-      </MobileBottomSheet>
+      </BottomSheet>
     );
   }
 

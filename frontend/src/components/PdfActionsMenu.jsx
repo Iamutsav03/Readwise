@@ -101,10 +101,10 @@ const PdfActionsMenu = ({ onOpen, onRename, onFavorite, onDelete, isFavorite }) 
             onClick={handleDelete}
             style={{
               ...menuItemStyle,
-              color: "#e07060",
-              background: confirmDelete ? "rgba(224,112,96,0.15)" : "transparent"
+              color: "var(--rw-danger)",
+              background: confirmDelete ? "var(--rw-danger-bg, rgba(224,112,96,0.1))" : "transparent"
             }}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(224,112,96,0.15)"}
+            onMouseEnter={e => e.currentTarget.style.background = "var(--rw-danger-bg, rgba(224,112,96,0.1))"}
             onMouseLeave={e => {
               if (!confirmDelete) e.currentTarget.style.background = "transparent";
             }}

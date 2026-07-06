@@ -252,9 +252,9 @@ const PdfRow = ({ pdf, active, isFocused, onFocus, onSelect, onFavorite, onRenam
                     style={{
                       width: "100%", textAlign: "left", padding: "7px 10px", 
                       background: "transparent", border: "none", borderRadius: 5, cursor: "pointer",
-                      fontSize: 12.5, color: "#e07060", transition: "background 0.15s",
+                      fontSize: 12.5, color: "var(--rw-danger)", transition: "background 0.15s",
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = "rgba(224,112,96,0.15)"}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--rw-danger-bg, rgba(224,112,96,0.1))"}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                   >
                     Delete
@@ -281,7 +281,7 @@ const PdfRow = ({ pdf, active, isFocused, onFocus, onSelect, onFavorite, onRenam
             <button onClick={() => { onSelect(pdf); setMenuOpen(false); }} style={{ padding: 12, background: "var(--rw-accent)", color: "var(--rw-accent-text)", border: "none", borderRadius: 8, fontWeight: 600 }}>Open</button>
             <button onClick={() => { startRename(); setMenuOpen(false); }} style={{ padding: 12, background: "var(--rw-hover-bg)", color: "var(--rw-text-primary)", border: "none", borderRadius: 8 }}>Rename</button>
             <button onClick={() => { onFavorite(pdf._id); setMenuOpen(false); }} style={{ padding: 12, background: "var(--rw-hover-bg)", color: "var(--rw-text-primary)", border: "none", borderRadius: 8 }}>{pdf.isFavorite ? "Unfavorite" : "Favorite"}</button>
-            <button onClick={() => { onDelete(pdf._id); setMenuOpen(false); }} style={{ padding: 12, background: "rgba(224,112,96,0.15)", color: "#e07060", border: "none", borderRadius: 8 }}>Delete</button>
+            <button onClick={() => { onDelete(pdf._id); setMenuOpen(false); }} style={{ padding: 12, background: "var(--rw-danger-bg, rgba(224,112,96,0.1))", color: "var(--rw-danger)", border: "none", borderRadius: 8 }}>Delete</button>
           </div>
         </div>
       )}

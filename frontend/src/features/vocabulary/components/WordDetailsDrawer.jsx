@@ -1,11 +1,16 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useBreakpoints } from "../../../hooks/useBreakpoints";
-import MobileBottomSheet from "../../../components/MobileBottomSheet";
+import BottomSheet from "../../../components/ui/BottomSheet";
+import { useFocusTrap } from "../../../hooks/useFocusTrap";
 import { X, ExternalLink, Zap, Trash2, Calendar, BookOpen, Clock } from "lucide-react";
 
 export default function WordDetailsDrawer({ word, onClose, onRemove, onJumpToSource }) {
   const { isMobileOrSmaller } = useBreakpoints();
+
+  const drawerRef = React.useRef(null);
+  
+  useFocusTrap(true, drawerRef, onClose);
 
   useEffect(() => {
     const onEsc = (e) => { if (e.key === "Escape") onClose(); };
@@ -87,9 +92,9 @@ export default function WordDetailsDrawer({ word, onClose, onRemove, onJumpToSou
 
   if (isMobileOrSmaller) {
     return (
-      <MobileBottomSheet isOpen={true} onClose={onClose} title="Word Details">
+      <BottomSheet isOpen={true} onClose={onClose} title="Word Details">
         {content}
-      </MobileBottomSheet>
+      </BottomSheet>
     );
   }
 
@@ -97,7 +102,13 @@ export default function WordDetailsDrawer({ word, onClose, onRemove, onJumpToSou
   const drawer = (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, display: "flex", justifyContent: "flex-end", pointerEvents: "none" }}>
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "var(--rw-overlay, rgba(0,0,0,0.5))", pointerEvents: "all", backdropFilter: "blur(2px)" }} onClick={onClose} />
-      <div style={{ width: Math.min(400, window.innerWidth), background: "var(--rw-panel-bg)", height: "100%", borderLeft: "1px solid var(--rw-border)", boxShadow: "-4px 0 24px var(--rw-shadow)", pointerEvents: "all", display: "flex", flexDirection: "column", animation: "slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}>
+      <div 
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Word Details"
+        style={{ width: Math.min(400, window.innerWidth), background: "var(--rw-panel-bg)", height: "100%", borderLeft: "1px solid var(--rw-border)", boxShadow: "-4px 0 24px var(--rw-shadow)", pointerEvents: "all", display: "flex", flexDirection: "column", animation: "slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}
+      >
         {content}
       </div>
       <style>{`

@@ -1,10 +1,21 @@
 import { useState, useEffect } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Home from "./pages/Home";
 import ThemeQAPage from "./pages/ThemeQAPage";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import { AuthProvider } from "./features/auth/AuthProvider";
 import { useAuth } from "./features/auth/useAuth";
 import AuthPage from "./features/auth/AuthPage";
+import AriaLiveRegion from "./components/AriaLiveRegion";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
 function AuthGate({ children }) {
   const { user, isLoading } = useAuth();
@@ -31,17 +42,20 @@ function App() {
   }, []);
 
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AuthGate>
-          {isQaMode ? (
-            <ThemeQAPage />
-          ) : (
-            <Home selectedPDF={selectedPDF} setSelectedPDF={setSelectedPDF} />
-          )}
-        </AuthGate>
-      </AuthProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <AuthGate>
+            <AriaLiveRegion />
+            {isQaMode ? (
+              <ThemeQAPage />
+            ) : (
+              <Home selectedPDF={selectedPDF} setSelectedPDF={setSelectedPDF} />
+            )}
+          </AuthGate>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

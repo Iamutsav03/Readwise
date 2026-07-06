@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useBreakpoints } from "../../../hooks/useBreakpoints";
 import { X, Check } from "lucide-react";
+import { useDrag } from "@use-gesture/react";
 
 export default function FlashReviewTab({ vocabulary, onReview, onFinish }) {
   const { isMobileOrSmaller } = useBreakpoints();
@@ -46,31 +47,34 @@ export default function FlashReviewTab({ vocabulary, onReview, onFinish }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentWord, flipped, queue.length, currentIndex]);
 
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-  
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.changedTouches[0].screenX;
-  };
-  
-  const handleTouchEnd = (e) => {
-    touchEndX.current = e.changedTouches[0].screenX;
-    handleSwipe();
-  };
-  
-  const handleSwipe = () => {
+  const containerRef = useRef(null);
+
+  const [dragProps, setDragProps] = useState({ x: 0, rot: 0, scale: 1 });
+  const [feedbackColor, setFeedbackColor] = useState("transparent");
+
+  const bind = useDrag(({ down, movement: [mx], direction: [xDir], velocity: [vx] }) => {
     if (!flipped) return;
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        // Swipe Left -> Harder (Again)
+
+    const trigger = vx > 0.2 || Math.abs(mx) > 100; // threshold
+    const dir = xDir < 0 ? -1 : 1; // -1 = left (Hard/Again), 1 = right (Good)
+
+    if (!down && trigger) {
+      if (dir === -1) {
+        setFeedbackColor("var(--rw-danger, rgba(239, 68, 68, 0.2))");
+        setTimeout(() => setFeedbackColor("transparent"), 200);
         handleScore("again");
       } else {
-        // Swipe Right -> Easier (Good)
+        setFeedbackColor("var(--rw-success, rgba(16, 185, 129, 0.2))");
+        setTimeout(() => setFeedbackColor("transparent"), 200);
         handleScore("good");
       }
+      setDragProps({ x: 0, rot: 0, scale: 1 });
+    } else if (!down) {
+      setDragProps({ x: 0, rot: 0, scale: 1 });
+    } else {
+      setDragProps({ x: mx, rot: mx / 10, scale: 1.05 });
     }
-  };
+  });
 
   if (!currentWord) {
     return (
@@ -90,11 +94,11 @@ export default function FlashReviewTab({ vocabulary, onReview, onFinish }) {
     borderRadius: 16, background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-border-strong)",
     boxShadow: "0 12px 48px rgba(0,0,0,0.08)", display: "flex", flexDirection: "column",
     alignItems: "center", justifyContent: "center", padding: isMobileOrSmaller ? 24 : 48,
-    transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
+    transition: "transform var(--anim-flip, 300ms) cubic-bezier(0.4, 0, 0.2, 1)"
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: isMobileOrSmaller ? "16px" : "32px 0", alignItems: "center" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: isMobileOrSmaller ? "8px 8px 0" : "12px 0 0", alignItems: "center" }}>
       <div style={{ width: "100%", maxWidth: 600, display: "flex", justifyContent: "space-between", marginBottom: 16, padding: "0 16px" }}>
         <span style={{ fontSize: 13, color: "var(--rw-page-text-mute)", fontWeight: 600 }}>{currentIndex + 1} / {queue.length}</span>
         <button onClick={onFinish} style={{ background: "transparent", border: "none", color: "var(--rw-page-text-mute)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
@@ -103,19 +107,28 @@ export default function FlashReviewTab({ vocabulary, onReview, onFinish }) {
       </div>
 
       <div 
-        style={{ width: isMobileOrSmaller ? "95%" : 600, height: isMobileOrSmaller ? 400 : 450, position: "relative", perspective: 1500 }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+        ref={containerRef}
+        {...bind()}
+        style={{ 
+          width: isMobileOrSmaller ? "100%" : 600, maxWidth: 600, height: isMobileOrSmaller ? 400 : 450, 
+          position: "relative", perspective: 1500, touchAction: "none",
+          transform: `translate3d(${dragProps.x}px, 0, 0) rotateZ(${dragProps.rot}deg) scale(${dragProps.scale})`,
+          transition: dragProps.x === 0 ? "transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)" : "none",
+          zIndex: 10
+        }}
         onClick={() => !flipped && setFlipped(true)}
       >
         {/* Front */}
-        <div style={{ ...cardStyle, transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)", cursor: !flipped ? "pointer" : "default" }}>
+        <div style={{ ...cardStyle, transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)", cursor: !flipped ? "pointer" : "grab" }}>
           <h2 style={{ fontSize: isMobileOrSmaller ? 36 : 56, margin: 0, color: "var(--rw-page-text)", textTransform: "capitalize", textAlign: "center", fontFamily: "'Playfair Display', Georgia, serif" }}>{currentWord.word}</h2>
           {!flipped && <p style={{ position: "absolute", bottom: 24, fontSize: 13, color: "var(--rw-page-text-mute)" }}>Tap or press Space to reveal</p>}
         </div>
 
         {/* Back */}
-        <div style={{ ...cardStyle, transform: flipped ? "rotateY(0deg)" : "rotateY(-180deg)" }}>
+        <div style={{ ...cardStyle, transform: flipped ? "rotateY(0deg)" : "rotateY(-180deg)", cursor: "grab" }}>
+          {/* Feedback Overlay */}
+          <div style={{ position: "absolute", inset: 0, background: feedbackColor, borderRadius: 16, transition: "background 0.2s", pointerEvents: "none" }} />
+          
           <p style={{ fontSize: isMobileOrSmaller ? 18 : 22, color: "var(--rw-page-text)", lineHeight: 1.6, textAlign: "center", margin: "0 0 32px 0" }}>{currentWord.meaning}</p>
           <div style={{ padding: 12, background: "var(--rw-panel-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 8, width: "100%", textAlign: "center" }}>
             <span style={{ fontSize: 12, color: "var(--rw-page-text-mute)", textTransform: "uppercase", letterSpacing: "1px" }}>Source</span>
@@ -135,10 +148,10 @@ export default function FlashReviewTab({ vocabulary, onReview, onFinish }) {
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
             {[
-              { id: "again", label: "Again", time: "<10m", color: "var(--rw-error-text, #ef4444)", num: "1" },
-              { id: "hard", label: "Hard", time: "1d", color: "var(--rw-warning-text, #f59e0b)", num: "2" },
+              { id: "again", label: "Again", time: "<10m", color: "var(--rw-danger)", num: "1" },
+              { id: "hard", label: "Hard", time: "1d", color: "var(--rw-warning)", num: "2" },
               { id: "good", label: "Good", time: "3d", color: "var(--rw-accent)", num: "3" },
-              { id: "easy", label: "Easy", time: "7d", color: "var(--rw-success-text, #10b981)", num: "4" }
+              { id: "easy", label: "Easy", time: "7d", color: "var(--rw-success)", num: "4" }
             ].map(btn => (
               <button
                 key={btn.id}

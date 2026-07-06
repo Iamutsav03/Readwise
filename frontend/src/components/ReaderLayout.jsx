@@ -14,6 +14,7 @@ import { useNotes } from "../features/notes/hooks/useNotes";
 import { useDictionary } from "../features/dictionary/hooks/useDictionary";
 import { getSelectionRects } from "../utils/highlightHelpers";
 import { useBreakpoints } from "../hooks/useBreakpoints";
+import { usePerformanceMetrics } from "../hooks/usePerformanceMetrics";
 import AppearanceModal from "../features/themes/components/AppearanceModal";
 import ReaderSidebar from "../features/pdf-viewer/components/ReaderSidebar";
 import ReaderToolbar from "../features/pdf-viewer/components/ReaderToolbar";
@@ -86,7 +87,7 @@ const ReaderLayout = ({
 
   const highlightState = useHighlights(pdf?._id);
   const history = useHighlightHistory(pdf?._id, highlightState.setHighlights);
-  const { selectionInfo, clearSelection } = useTextSelection(selectionHostRef);
+  const { selectionInfo, clearSelection, restoreSelection } = useTextSelection(selectionHostRef);
   const [dictPopupOpen, setDictPopupOpen] = useState(false);
   const dictionary = useDictionary(pdf?._id);
 
@@ -101,6 +102,12 @@ const ReaderLayout = ({
   const notesState = useNotes(pdf?._id);
   const [activeNoteId, setActiveNoteId] = useState(null);
   const [hoveredNoteId, setHoveredNoteId] = useState(null);
+
+  const { MetricsOverlay } = usePerformanceMetrics({
+    highlights: highlightState.highlights,
+    notes: notesState.notes,
+    pdfRenderCount: 0 // Cannot easily lift canvas render counts without refs, will leave 0 for now
+  });
 
   useEffect(() => { if (activeTab !== "notes") setActiveNoteId(null); }, [activeTab]);
 
@@ -210,7 +217,8 @@ const ReaderLayout = ({
   }, [highlightState, history]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", width: "100vw", maxWidth: "100vw", overflow: "hidden", backgroundColor: "var(--rw-reader-bg)" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", width: "100%", maxWidth: "100%", overflow: "hidden", backgroundColor: "var(--rw-reader-bg)" }}>
+      <MetricsOverlay />
       <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={onFileChange} />
 
       {isFocusMode && (
@@ -237,6 +245,9 @@ const ReaderLayout = ({
             customTextRenderer={customTextRenderer} searchState={searchState} highlightState={highlightState} focusedHighlightId={focusedHighlightId} bottomSheetHeightPct={bottomSheetHeightPct}
             notesState={notesState} activeNoteId={activeNoteId} hoveredNoteId={hoveredNoteId}
             setActiveTab={setActiveTab} setActiveNoteId={setActiveNoteId} setHoveredNoteId={setHoveredNoteId} isFocusMode={isFocusMode}
+            // Swipe navigation props
+            onPrev={onPrev} onNext={onNext} numPages={numPages}
+            isBottomSheetOpen={activeTab !== null}
           />
         )}
         
@@ -259,6 +270,9 @@ const ReaderLayout = ({
             setActiveNoteId={setActiveNoteId}
             setHoveredNoteId={setHoveredNoteId}
             setActiveTab={setActiveTab}
+            // Swipe navigation props
+            onPrev={onPrev} onNext={onNext} numPages={numPages}
+            isBottomSheetOpen={activeTab !== null}
           />
         )}
 

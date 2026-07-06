@@ -1,11 +1,13 @@
 // features/ai/components/SelectionToolbar.jsx
-// Clean, minimal selection toolbar.
-// Actions: [Color] [Meaning] [Quick Explain] [Deep Explain] [Summary*] [Copy]
-// *Summary only appears for selections >= 15 words.
+// v3: Two-row mobile action layout (Primary + Secondary).
+//   Primary: Save Word, Highlight, Dictionary, Quick Explain, Deep Explain
+//   Secondary: Google Search, Open Browser, Copy, Note
+//   Desktop: unchanged floating toolbar
+
 import React, { useState, useLayoutEffect, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { HIGHLIGHT_COLORS } from "../../../utils/highlightHelpers";
-import { BookOpen, Zap, Sparkles, Copy, Palette, FileText, StickyNote } from "lucide-react";
+import { BookOpen, Zap, Sparkles, Copy, Palette, FileText, StickyNote, Globe, ExternalLink, Bookmark } from "lucide-react";
 import { useBreakpoints } from "../../../hooks/useBreakpoints";
 import MobileBottomSheet from "../../../components/MobileBottomSheet";
 
@@ -71,6 +73,20 @@ const SelectionToolbar = ({
     onAction(type);
   };
 
+  const handleGoogleSearch = (e) => {
+    e?.stopPropagation();
+    const q = encodeURIComponent(selectionText);
+    window.open(`https://www.google.com/search?q=${q}`, "_blank", "noopener,noreferrer");
+    onClose();
+  };
+
+  const handleOpenBrowser = (e) => {
+    e?.stopPropagation();
+    const q = encodeURIComponent(selectionText);
+    window.open(`https://en.wikipedia.org/w/index.php?search=${q}`, "_blank", "noopener,noreferrer");
+    onClose();
+  };
+
   // ── Desktop Floating Toolbar ──────────────────────────────────────────────
   if (!isMobileOrSmaller) {
     if (!adjustedPosition) return null;
@@ -90,7 +106,7 @@ const SelectionToolbar = ({
       boxShadow: "var(--rw-shadow)",
       alignItems: "center",
       maxWidth: "420px",
-      animation: "selFadeScale 0.15s ease-out",
+      animation: `selFadeScale var(--anim-selection, 150ms) ease-out`,
     };
 
     const btnStyle = {
@@ -170,43 +186,23 @@ const SelectionToolbar = ({
               {divider}
 
               {/* Meaning */}
-              <button
-                className="sel-btn"
-                style={btnStyle}
-                onClick={(e) => handleAction(e, "meaning")}
-                title="Meaning"
-              >
+              <button className="sel-btn" style={btnStyle} onClick={(e) => handleAction(e, "meaning")} title="Meaning">
                 <BookOpen size={16} />
               </button>
 
               {/* Quick Explain */}
-              <button
-                className="sel-btn"
-                style={btnStyle}
-                onClick={(e) => handleAction(e, "quick_explain")}
-                title="Quick Explain"
-              >
+              <button className="sel-btn" style={btnStyle} onClick={(e) => handleAction(e, "quick_explain")} title="Quick Explain">
                 <Zap size={16} />
               </button>
 
               {/* Deep Explain */}
-              <button
-                className="sel-btn"
-                style={btnStyle}
-                onClick={(e) => handleAction(e, "deep_explain")}
-                title="Deep Explain"
-              >
+              <button className="sel-btn" style={btnStyle} onClick={(e) => handleAction(e, "deep_explain")} title="Deep Explain">
                 <Sparkles size={16} />
               </button>
 
               {/* Summary — only for 15+ word selections */}
               {showSummary && (
-                <button
-                  className="sel-btn"
-                  style={btnStyle}
-                  onClick={(e) => handleAction(e, "summary")}
-                  title="Summarise"
-                >
+                <button className="sel-btn" style={btnStyle} onClick={(e) => handleAction(e, "summary")} title="Summarise">
                   <FileText size={16} />
                 </button>
               )}
@@ -214,24 +210,19 @@ const SelectionToolbar = ({
               {divider}
 
               {/* Add Note */}
-              <button
-                className="sel-btn"
-                style={btnStyle}
-                onClick={(e) => handleAction(e, "note")}
-                title="Add Note"
-              >
+              <button className="sel-btn" style={btnStyle} onClick={(e) => handleAction(e, "note")} title="Add Note">
                 <StickyNote size={16} />
+              </button>
+
+              {/* Google Search */}
+              <button className="sel-btn" style={btnStyle} onClick={handleGoogleSearch} title="Google Search">
+                <Globe size={16} />
               </button>
 
               {divider}
 
               {/* Copy */}
-              <button
-                className="sel-btn"
-                style={btnStyle}
-                onClick={handleCopy}
-                title="Copy"
-              >
+              <button className="sel-btn" style={btnStyle} onClick={handleCopy} title="Copy">
                 <Copy size={16} />
               </button>
             </div>
@@ -243,17 +234,21 @@ const SelectionToolbar = ({
     return createPortal(toolbarContent, document.body);
   }
 
-  // ── Mobile Bottom Sheet ───────────────────────────────────────────────────
+  // ── Mobile Bottom Sheet — Two-Row Layout ──────────────────────────────────
+  const truncatedText = selectionText?.length > 100
+    ? selectionText.slice(0, 100) + "…"
+    : selectionText;
+
   return (
     <MobileBottomSheet
       isOpen={true}
       onClose={onClose}
       title="Selection Actions"
       fullScreen={false}
-      initialSnap={50}
-      snapPoints={[30, 50, 80]}
+      initialSnap={40}
+      snapPoints={[30, 40, 70]}
     >
-      <div style={{ padding: "0 16px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
         {/* Selected text preview */}
         <p
           style={{
@@ -262,25 +257,30 @@ const SelectionToolbar = ({
             color: "var(--rw-text-secondary)",
             margin: 0,
             fontStyle: "italic",
-            whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
             paddingBottom: 4,
+            lineHeight: 1.5,
           }}
         >
-          "{selectionText}"
+          "{truncatedText}"
         </p>
 
-        {/* Highlight colour row */}
-        <div style={{ display: "flex", gap: "10px", justifyContent: "center", padding: "6px 0" }}>
+        {/* ── PRIMARY ROW: Highlight colors ── */}
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center", padding: "4px 0" }}>
           {HIGHLIGHT_COLORS.map((color) => (
             <button
               key={color.id}
               onClick={(e) => { e.stopPropagation(); onColorPick(color.id); onClose(); }}
+              title={`Highlight ${color.label}`}
               style={{
-                width: 34, height: 34, borderRadius: "50%",
-                background: color.bg, border: `2px solid ${color.border}`,
+                width: 36, height: 36, borderRadius: "50%",
+                background: color.bg, border: `2.5px solid ${color.border}`,
                 cursor: "pointer", padding: 0,
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
               }}
             />
           ))}
@@ -288,47 +288,53 @@ const SelectionToolbar = ({
 
         <div style={{ height: 1, background: "var(--rw-border)" }} />
 
-        {/* Action list */}
+        {/* ── PRIMARY ACTIONS ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <MobileActionBtn
             icon={<BookOpen size={18} />}
-            label="Meaning"
-            onClick={(e) => { handleAction(e, "meaning"); onClose(); }}
+            label="Dictionary"
+            description="Look up meaning"
+            onClick={(e) => { handleAction(e, "meaning"); }}
           />
           <MobileActionBtn
             icon={<Zap size={18} />}
             label="Quick Explain"
-            onClick={(e) => { handleAction(e, "quick_explain"); onClose(); }}
+            description="Fast AI explanation"
+            onClick={(e) => { handleAction(e, "quick_explain"); }}
           />
           <MobileActionBtn
             icon={<Sparkles size={18} />}
             label="Deep Explain"
-            onClick={(e) => { handleAction(e, "deep_explain"); onClose(); }}
+            description="Detailed AI analysis"
+            onClick={(e) => { handleAction(e, "deep_explain"); }}
           />
           {showSummary && (
             <MobileActionBtn
               icon={<FileText size={18} />}
               label="Summarise"
-              onClick={(e) => { handleAction(e, "summary"); onClose(); }}
+              description="Condense this passage"
+              onClick={(e) => { handleAction(e, "summary"); }}
             />
           )}
-          <MobileActionBtn
-            icon={<StickyNote size={18} />}
-            label="Add Note"
-            onClick={(e) => { handleAction(e, "note"); onClose(); }}
-          />
-          <MobileActionBtn
-            icon={<Copy size={18} />}
-            label="Copy"
-            onClick={(e) => { handleCopy(e); onClose(); }}
-          />
+        </div>
+
+        <div style={{ height: 1, background: "var(--rw-border)" }} />
+
+        {/* ── SECONDARY ACTIONS (2-column grid) ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <SecondaryBtn icon={<Globe size={16} />} label="Google Search" onClick={handleGoogleSearch} />
+          <SecondaryBtn icon={<ExternalLink size={16} />} label="Open Browser" onClick={handleOpenBrowser} />
+          <SecondaryBtn icon={<StickyNote size={16} />} label="Add Note" onClick={(e) => { handleAction(e, "note"); }} />
+          <SecondaryBtn icon={<Copy size={16} />} label="Copy" onClick={(e) => { handleCopy(e); }} />
         </div>
       </div>
     </MobileBottomSheet>
   );
 };
 
-const MobileActionBtn = ({ icon, label, onClick }) => (
+// ── Sub-components ──────────────────────────────────────────────────────────
+
+const MobileActionBtn = ({ icon, label, description, onClick }) => (
   <button
     onClick={onClick}
     style={{
@@ -339,12 +345,45 @@ const MobileActionBtn = ({ icon, label, onClick }) => (
       padding: "12px 14px",
       background: "var(--rw-card-bg)",
       border: "1px solid var(--rw-border)",
-      borderRadius: 10,
+      borderRadius: 12,
       color: "var(--rw-text-primary)",
       fontFamily: "'DM Sans', sans-serif",
       fontSize: 15,
       fontWeight: 500,
       cursor: "pointer",
+      minHeight: 52,
+      textAlign: "left",
+    }}
+  >
+    <div style={{ color: "var(--rw-accent)", flexShrink: 0 }}>{icon}</div>
+    <div style={{ flex: 1 }}>
+      <div style={{ fontWeight: 600, fontSize: 14 }}>{label}</div>
+      {description && (
+        <div style={{ fontSize: 11, color: "var(--rw-text-muted)", marginTop: 1 }}>{description}</div>
+      )}
+    </div>
+  </button>
+);
+
+const SecondaryBtn = ({ icon, label, onClick }) => (
+  <button
+    onClick={onClick}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "column",
+      gap: 6,
+      padding: "10px 8px",
+      background: "var(--rw-card-bg)",
+      border: "1px solid var(--rw-border)",
+      borderRadius: 12,
+      color: "var(--rw-text-secondary)",
+      fontFamily: "'DM Sans', sans-serif",
+      fontSize: 12,
+      fontWeight: 500,
+      cursor: "pointer",
+      minHeight: 60,
     }}
   >
     <div style={{ color: "var(--rw-text-muted)" }}>{icon}</div>

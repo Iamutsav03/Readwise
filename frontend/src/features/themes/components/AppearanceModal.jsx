@@ -4,8 +4,10 @@
 import React from 'react';
 import { useTheme } from '../ThemeProvider';
 import { THEMES, getThemesByCategory } from '../themes';
-import { useBreakpoints } from '../../../hooks/useBreakpoints';
-import MobileBottomSheet from '../../../components/MobileBottomSheet';
+import { useBreakpoints } from "../../../hooks/useBreakpoints";
+import BottomSheet from "../../../components/ui/BottomSheet";
+import { useFocusTrap } from "../../../hooks/useFocusTrap";
+import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 const CATEGORY_LABELS = {
   light:   '☀️  Light',
@@ -135,6 +137,9 @@ export default function AppearanceModal({ isOpen, onClose }) {
   const { themeId, setTheme } = useTheme();
   const { isMobileOrSmaller: isMobile } = useBreakpoints();
   const groups = getThemesByCategory();
+  const modalRef = React.useRef(null);
+
+  useFocusTrap(isOpen && !isMobile, modalRef, onClose);
 
   if (!isOpen) return null;
 
@@ -159,9 +164,9 @@ export default function AppearanceModal({ isOpen, onClose }) {
 
   if (isMobile) {
     return (
-      <MobileBottomSheet isOpen={isOpen} onClose={onClose} title="Appearance" fullScreen>
+      <BottomSheet isOpen={isOpen} onClose={onClose} title="Appearance" fullScreen>
         <div style={{ padding: '0 16px 32px' }}>{content}</div>
-      </MobileBottomSheet>
+      </BottomSheet>
     );
   }
 
@@ -179,7 +184,12 @@ export default function AppearanceModal({ isOpen, onClose }) {
       />
 
       {/* Modal */}
-      <div style={{
+      <div 
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Appearance Settings"
+        style={{
         position: 'fixed', top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
         background: 'var(--rw-panel-bg)',

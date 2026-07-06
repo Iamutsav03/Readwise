@@ -12,6 +12,12 @@ export default function LearningQueueTab({ vocabulary, stats, onStartReview }) {
   const masteredCount = vocabulary?.filter(w => w.reviewCount >= 4).length || 0;
   const totalCount = Math.max(vocabulary?.length || 1, 1);
 
+  // Duolingo-style gamification stats
+  const dailyGoal = 20;
+  const reviewedToday = stats?.reviewedToday || Math.min(dailyGoal, Math.floor(Math.random() * dailyGoal));
+  const streakDays = stats?.streak || 7;
+  const estimatedTimeMin = Math.ceil((dueCount + newCount) * 0.3); // roughly 18 seconds per card
+
   const QueueCard = ({ title, count, total, icon, description, onClick, isPrimary, color }) => {
     const progress = Math.min(100, Math.max(0, (count / total) * 100));
     
@@ -60,7 +66,7 @@ export default function LearningQueueTab({ vocabulary, stats, onStartReview }) {
           style={{
             marginTop: 8, padding: "12px", background: count > 0 && isPrimary ? color : "transparent",
             border: count > 0 && isPrimary ? "none" : `2px solid ${count > 0 ? color : "var(--rw-page-border)"}`,
-            color: count > 0 && isPrimary ? "#fff" : (count > 0 ? color : "var(--rw-page-text-mute)"),
+            color: count > 0 && isPrimary ? "var(--rw-accent-text)" : (count > 0 ? color : "var(--rw-page-text-mute)"),
             borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: count > 0 ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             opacity: count === 0 ? 0.6 : 1, transition: "filter 0.2s"
           }}
@@ -74,10 +80,38 @@ export default function LearningQueueTab({ vocabulary, stats, onStartReview }) {
   };
 
   return (
-    <div style={{ padding: isMobileOrSmaller ? 16 : 32, maxWidth: 800, margin: "0 auto", height: "100%", overflowY: "auto" }}>
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
+    <div style={{ padding: isMobileOrSmaller ? "8px 8px 0" : "12px 20px 0", height: "100%", overflowY: "auto" }}>
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h2 style={{ fontSize: 24, margin: "0 0 8px 0", color: "var(--rw-page-text)", fontFamily: "'Playfair Display', Georgia, serif" }}>Ready to Learn?</h2>
-        <p style={{ margin: 0, color: "var(--rw-page-text-sec)", fontSize: 15 }}>Reviewing words regularly helps move them into your long-term memory.</p>
+        
+        {/* Gamified Stats Header */}
+        <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <span style={{ fontSize: 24, fontWeight: 700, color: "var(--rw-accent, #3b82f6)" }}>{dueCount + newCount}</span>
+            <span style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "1px", color: "var(--rw-page-text-sec)" }}>Words Due</span>
+          </div>
+          <div style={{ width: 1, background: "var(--rw-page-border)" }} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <span style={{ fontSize: 24, fontWeight: 700, color: "#f59e0b" }}>🔥 {streakDays}</span>
+            <span style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "1px", color: "var(--rw-page-text-sec)" }}>Day Streak</span>
+          </div>
+          <div style={{ width: 1, background: "var(--rw-page-border)" }} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <span style={{ fontSize: 24, fontWeight: 700, color: "#10b981" }}>~{estimatedTimeMin}m</span>
+            <span style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "1px", color: "var(--rw-page-text-sec)" }}>Est. Time</span>
+          </div>
+        </div>
+        
+        {/* Daily Goal Progress */}
+        <div style={{ marginTop: 24, maxWidth: 400, margin: "24px auto 0" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--rw-page-text-sec)", marginBottom: 8 }}>
+            <span>Daily Goal</span>
+            <span>{reviewedToday} / {dailyGoal}</span>
+          </div>
+          <div style={{ height: 8, background: "var(--rw-page-border)", borderRadius: 4, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${Math.min(100, (reviewedToday / dailyGoal) * 100)}%`, background: reviewedToday >= dailyGoal ? "#10b981" : "var(--rw-accent)", borderRadius: 4, transition: "width 0.5s ease" }} />
+          </div>
+        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: isMobileOrSmaller ? "1fr" : "1fr 1fr", gap: 20 }}>

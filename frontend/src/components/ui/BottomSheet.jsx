@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 
 /**
  * A bottom sheet for mobile that slides up and can be dismissed via drag or tap.
@@ -24,6 +25,9 @@ const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScr
 
   const startY = useRef(0);
   const startHeightRef = useRef(initialHeight);
+  const containerRef = useRef(null);
+
+  useFocusTrap(isOpen, containerRef, onClose);
 
   useEffect(() => {
     if (isOpen) {
@@ -61,8 +65,8 @@ const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScr
 
   const handleTouchEnd = () => {
     setIsDragging(false);
-    if (heightPct < 25) { onClose(); return; }
-    const snaps   = fullScreen ? [50, 95] : [50, 85];
+    if (heightPct < 20) { onClose(); return; }
+    const snaps = fullScreen ? [50, 95] : [50, 85];
     const closest = snaps.reduce((prev, curr) =>
       Math.abs(curr - heightPct) < Math.abs(prev - heightPct) ? curr : prev
     );
@@ -74,7 +78,12 @@ const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScr
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, pointerEvents: isOpen ? "auto" : "none" }}>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "var(--rw-overlay)", opacity: isAnimating ? 1 : 0, transition: "opacity 0.3s ease", zIndex: 9999, pointerEvents: "auto" }} />
-      <div style={{
+      <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        style={{
         position: "fixed", bottom: 0, left: 0, right: 0,
         height: `${heightPct}%`,
         background: "var(--rw-panel-bg)",
@@ -82,7 +91,7 @@ const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScr
         boxShadow: "var(--rw-shadow)",
         display: "flex", flexDirection: "column",
         transform: isAnimating ? "translateY(0)" : "translateY(100%)",
-        transition: isDragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1), height 0.3s cubic-bezier(0.4,0,0.2,1)",
+        transition: isDragging ? "none" : `transform var(--anim-sheet, 250ms) cubic-bezier(0.4,0,0.2,1), height var(--anim-sheet, 250ms) cubic-bezier(0.4,0,0.2,1)`,
         overflow: "hidden", zIndex: 10000,
       }}>
         <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
@@ -100,6 +109,8 @@ const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScr
           onTouchMove={(e)  => e.stopPropagation()}
           onWheel={(e)      => e.stopPropagation()}>
           {children}
+          {/* Safe area bottom padding for iPhone home bar */}
+          <div style={{ height: "max(0px, env(safe-area-inset-bottom, 0px))" }} />
         </div>
       </div>
     </div>

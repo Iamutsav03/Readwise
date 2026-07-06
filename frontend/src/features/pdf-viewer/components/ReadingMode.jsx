@@ -1,11 +1,10 @@
 // features/pdf-viewer/components/ReadingMode.jsx
-// v2: Virtualized via react-virtuoso. Reports visible page back to global state
-// via IntersectionObserver-style rangeChanged callback with 50% threshold + 200ms debounce.
-// Handles extraction quality warnings with an "Open Anyway" escape hatch.
-import React, { useState, useEffect, useRef } from "react";
+// v3: Swipe navigation + improved mobile typography + context menu suppression.
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useBreakpoints } from "../../../hooks/useBreakpoints";
 import httpClient from "../../../services/httpClient";
 import NoteMarker from "../../../features/notes/components/NoteMarker";
+import { useSwipeNavigation } from "../hooks/useSwipeNavigation";
 
 const COLOR_MAP_READING = {
   yellow: "rgba(252, 224, 114, 0.45)",
@@ -71,9 +70,9 @@ const TextBlock = React.memo(({ block, pageNum, highlights }) => {
  * Includes text blocks, highlights, and a page-level notes card for page notes.
  */
 const PageBlock = React.memo(({ page, highlights, pageNotes, fontSize, lineSpacing }) => {
-  const textHighlights = highlights.filter(
+  const textHighlights = React.useMemo(() => highlights.filter(
     (h) => h.pageNumber === page.pageNumber && h.startOffset !== undefined
-  );
+  ), [highlights, page.pageNumber]);
 
   return (
     <div
@@ -147,6 +146,11 @@ const ReadingMode = ({
   setActiveNoteId,
   setHoveredNoteId,
   setActiveTab,
+  // Swipe navigation props
+  onPrev,
+  onNext,
+  numPages = 0,
+  isBottomSheetOpen = false,
 }) => {
   const { isMobileOrSmaller } = useBreakpoints();
   const [pages, setPages] = useState([]);
@@ -155,9 +159,23 @@ const ReadingMode = ({
   const [openAnyway, setOpenAnyway] = useState(false);
   const scrollContainerRef = useRef(null);
 
-  const { fontSize = 16, lineSpacing = 1.6, contentWidth = "700px" } = readingSettings || {};
+  const { fontSize = 16, lineSpacing = 1.7, contentWidth = "700px" } = readingSettings || {};
   const highlights = highlightState?.highlights || [];
   const notes = notesState?.notes || [];
+
+  // Block context menu to prevent browser stealing focus from selection toolbar
+  const handleContextMenu = useCallback((e) => { e.preventDefault(); }, []);
+
+  // Swipe navigation
+  useSwipeNavigation({
+    containerRef: scrollContainerRef,
+    onPrev,
+    onNext,
+    isBlocked: isBottomSheetOpen,
+    enabled: true,
+    pageNumber,
+    numPages,
+  });
 
   // Fetch structured pages + extraction quality on mount
   useEffect(() => {
@@ -233,6 +251,7 @@ const ReadingMode = ({
     <div
       ref={scrollContainerRef}
       className="reading-mode-container custom-scrollbar"
+      onContextMenu={handleContextMenu}
       style={{
         flex: 1,
         display: "flex",
@@ -242,8 +261,12 @@ const ReadingMode = ({
         fontFamily: "var(--rw-reading-font, 'Literata', 'Georgia', serif)",
         fontSize: `${fontSize}px`,
         lineHeight: lineSpacing,
+        letterSpacing: "0.01em",
         overflowX: "hidden",
         overflowY: "auto",
+        // Allow vertical pan but reserve horizontal for swipe gestures
+        touchAction: "pan-y",
+        overscrollBehaviorX: "none",
       }}
     >
       {qualityIsPoor && openAnyway && (
@@ -264,7 +287,7 @@ const ReadingMode = ({
       )}
 
       {currentPage ? (
-        <div style={{ padding: isMobileOrSmaller ? "20px 16px" : "40px 0", flex: 1 }}>
+        <div style={{ padding: isMobileOrSmaller ? "24px 20px" : "40px 0", flex: 1 }}>
           <div style={{ maxWidth: contentWidth, margin: "0 auto", position: "relative" }}>
             <PageBlock
               page={currentPage}

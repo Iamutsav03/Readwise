@@ -94,7 +94,7 @@ const BookmarkItem = ({ bookmark, isActive, onJump, onDelete }) => {
         style={{
           background: "none",
           border: "none",
-          color: deleteHovered ? "#e07060" : "var(--rw-text-secondary)",
+          color: deleteHovered ? "var(--rw-danger)" : "var(--rw-text-secondary)",
           cursor: "pointer",
           fontSize: 14,
           padding: "6px 8px",

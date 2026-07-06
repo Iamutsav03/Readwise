@@ -1,59 +1,88 @@
 // src/features/vocabulary/hooks/useVocabulary.js
-import { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as vocabApi from "../../../services/vocabularyService";
 
 export function useVocabulary() {
-  const [vocabulary, setVocabulary] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchAll = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [vData, sData] = await Promise.all([
-        vocabApi.getVocabulary(),
-        vocabApi.getVocabularyStats()
-      ]);
-      setVocabulary(vData);
-      setStats(sData);
-    } catch (err) {
-      console.error("Failed to fetch vocabulary", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  // Fetch vocabulary list
+  const { data: vocabulary = [], isLoading: isLoadingVocab, refetch: refreshVocab } = useQuery({
+    queryKey: ["vocabulary"],
+    queryFn: vocabApi.getVocabulary,
+  });
 
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+  // Fetch vocabulary stats
+  const { data: stats = null, isLoading: isLoadingStats, refetch: refreshStats } = useQuery({
+    queryKey: ["vocabularyStats"],
+    queryFn: vocabApi.getVocabularyStats,
+  });
 
-  const removeWord = async (id) => {
-    try {
-      await vocabApi.deleteVocabulary(id);
-      setVocabulary(prev => prev.filter(w => w._id !== id));
-      if (stats) setStats(prev => ({ ...prev, totalSaved: prev.totalSaved - 1 }));
-    } catch (err) {
+  const isLoading = isLoadingVocab || isLoadingStats;
+
+  // Refresh both
+  const refresh = () => {
+    refreshVocab();
+    refreshStats();
+  };
+
+  // Remove word mutation
+  const removeWordMutation = useMutation({
+    mutationFn: (id) => vocabApi.deleteVocabulary(id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["vocabulary"] });
+      const previousVocab = queryClient.getQueryData(["vocabulary"]);
+      
+      // Optimistically update
+      queryClient.setQueryData(["vocabulary"], (old) => 
+        old ? old.filter((w) => w._id !== id) : []
+      );
+      
+      // Optimistically update stats if available
+      queryClient.setQueryData(["vocabularyStats"], (old) => 
+        old ? { ...old, totalSaved: old.totalSaved - 1 } : null
+      );
+      
+      return { previousVocab };
+    },
+    onError: (err, id, context) => {
       console.error("Failed to delete word", err);
-    }
-  };
+      queryClient.setQueryData(["vocabulary"], context.previousVocab);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["vocabulary"] });
+      queryClient.invalidateQueries({ queryKey: ["vocabularyStats"] });
+    },
+  });
 
-  const reviewWord = async (id, score) => {
-    try {
-      const updated = await vocabApi.submitReview(id, score);
-      setVocabulary(prev => prev.map(w => w._id === id ? updated : w));
-      return updated;
-    } catch (err) {
+  // Review word mutation
+  const reviewWordMutation = useMutation({
+    mutationFn: ({ id, score }) => vocabApi.submitReview(id, score),
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey: ["vocabulary"] });
+      const previousVocab = queryClient.getQueryData(["vocabulary"]);
+      return { previousVocab };
+    },
+    onSuccess: (updatedWord) => {
+      queryClient.setQueryData(["vocabulary"], (old) => 
+        old ? old.map((w) => (w._id === updatedWord._id ? updatedWord : w)) : []
+      );
+    },
+    onError: (err, variables, context) => {
       console.error("Failed to review word", err);
-      throw err;
-    }
-  };
+      queryClient.setQueryData(["vocabulary"], context.previousVocab);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["vocabulary"] });
+      queryClient.invalidateQueries({ queryKey: ["vocabularyStats"] });
+    },
+  });
 
   return {
     vocabulary,
     stats,
     isLoading,
-    removeWord,
-    reviewWord,
-    refresh: fetchAll
+    removeWord: (id) => removeWordMutation.mutateAsync(id),
+    reviewWord: (id, score) => reviewWordMutation.mutateAsync({ id, score }),
+    refresh,
   };
 }

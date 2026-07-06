@@ -52,6 +52,48 @@ const S = {
   wrap: { height: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column", padding: "20px 22px", position: "relative", overflow: "hidden" },
 };
 
+/* ─── Realistic page-turn: multi-band curl ────────────────────────────────
+   A single flat rotateY looks like a card spinning, not paper turning.
+   Real paper leads from the corner you lift, and the bend grows as you
+   turn it, then closes again once it lies flat on the other side. We fake
+   that by slicing the flipping page into horizontal bands: the bottom
+   band (nearest the corner) races ahead of the top band, the gap between
+   them peaks mid-turn, then both land together at 180°. Each band also
+   arcs upward slightly and darkens as it goes edge-on, so the motion
+   reads as "lift and curl" rather than "slice and spin".
+──────────────────────────────────────────────────────────────────────── */
+const FLIP_STRIPS = 7;     // horizontal bands the page is sliced into
+const FLIP_LIFT   = 9;     // px a band arcs upward at its own mid-turn
+const FLIP_SPREAD = 0.46;  // 0–1 — how far the bottom band gets ahead of the top
+const FLIP_SHADE  = 0.30;  // peak darkening of a band as it goes edge-on
+const FLIP_RES    = 20;    // keyframe resolution (steps across the turn)
+
+const buildFlipKeyframesCSS = () => {
+  let css = "";
+  ["next", "prev"].forEach((dir) => {
+    const sign = -1;
+    for (let i = 0; i < FLIP_STRIPS; i++) {
+      // i counts bands top→bottom (0 = top). The bottom band leads the turn.
+      const lag = (FLIP_STRIPS - 1 - i) / (FLIP_STRIPS - 1); // 0 = leads, 1 = lags
+      let xf = "", shade = "";
+      for (let s = 0; s <= FLIP_RES; s++) {
+        const t = s / FLIP_RES;
+        const bulge = Math.sin(Math.PI * t) * FLIP_SPREAD * (0.5 - lag);
+        const localT = Math.min(1, Math.max(0, t + bulge));
+        const angle = (sign * 180 * localT).toFixed(2);
+        const lift = (-FLIP_LIFT * Math.sin(Math.PI * localT)).toFixed(2);
+        const dark = (Math.sin(Math.PI * localT) * FLIP_SHADE).toFixed(3);
+        const pct = +(t * 100).toFixed(2);
+        xf += `${pct}%{transform:translateY(${lift}px) rotateY(${angle}deg)}`;
+        shade += `${pct}%{opacity:${dark}}`;
+      }
+      css += `@keyframes strip-flip-${dir}-${i}{${xf}}\n@keyframes strip-shade-${dir}-${i}{${shade}}\n`;
+    }
+  });
+  return css;
+};
+const FLIP_KEYFRAMES_CSS = buildFlipKeyframesCSS();
+
 /* ─── Global animations ──────────────────────────────────────────────────── */
 const GLOBAL_CSS = `
 ${FONTS}
@@ -67,10 +109,9 @@ ${FONTS}
   70%{opacity:1;transform:translateX(-50%) translateY(0)}
   100%{opacity:0;transform:translateX(-50%) translateY(-3px)}
 }
-@keyframes pageFlipNext { 0%{transform:perspective(2000px) rotateY(0deg)} 100%{transform:perspective(2000px) rotateY(-180deg)} }
-@keyframes pageFlipPrev { 0%{transform:perspective(2000px) rotateY(0deg)} 100%{transform:perspective(2000px) rotateY(180deg)} }
-@keyframes flipShadowSweep    { 0%{opacity:0} 45%{opacity:.35} 55%{opacity:.35} 100%{opacity:0} }
-@keyframes ambientShadowSweep { 0%{opacity:.18} 50%{opacity:0} 100%{opacity:.18} }
+@keyframes ambientShadowSweep { 0%{opacity:.2} 50%{opacity:.04} 100%{opacity:.2} }
+@keyframes flipCurlShadow     { 0%{opacity:0} 40%{opacity:.42} 50%{opacity:.5} 60%{opacity:.42} 100%{opacity:0} }
+${FLIP_KEYFRAMES_CSS}
 
 .rw-stagger-1 { animation: slideUp .55s cubic-bezier(.4,0,.2,1) .05s both }
 .rw-stagger-2 { animation: slideUp .55s cubic-bezier(.4,0,.2,1) .15s both }
@@ -1037,7 +1078,7 @@ const BookContainer = ({ onUploadClick }) => {
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
   const total = PAGES.length;
-  const FLIP_MS = 620;
+  const FLIP_MS = 760;
 
   const goTo = useCallback((idx) => {
     if (flip || idx < 0 || idx >= total || idx === currentPage) return;
@@ -1088,6 +1129,43 @@ const BookContainer = ({ onUploadClick }) => {
     );
   };
 
+  // The turning page, sliced into horizontal bands. Each band runs its own
+  // strip-flip-{dir}-{i} keyframes (built once at module load — see
+  // buildFlipKeyframesCSS) so the bottom band leads, the curl widens toward
+  // mid-turn, and every band still lands on exactly 180° together.
+  const renderFlipBands = () => {
+    if (!flip) return null;
+    const originX = flip.dir === "next" ? "0% 50%" : "100% 50%";
+    const bands = [];
+    for (let i = 0; i < FLIP_STRIPS; i++) {
+      const topPct = (i * 100) / FLIP_STRIPS;
+      const bottomPct = 100 - ((i + 1) * 100) / FLIP_STRIPS;
+      bands.push(
+        <div key={i} style={{
+          position: "absolute", inset: 0,
+          clipPath: `inset(${topPct}% 0% ${bottomPct}% 0%)`,
+          transformStyle: "preserve-3d",
+          transformOrigin: originX,
+          animation: `strip-flip-${flip.dir}-${i} ${FLIP_MS}ms linear forwards`,
+        }}>
+          <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden" }}>
+            {renderPaper(flip.from)}
+          </div>
+          <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
+            {renderPaper(flip.to)}
+          </div>
+          {/* Darkens as this band goes edge-on, lightens again once it lands */}
+          <div style={{ position: "absolute", inset: 0, background: "#000", pointerEvents: "none", animation: `strip-shade-${flip.dir}-${i} ${FLIP_MS}ms linear forwards` }} />
+        </div>
+      );
+    }
+    return (
+      <div style={{ position: "absolute", inset: 0, zIndex: 50, perspective: 1400, perspectiveOrigin: flip.dir === "next" ? "0% 60%" : "100% 60%" }}>
+        {bands}
+      </div>
+    );
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0, margin: 0 }}>
       <div style={{ position: "relative", flex: 1, width: "100%", minHeight: 0 }}
@@ -1103,22 +1181,15 @@ const BookContainer = ({ onUploadClick }) => {
         <div style={{ position: "absolute", inset: 0, border: "1px solid var(--rw-border)", overflow: "hidden", boxShadow: "inset 3px 0 6px rgba(0,0,0,.03)" }}>
           {renderPaper(flip ? flip.to : currentPage)}
 
+          {/* Shadow the turning page casts onto the page beneath it */}
           {flip && (
-            <div style={{ position: "absolute", inset: 0, zIndex: 40, pointerEvents: "none", background: flip.dir === "next" ? "linear-gradient(to right,rgba(0,0,0,.18),rgba(0,0,0,0) 30%)" : "linear-gradient(to left,rgba(0,0,0,.18),rgba(0,0,0,0) 30%)", animation: `ambientShadowSweep ${FLIP_MS}ms ease forwards` }} />
+            <div style={{ position: "absolute", inset: 0, zIndex: 40, pointerEvents: "none", background: flip.dir === "next" ? "linear-gradient(to right,rgba(0,0,0,.24),rgba(0,0,0,0) 38%)" : "linear-gradient(to left,rgba(0,0,0,.24),rgba(0,0,0,0) 38%)", animation: `ambientShadowSweep ${FLIP_MS}ms ease-in-out forwards` }} />
+          )}
+          {flip && (
+            <div style={{ position: "absolute", top: 0, bottom: 0, width: "16%", [flip.dir === "next" ? "left" : "right"]: 0, zIndex: 41, pointerEvents: "none", background: flip.dir === "next" ? "linear-gradient(to right, rgba(0,0,0,.4), rgba(0,0,0,0))" : "linear-gradient(to left, rgba(0,0,0,.4), rgba(0,0,0,0))", filter: "blur(3px)", animation: `flipCurlShadow ${FLIP_MS}ms ease-in-out forwards` }} />
           )}
 
-          {flip && (
-            <div style={{ position: "absolute", inset: 0, zIndex: 50, transformStyle: "preserve-3d", transformOrigin: flip.dir === "next" ? "right center" : "left center", animation: `${flip.dir === "next" ? "pageFlipNext" : "pageFlipPrev"} ${FLIP_MS}ms cubic-bezier(.45,.05,.55,.95) forwards` }}>
-              <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden" }}>
-                {renderPaper(flip.from)}
-                <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: flip.dir === "next" ? "linear-gradient(to left,rgba(0,0,0,.22),rgba(0,0,0,0) 55%)" : "linear-gradient(to right,rgba(0,0,0,.22),rgba(0,0,0,0) 55%)", animation: `flipShadowSweep ${FLIP_MS}ms ease forwards` }} />
-              </div>
-              <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
-                {renderPaper(flip.to)}
-                <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: flip.dir === "next" ? "linear-gradient(to right,rgba(0,0,0,.22),rgba(0,0,0,0) 55%)" : "linear-gradient(to left,rgba(0,0,0,.22),rgba(0,0,0,0) 55%)", animation: `flipShadowSweep ${FLIP_MS}ms ease forwards` }} />
-              </div>
-            </div>
-          )}
+          {renderFlipBands()}
 
           {/* Arrow nav */}
           {currentPage > 0 && (

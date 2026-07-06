@@ -41,8 +41,8 @@ export default function InsightsTab({ stats }) {
   );
 
   return (
-    <div style={{ padding: isMobileOrSmaller ? 16 : 32, maxWidth: 1000, margin: "0 auto", height: "100%", overflowY: "auto" }}>
-      <h2 style={{ fontSize: 24, margin: "0 0 24px 0", color: "var(--rw-page-text)", fontFamily: "'Playfair Display', Georgia, serif" }}>Your Progress</h2>
+    <div style={{ padding: isMobileOrSmaller ? "8px 8px 0" : "12px 20px 0", height: "100%", overflowY: "auto" }}>
+      <h2 style={{ fontSize: 20, margin: "0 0 12px 0", color: "var(--rw-page-text)", fontFamily: "'Playfair Display', Georgia, serif" }}>Your Progress</h2>
       
       <div style={{ display: "grid", gridTemplateColumns: isMobileOrSmaller ? "1fr" : "1fr 1fr 1fr", gap: 20 }}>
         <InsightCard
@@ -76,7 +76,7 @@ export default function InsightsTab({ stats }) {
       </div>
 
       <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: isMobileOrSmaller ? "1fr" : "2fr 1fr", gap: 20 }}>
-        <div style={{ background: "var(--rw-panel-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 16, padding: 32 }}>
+        <div style={{ background: "var(--rw-panel-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 16, padding: isMobileOrSmaller ? 16 : 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--rw-page-text)", marginBottom: 24 }}>
             <div style={{ padding: 8, background: "var(--rw-page-card-bg)", borderRadius: 8, border: "1px solid var(--rw-page-border)", color: "var(--rw-page-text-sec)" }}>
               <FileText size={20} />
@@ -100,7 +100,7 @@ export default function InsightsTab({ stats }) {
           )}
         </div>
 
-        <div style={{ background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+        <div style={{ background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 16, padding: isMobileOrSmaller ? 16 : 20, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
           <div style={{ width: 64, height: 64, borderRadius: 32, background: "var(--rw-accent-muted)", color: "var(--rw-accent)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
             <Target size={32} />
           </div>

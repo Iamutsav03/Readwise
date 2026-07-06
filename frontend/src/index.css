@@ -3,6 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Tap highlight — suppress native blue flash on mobile ── */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 :root {
   /* Fluid Spacing Scale */
   --spacing-xs: clamp(4px, 0.5vw, 8px);
@@ -38,12 +43,22 @@ body, #root, aside, .side-panel, .reader-bg, .rw-card, .rw-toolbar, .toolbar-con
   transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
 }
 
+/* ── Mobile Animation Budget ── */
+:root {
+  --anim-selection: 150ms;
+  --anim-drawer: 250ms;
+  --anim-sheet: 250ms;
+  --anim-page: 200ms;
+  --anim-flip: 300ms;
+}
+
 html {
   overflow: hidden;
 }
 
 #root {
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   height: 100dvh;
   overflow: hidden;
 }
@@ -140,10 +155,12 @@ html {
 @media (max-width: 600px) {
   .side-panel.open {
     /* 40px is the width of the icon rail */
-    width: calc(100vw - 40px);
+    width: calc(100% - 40px);
+    max-width: calc(100% - 40px);
   }
   .side-panel-inner {
-    width: calc(100vw - 40px);
+    width: calc(100% - 40px);
+    max-width: calc(100% - 40px);
   }
   
   .toolbar-container {
@@ -166,4 +183,98 @@ html {
     opacity: 0;
   }
 }
-/* Global Focus Outline */button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {  outline: 2px solid var(--rw-accent);  outline-offset: 2px;}/* Global active scale */button:active {  transform: scale(0.97);}
+
+/* ── Kindle-style Page Transition Keyframes ─────────────────────────────── */
+@keyframes pageEnterFromRight {
+  from { opacity: 0; transform: translateX(6%) scale(0.996); }
+  to   { opacity: 1; transform: translateX(0)   scale(1); }
+}
+@keyframes pageEnterFromLeft {
+  from { opacity: 0; transform: translateX(-6%) scale(0.996); }
+  to   { opacity: 1; transform: translateX(0)    scale(1); }
+}
+@keyframes pageExitToLeft {
+  from { opacity: 1; transform: translateX(0)   scale(1); }
+  to   { opacity: 0; transform: translateX(-6%) scale(0.996); }
+}
+@keyframes pageExitToRight {
+  from { opacity: 1; transform: translateX(0)  scale(1); }
+  to   { opacity: 0; transform: translateX(6%) scale(0.996); }
+}
+
+/* ── Swipe peek/bounce hint ─────────────────────────────────────────────── */
+@keyframes swipe-hint-right {
+  0%   { transform: translateX(0); }
+  35%  { transform: translateX(10px); }
+  65%  { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+@keyframes swipe-hint-left {
+  0%   { transform: translateX(0); }
+  35%  { transform: translateX(-10px); }
+  65%  { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+/* ── Reading mode comfort ───────────────────────────────────────────────── */
+.reading-mode-container {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* ── Mobile: 44px min touch targets for all interactive elements ─────────── */
+@media (max-width: 767px) {
+  button, [role="button"], .icon-button, .toolbar-btn, .highlight-chip, .dictionary-save, .vault-card, .drawer-close, .pagination-arrow, .bookmark-icon {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  /* Override for icon-only buttons that have explicit sizes */
+  button[data-icon-btn] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ── Very small screens (≤ 360px) ───────────────────────────────────────── */
+@media (max-width: 360px) {
+  .side-panel.open {
+    width: 100%;
+    max-width: 100%;
+  }
+  .side-panel-inner {
+    width: 100%;
+    max-width: 100%;
+  }
+  .rw-mobile-toolbar-icon {
+    width: 38px !important;
+    height: 38px !important;
+  }
+}
+
+/* ── Safe area utility classes ──────────────────────────────────────────── */
+.safe-bottom {
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+}
+.safe-top {
+  padding-top: max(8px, env(safe-area-inset-top, 8px));
+}
+
+/* Global Focus Outline */
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--rw-accent);
+  outline-offset: 2px;
+}
+/* Global active scale — skip on mobile to avoid sticky scale */
+@media (hover: hover) {
+  button:active { transform: scale(0.97); }
+}
+
+/* ── Accessibility: Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

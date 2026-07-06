@@ -84,7 +84,7 @@ const SearchPanel = ({ pageNumber, onJump, inputRef, searchState, mobileMode }) 
             Searching...
           </div>
         ) : error ? (
-          <div style={{ color: "#e07060", padding: "10px 0", fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
+          <div style={{ color: "var(--rw-danger)", padding: "10px 0", fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
             {error}
           </div>
         ) : query.trim() ? (

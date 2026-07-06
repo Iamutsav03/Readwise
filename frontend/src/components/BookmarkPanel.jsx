@@ -69,7 +69,7 @@ const BookmarkPanel = ({
         ) : error ? (
           <div
             style={{
-              color: "#e07060",
+              color: "var(--rw-danger)",
               padding: "10px 0",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 13,

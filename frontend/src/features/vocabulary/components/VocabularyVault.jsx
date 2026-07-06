@@ -39,7 +39,7 @@ export default function VocabularyVault({ onJumpToSource, onBack }) {
       }}>
         {/* Header & Tabs */}
         <div style={{
-          padding: isMobileOrSmaller ? "16px 12px 0" : "32px 32px 0",
+          padding: isMobileOrSmaller ? "10px 12px 0" : "16px 20px 0",
           flexShrink: 0,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
