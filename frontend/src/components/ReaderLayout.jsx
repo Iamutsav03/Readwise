@@ -14,7 +14,7 @@ import { useNotes } from "../features/notes/hooks/useNotes";
 import { useDictionary } from "../features/dictionary/hooks/useDictionary";
 import { getSelectionRects } from "../utils/highlightHelpers";
 import { useBreakpoints } from "../hooks/useBreakpoints";
-import { usePerformanceMetrics } from "../hooks/usePerformanceMetrics";
+
 import AppearanceModal from "../features/themes/components/AppearanceModal";
 import ReaderSidebar from "../features/pdf-viewer/components/ReaderSidebar";
 import ReaderToolbar from "../features/pdf-viewer/components/ReaderToolbar";
@@ -103,11 +103,7 @@ const ReaderLayout = ({
   const [activeNoteId, setActiveNoteId] = useState(null);
   const [hoveredNoteId, setHoveredNoteId] = useState(null);
 
-  const { MetricsOverlay } = usePerformanceMetrics({
-    highlights: highlightState.highlights,
-    notes: notesState.notes,
-    pdfRenderCount: 0 // Cannot easily lift canvas render counts without refs, will leave 0 for now
-  });
+
 
   useEffect(() => { if (activeTab !== "notes") setActiveNoteId(null); }, [activeTab]);
 
@@ -218,7 +214,7 @@ const ReaderLayout = ({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", width: "100%", maxWidth: "100%", overflow: "hidden", backgroundColor: "var(--rw-reader-bg)" }}>
-      <MetricsOverlay />
+
       <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={onFileChange} />
 
       {isFocusMode && (

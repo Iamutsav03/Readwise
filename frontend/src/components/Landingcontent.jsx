@@ -19,7 +19,7 @@ const useBreakpoints = () => {
 /* ─── Design tokens (page-level: contrasted against appBg) ──────────────── */
 const T = {
   accent:    "var(--rw-accent)",
-  panel:     "var(--rw-panel-bg)",
+  panel:     "var(--rw-page-card-bg)",
   darkBg:    "var(--rw-sidebar-bg)",   // sidebar dark for CTA page
   appBg:     "var(--rw-app-bg)",
   card:      "var(--rw-page-card-bg)",  // card surface on appBg
@@ -133,7 +133,7 @@ ${FLIP_KEYFRAMES_CSS}
 
 .study-tool-card { background:var(--rw-page-card-bg); border:1px solid var(--rw-page-border); border-radius:10px; padding:13px 11px; cursor:pointer; text-align:left; transition:all .2s; }
 .study-tool-card:hover  { transform:translateY(-2px); }
-.study-tool-card.active { background:var(--rw-accent-muted); border-color:var(--rw-border-strong); }
+.study-tool-card.active { background:var(--rw-page-accent-muted); border-color:var(--rw-border-strong); }
 
 .rw-continue-card:hover { transform:translateY(-1px); box-shadow:var(--rw-shadow); }
 
@@ -146,7 +146,7 @@ ${FLIP_KEYFRAMES_CSS}
 
 /* ─── Progress ribbon ───────────────────────────────────────────────────── */
 const ProgressRibbon = ({ current, total, accentColor }) => (
-  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, zIndex: 200, background: "var(--rw-border)", pointerEvents: "none" }}>
+  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, zIndex: 200, background: "var(--rw-page-border)", pointerEvents: "none" }}>
     <div style={{ height: "100%", width: `${((current + 1) / total) * 100}%`, background: accentColor || T.accent, transition: "width .45s cubic-bezier(.4,0,.2,1)", borderRadius: "0 2px 2px 0" }} />
   </div>
 );
@@ -157,7 +157,7 @@ const FeatureHeader = ({ pageIdx, title, sub }) => {
   const Icon = meta.icon;
   return (
     <div className="rw-stagger-1" style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14, flexShrink: 0 }}>
-      <div style={{ width: 42, height: 42, borderRadius: 11, background: "var(--rw-hover-bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1.5px solid var(--rw-border)" }}>
+      <div style={{ width: 42, height: 42, borderRadius: 11, background: "var(--rw-page-hover-bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1.5px solid var(--rw-page-border)" }}>
         <Icon size={20} color={meta.accent} />
       </div>
       <div style={{ minWidth: 0 }}>
@@ -171,7 +171,7 @@ const FeatureHeader = ({ pageIdx, title, sub }) => {
 
 /* ─── "Try it" coach mark ────────────────────────────────────────────────── */
 const TryIt = ({ text, done }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 13px", background: "var(--rw-accent-muted)", border: "1px dashed var(--rw-border-strong)", borderRadius: 30, fontSize: 12, fontFamily: "'DM Sans',sans-serif", color: T.textSec, opacity: done ? 0 : 1, transition: "opacity .4s ease", pointerEvents: "none", alignSelf: "flex-start" }}>
+  <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 13px", background: "var(--rw-page-accent-muted)", border: "1px dashed var(--rw-border-strong)", borderRadius: 30, fontSize: 12, fontFamily: "'DM Sans',sans-serif", color: T.textSec, opacity: done ? 0 : 1, transition: "opacity .4s ease", pointerEvents: "none", alignSelf: "flex-start" }}>
     <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.accent, display: "inline-block", animation: "pulseDot 1.4s ease-in-out infinite" }} />
     {text}
   </div>
@@ -258,7 +258,7 @@ const Page2 = () => {
 
       {/* Continue card */}
       <div className="rw-continue-card rw-stagger-2"
-        style={{ background: "var(--rw-accent-muted)", border: "1px solid var(--rw-border)", borderRadius: 12, padding: "13px 14px", marginBottom: 10, cursor: "pointer", transition: "transform .15s,box-shadow .15s" }}
+        style={{ background: "var(--rw-page-accent-muted)", border: "1px solid var(--rw-page-border)", borderRadius: 12, padding: "13px 14px", marginBottom: 10, cursor: "pointer", transition: "transform .15s,box-shadow .15s" }}
         onClick={() => showHint("Opening document…")}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
           <div>
@@ -271,7 +271,7 @@ const Page2 = () => {
           <p style={{ margin: 0, fontSize: 12, color: T.textMuted }}>Page 187 / 240</p>
           <p style={{ margin: 0, fontSize: 12, color: T.accent, fontWeight: 500 }}>78%</p>
         </div>
-        <div style={{ width: "100%", height: 4, background: "var(--rw-border)", borderRadius: 2, overflow: "hidden" }}>
+        <div style={{ width: "100%", height: 4, background: "var(--rw-page-border)", borderRadius: 2, overflow: "hidden" }}>
           <div style={{ width: "78%", height: "100%", background: T.accent, borderRadius: 2 }} />
         </div>
       </div>
@@ -281,7 +281,7 @@ const Page2 = () => {
         onDragOver={e => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={e => { e.preventDefault(); setDragOver(false); showHint("PDF uploading…"); }}
-        style={{ border: `1.5px dashed ${dragOver ? T.accent : "var(--rw-border)"}`, borderRadius: 10, padding: "11px 14px", marginBottom: 10, display: "flex", alignItems: "center", gap: 11, background: dragOver ? "var(--rw-accent-muted)" : "var(--rw-card-bg)", cursor: "pointer", transition: "all .2s", minHeight: 44 }}
+        style={{ border: `1.5px dashed ${dragOver ? T.accent : "var(--rw-page-border)"}`, borderRadius: 10, padding: "11px 14px", marginBottom: 10, display: "flex", alignItems: "center", gap: 11, background: dragOver ? "var(--rw-page-accent-muted)" : "var(--rw-page-card-bg)", cursor: "pointer", transition: "all .2s", minHeight: 44 }}
         onClick={() => showHint("Opening file picker…")}>
         <div style={{ background: T.accent, color: "var(--rw-accent-text)", padding: 7, borderRadius: 7, display: "flex", flexShrink: 0 }}><UploadCloud size={17} /></div>
         <div>
@@ -294,9 +294,9 @@ const Page2 = () => {
       <div className="rw-stagger-3" style={{ position: "relative", marginBottom: 10 }}>
         <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: T.textMuted, display: "flex" }}><Search size={14} /></span>
         <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search PDFs…"
-          style={{ width: "100%", padding: "10px 10px 10px 34px", fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, background: "var(--rw-hover-bg)", border: "1px solid var(--rw-border)", borderRadius: 9, outline: "none", boxSizing: "border-box", minHeight: 44 }} />
+          style={{ width: "100%", padding: "10px 10px 10px 34px", fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, background: "var(--rw-page-hover-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 9, outline: "none", boxSizing: "border-box", minHeight: 44 }} />
         {searchQuery && (
-          <button onClick={() => setSearchQuery("")} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "var(--rw-border)", border: "none", borderRadius: "50%", width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.textMuted }}><X size={14} /></button>
+          <button onClick={() => setSearchQuery("")} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "var(--rw-page-border)", border: "none", borderRadius: "50%", width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.textMuted }}><X size={14} /></button>
         )}
       </div>
 
@@ -312,9 +312,9 @@ const Page2 = () => {
             onTouchEnd={handleTouchEnd} onTouchMove={handleTouchEnd}>
 
             {/* Thumbnail */}
-            <div style={{ width: 34, height: 44, background: "var(--rw-reader-bg)", borderRadius: 4, position: "relative", overflow: "hidden", border: "1px solid var(--rw-border)", flexShrink: 0 }}>
+            <div style={{ width: 34, height: 44, background: "var(--rw-reader-bg)", borderRadius: 4, position: "relative", overflow: "hidden", border: "1px solid var(--rw-page-border)", flexShrink: 0 }}>
               <div style={{ position: "absolute", top: 5, left: 4, right: 4, display: "flex", flexDirection: "column", gap: 3 }}>
-                {[80, 90, 60, 85, 75].map((w, i) => <div key={i} style={{ height: 2, background: "var(--rw-border)", borderRadius: 1, width: `${w}%` }} />)}
+                {[80, 90, 60, 85, 75].map((w, i) => <div key={i} style={{ height: 2, background: "var(--rw-page-border)", borderRadius: 1, width: `${w}%` }} />)}
               </div>
             </div>
 
@@ -323,14 +323,14 @@ const Page2 = () => {
               {renamingId === doc.id ? (
                 <input value={renameVal} onChange={e => setRenameVal(e.target.value)} onBlur={commitRename}
                   onKeyDown={e => e.key === "Enter" && commitRename()} autoFocus
-                  style={{ width: "100%", fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, background: "var(--rw-hover-bg)", border: `1.5px solid ${T.accent}`, borderRadius: 5, padding: "2px 6px", outline: "none" }}
+                  style={{ width: "100%", fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, background: "var(--rw-page-hover-bg)", border: `1.5px solid ${T.accent}`, borderRadius: 5, padding: "2px 6px", outline: "none" }}
                   onClick={e => e.stopPropagation()} />
               ) : (
                 <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: T.textPrim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: "'DM Sans',sans-serif" }}>{doc.name}</p>
               )}
               <p style={{ margin: "2px 0 0", fontSize: 12, color: T.textMuted, fontFamily: "'DM Sans',sans-serif" }}>Page {doc.page} / {doc.total}</p>
               <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 4 }}>
-                <div style={{ flex: 1, height: 3, background: "var(--rw-border)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ flex: 1, height: 3, background: "var(--rw-page-border)", borderRadius: 2, overflow: "hidden" }}>
                   <div style={{ width: `${doc.pct}%`, height: "100%", background: T.accent, borderRadius: 2 }} />
                 </div>
                 <p style={{ margin: 0, fontSize: 11, color: T.accent, fontWeight: 500, fontFamily: "'DM Sans',sans-serif", flexShrink: 0 }}>{doc.pct}%</p>
@@ -344,7 +344,7 @@ const Page2 = () => {
               <div style={{ position: "relative" }}>
                 <button className="rw-doc-btn" onClick={() => setMenuOpenId(menuOpenId === doc.id ? null : doc.id)} style={{ width: 44, height: 44 }}><MoreHorizontal size={16} /></button>
                 {menuOpenId === doc.id && (
-                  <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 4, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 9, padding: 4, zIndex: 10, minWidth: 90 }}>
+                  <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 4, background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 9, padding: 4, zIndex: 10, minWidth: 90 }}>
                     <button onClick={e => handleDelete(doc.id, e)} style={{ width: "100%", textAlign: "left", padding: "10px 13px", background: "transparent", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 14, color: "var(--rw-danger)", fontFamily: "'DM Sans',sans-serif" }}>Delete</button>
                   </div>
                 )}
@@ -445,24 +445,24 @@ const Page3 = () => {
         onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
       >
 
-        {toast && <div style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", background: "var(--rw-card-bg)", color: T.textPrim, border: "1px solid var(--rw-border)", padding: "8px 18px", borderRadius: 20, fontSize: 13, fontFamily: "'DM Sans',sans-serif", animation: "noteIn .18s ease", whiteSpace: "nowrap", boxShadow: "var(--rw-shadow)" }}>{toast}</div>}
+        {toast && <div style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", background: "var(--rw-page-card-bg)", color: T.textPrim, border: "1px solid var(--rw-page-border)", padding: "8px 18px", borderRadius: 20, fontSize: 13, fontFamily: "'DM Sans',sans-serif", animation: "noteIn .18s ease", whiteSpace: "nowrap", boxShadow: "var(--rw-shadow)" }}>{toast}</div>}
 
         {focusMode && isMobileOrSmaller && (
           <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)" }}>
-            <button onClick={() => { setFocusMode(false); flash("Focus off"); }} style={{ padding: "11px 22px", borderRadius: 22, background: "var(--rw-hover-bg)", color: T.textPrim, border: "1px solid var(--rw-border)", fontSize: 14, backdropFilter: "blur(4px)", display: "flex", alignItems: "center", gap: 6, minHeight: 44 }}><Lock size={16} /> Exit Focus</button>
+            <button onClick={() => { setFocusMode(false); flash("Focus off"); }} style={{ padding: "11px 22px", borderRadius: 22, background: "var(--rw-page-hover-bg)", color: T.textPrim, border: "1px solid var(--rw-page-border)", fontSize: 14, backdropFilter: "blur(4px)", display: "flex", alignItems: "center", gap: 6, minHeight: 44 }}><Lock size={16} /> Exit Focus</button>
           </div>
         )}
       </div>
 
       {/* Toolbar */}
       <div style={{ flexShrink: 0, margin: isMobileOrSmaller ? "0 -18px" : "0 -22px" }}>
-        <div style={{ height: 3, background: "var(--rw-border)" }}>
+        <div style={{ height: 3, background: "var(--rw-page-border)" }}>
           <div style={{ height: "100%", width: `${(page / totalPages) * 100}%`, background: T.accent, transition: "width .3s" }} />
         </div>
 
         {isMobileOrSmaller ? (
-          <div style={{ background: "var(--rw-toolbar-bg)", borderTop: "1px solid var(--rw-border)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px", borderBottom: "1px solid var(--rw-border)" }}>
+          <div style={{ background: "var(--rw-toolbar-bg)", borderTop: "1px solid var(--rw-page-border)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px", borderBottom: "1px solid var(--rw-page-border)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <button className="rw-icon-btn" style={{ width: BTN, height: BTN }} onClick={() => nav("prev")}><ChevronLeft size={iconSz} /></button>
                 <span style={{ fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: T.textPrim, minWidth: 66, textAlign: "center" }}>{page} / {totalPages}</span>
@@ -477,22 +477,22 @@ const Page3 = () => {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around", padding: "6px 14px 8px" }}>
               <button className={`rw-icon-btn ${fitMode === "page" ? "on" : ""}`} style={{ width: BTN, height: BTN }} onClick={() => setFit("page")}><Maximize2 size={iconSz} /></button>
               <button className={`rw-icon-btn ${fitMode === "width" ? "on" : ""}`} style={{ width: BTN, height: BTN }} onClick={() => setFit("width")}><Maximize size={iconSz} /></button>
-              <div style={{ width: 1, height: 22, background: "var(--rw-border)" }} />
+              <div style={{ width: 1, height: 22, background: "var(--rw-page-border)" }} />
               <button className={`rw-icon-btn ${bookmarked ? "on" : ""}`} style={{ width: BTN, height: BTN }} onClick={() => { setBookmarked(b => !b); flash(bookmarked ? "Bookmark removed" : "Bookmarked"); }}><BookmarkOutline style={{ width: iconSz, height: iconSz }} /></button>
               <button className={`rw-icon-btn ${focusMode ? "on" : ""}`} style={{ width: BTN, height: BTN }} onClick={() => { setFocusMode(f => !f); flash(focusMode ? "Focus off" : "Focus on"); }}><Lock size={iconSz} /></button>
             </div>
           </div>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 52, background: "var(--rw-toolbar-bg)", borderTop: "1px solid var(--rw-border)", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 52, background: "var(--rw-toolbar-bg)", borderTop: "1px solid var(--rw-page-border)", gap: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <button className="rw-icon-btn" style={{ width: 32, height: 32 }} onClick={() => nav("prev")}><ChevronLeft size={16} /></button>
-              <span style={{ border: "1px solid var(--rw-border)", color: T.textPrim, padding: "3px 10px", borderRadius: 7, fontSize: 13, fontFamily: "'DM Sans',sans-serif" }}>{page} / {totalPages}</span>
+              <span style={{ border: "1px solid var(--rw-page-border)", color: T.textPrim, padding: "3px 10px", borderRadius: 7, fontSize: 13, fontFamily: "'DM Sans',sans-serif" }}>{page} / {totalPages}</span>
               <button className="rw-icon-btn" style={{ width: 32, height: 32 }} onClick={() => nav("next")}><ChevronRight size={16} /></button>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <button className={`rw-icon-btn ${fitMode === "page" ? "on" : ""}`} style={{ width: 32, height: 32 }} onClick={() => setFit("page")}><Maximize2 size={15} /></button>
               <button className={`rw-icon-btn ${fitMode === "width" ? "on" : ""}`} style={{ width: 32, height: 32 }} onClick={() => setFit("width")}><Maximize size={15} /></button>
-              <div style={{ width: 1, height: 20, background: "var(--rw-border)", margin: "0 2px" }} />
+              <div style={{ width: 1, height: 20, background: "var(--rw-page-border)", margin: "0 2px" }} />
               <button className="rw-icon-btn" style={{ width: 32, height: 32 }} onClick={() => zoom(-25)}><ZoomOut size={15} /></button>
               <span style={{ fontSize: 12, color: T.textSec, minWidth: 40, textAlign: "center", fontFamily: "'DM Sans',sans-serif" }}>{fitMode ? (fitMode === "page" ? "Fit" : "Wide") : `${scale}%`}</span>
               <button className="rw-icon-btn" style={{ width: 32, height: 32 }} onClick={() => zoom(25)}><ZoomIn size={15} /></button>
@@ -557,7 +557,7 @@ const Page4 = () => {
             <span 
               ref={containerRef} 
               onClick={() => setToolbarOpen(!toolbarOpen)}
-              style={{ background: toolbarOpen ? "var(--rw-selection-color)" : "var(--rw-accent-muted)", position: "relative", borderRadius: 2, padding: "2px 0", cursor: "pointer", transition: "background 0.2s" }}
+              style={{ background: toolbarOpen ? "var(--rw-selection-color)" : "var(--rw-page-accent-muted)", position: "relative", borderRadius: 2, padding: "2px 0", cursor: "pointer", transition: "background 0.2s" }}
             >
               This makes processing academic papers effortless.
               {/* Toolbar — above on desktop, below on mobile */}
@@ -568,7 +568,7 @@ const Page4 = () => {
                 ...(isMobileOrSmaller ? { top: "110%", marginTop: 8 } : { bottom: "110%", marginBottom: 8 }),
                 left: "50%", transform: `translateX(-50%) scale(${toolbarOpen ? 1 : 0.95})`,
                 display: "flex", gap: 3, padding: "5px 7px",
-                background: "var(--rw-card-bg)", border: "1px solid var(--rw-border-strong)",
+                background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-border-strong)",
                 borderRadius: 14, boxShadow: "var(--rw-shadow)",
                 alignItems: "center", zIndex: 100,
                 opacity: toolbarOpen ? 1 : 0,
@@ -660,7 +660,7 @@ const Page5 = () => {
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.type === "user" ? "flex-end" : "flex-start", gap: 8 }}>
             {m.type === "ai" && (
-              <div style={{ width: isMobileOrSmaller ? 30 : 26, height: isMobileOrSmaller ? 30 : 26, borderRadius: "50%", background: "linear-gradient(135deg,var(--rw-hover-bg),var(--rw-border))", border: "1px solid var(--rw-border)", display: "flex", alignItems: "center", justifyContent: "center", color: T.accent, flexShrink: 0 }}>
+              <div style={{ width: isMobileOrSmaller ? 30 : 26, height: isMobileOrSmaller ? 30 : 26, borderRadius: "50%", background: "linear-gradient(135deg,var(--rw-page-hover-bg),var(--rw-page-border))", border: "1px solid var(--rw-page-border)", display: "flex", alignItems: "center", justifyContent: "center", color: T.accent, flexShrink: 0 }}>
                 <Sparkles size={isMobileOrSmaller ? 15 : 13} />
               </div>
             )}
@@ -671,7 +671,7 @@ const Page5 = () => {
         ))}
         {isTyping && (
           <div style={{ display: "flex", gap: 8 }}>
-            <div style={{ width: 26, height: 26, borderRadius: "50%", border: "1px solid var(--rw-border)", display: "flex", alignItems: "center", justifyContent: "center", color: T.accent }}><Sparkles size={13} /></div>
+            <div style={{ width: 26, height: 26, borderRadius: "50%", border: "1px solid var(--rw-page-border)", display: "flex", alignItems: "center", justifyContent: "center", color: T.accent }}><Sparkles size={13} /></div>
             <div style={{ fontSize: 13, color: T.accent, fontFamily: "'DM Sans',sans-serif", fontStyle: "italic", alignSelf: "center" }}>Thinking…</div>
           </div>
         )}
@@ -801,7 +801,7 @@ const Page6 = () => {
                       <div className="flip-face" style={{ background: "var(--rw-page-hover-bg)" }}>
                         <p style={{ margin: 0, fontSize: bodyFS, color: T.textPrim, fontWeight: 500, fontFamily: "'DM Sans',sans-serif" }}>Q: {c.q}</p>
                       </div>
-                      <div className="flip-face flip-back" style={{ background: "var(--rw-accent-muted)" }}>
+                      <div className="flip-face flip-back" style={{ background: "var(--rw-page-accent-muted)" }}>
                         <p style={{ margin: 0, fontSize: bodyFS, color: T.textPrim, fontWeight: 300, fontFamily: "'DM Sans',sans-serif" }}>A: {c.a}</p>
                       </div>
                     </div>
@@ -983,38 +983,38 @@ const Page8 = () => {
         
         {/* Step 1: Text Selection / Dictionary */}
         <div style={{ opacity: step === 0 ? 1 : 0.4, transition: "opacity 0.3s", display: "flex", gap: 12, alignItems: "flex-start" }}>
-          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step === 0 ? "var(--rw-accent)" : "var(--rw-border)", color: step === 0 ? "var(--rw-accent-text)" : "var(--rw-text-muted)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>1</div>
-          <div style={{ flex: 1, background: "var(--rw-hover-bg)", padding: 12, borderRadius: 8, border: step === 0 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
-            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-text-primary)" }}>Look up a difficult word in the PDF.</p>
-            {step === 0 && <div style={{ marginTop: 8, padding: 8, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}><span style={{ fontSize: 12, fontWeight: 600 }}>Ephemeral</span> <button style={{ fontSize: 11, padding: "4px 8px", background: "var(--rw-accent)", color: "var(--rw-accent-text)", border: "none", borderRadius: 4 }}>Save Word</button></div>}
+          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step === 0 ? "var(--rw-accent)" : "var(--rw-page-border)", color: step === 0 ? "var(--rw-accent-text)" : "var(--rw-page-text-mute)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>1</div>
+          <div style={{ flex: 1, background: "var(--rw-page-hover-bg)", padding: 12, borderRadius: 8, border: step === 0 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-page-text)" }}>Look up a difficult word in the PDF.</p>
+            {step === 0 && <div style={{ marginTop: 8, padding: 8, background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}><span style={{ fontSize: 12, fontWeight: 600 }}>Ephemeral</span> <button style={{ fontSize: 11, padding: "4px 8px", background: "var(--rw-accent)", color: "var(--rw-accent-text)", border: "none", borderRadius: 4 }}>Save Word</button></div>}
           </div>
         </div>
 
         {/* Step 2: Vault Saved */}
         <div style={{ opacity: step === 1 ? 1 : 0.4, transition: "opacity 0.3s", display: "flex", gap: 12, alignItems: "flex-start" }}>
-          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step === 1 ? "var(--rw-accent)" : "var(--rw-border)", color: step === 1 ? "var(--rw-accent-text)" : "var(--rw-text-muted)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>2</div>
-          <div style={{ flex: 1, background: "var(--rw-hover-bg)", padding: 12, borderRadius: 8, border: step === 1 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
-            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-text-primary)" }}>It's instantly added to your Vault.</p>
-            {step === 1 && <div style={{ marginTop: 8, padding: 8, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 6, display: "flex", gap: 8 }}><BookOpen size={14} color="var(--rw-accent)" /> <span style={{ fontSize: 12 }}>Saved Words (1)</span></div>}
+          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step === 1 ? "var(--rw-accent)" : "var(--rw-page-border)", color: step === 1 ? "var(--rw-accent-text)" : "var(--rw-page-text-mute)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>2</div>
+          <div style={{ flex: 1, background: "var(--rw-page-hover-bg)", padding: 12, borderRadius: 8, border: step === 1 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-page-text)" }}>It's instantly added to your Vault.</p>
+            {step === 1 && <div style={{ marginTop: 8, padding: 8, background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 6, display: "flex", gap: 8 }}><BookOpen size={14} color="var(--rw-accent)" /> <span style={{ fontSize: 12 }}>Saved Words (1)</span></div>}
           </div>
         </div>
 
         {/* Step 3: Flashcards */}
         <div style={{ opacity: step === 2 || step === 3 ? 1 : 0.4, transition: "opacity 0.3s", display: "flex", gap: 12, alignItems: "flex-start" }}>
-          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step >= 2 && step <= 3 ? "var(--rw-accent)" : "var(--rw-border)", color: step >= 2 && step <= 3 ? "var(--rw-accent-text)" : "var(--rw-text-muted)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>3</div>
-          <div style={{ flex: 1, background: "var(--rw-hover-bg)", padding: 12, borderRadius: 8, border: step >= 2 && step <= 3 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
-            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-text-primary)" }}>Review using Spaced Repetition Flashcards.</p>
-            {step === 2 && <div style={{ marginTop: 8, height: 60, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 600 }}>Ephemeral</div>}
-            {step === 3 && <div style={{ marginTop: 8, height: 60, background: "var(--rw-card-bg)", border: "1px solid var(--rw-accent)", borderRadius: 6, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}><span style={{ fontSize: 14, fontWeight: 600 }}>Ephemeral</span><span style={{ fontSize: 11, color: "var(--rw-text-secondary)" }}>lasting for a very short time</span></div>}
+          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step >= 2 && step <= 3 ? "var(--rw-accent)" : "var(--rw-page-border)", color: step >= 2 && step <= 3 ? "var(--rw-accent-text)" : "var(--rw-page-text-mute)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>3</div>
+          <div style={{ flex: 1, background: "var(--rw-page-hover-bg)", padding: 12, borderRadius: 8, border: step >= 2 && step <= 3 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-page-text)" }}>Review using Spaced Repetition Flashcards.</p>
+            {step === 2 && <div style={{ marginTop: 8, height: 60, background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 600 }}>Ephemeral</div>}
+            {step === 3 && <div style={{ marginTop: 8, height: 60, background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-accent)", borderRadius: 6, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}><span style={{ fontSize: 14, fontWeight: 600 }}>Ephemeral</span><span style={{ fontSize: 11, color: "var(--rw-page-text-sec)" }}>lasting for a very short time</span></div>}
           </div>
         </div>
 
         {/* Step 4: Insights */}
         <div style={{ opacity: step === 4 ? 1 : 0.4, transition: "opacity 0.3s", display: "flex", gap: 12, alignItems: "flex-start" }}>
-          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step === 4 ? "var(--rw-accent)" : "var(--rw-border)", color: step === 4 ? "var(--rw-accent-text)" : "var(--rw-text-muted)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>4</div>
-          <div style={{ flex: 1, background: "var(--rw-hover-bg)", padding: 12, borderRadius: 8, border: step === 4 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
-            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-text-primary)" }}>Track your progress over time.</p>
-            {step === 4 && <div style={{ marginTop: 8, height: 6, background: "var(--rw-border)", borderRadius: 3, width: "100%", overflow: "hidden" }}><div style={{ height: "100%", width: "100%", background: "var(--rw-accent)", animation: "progressFill 1s ease" }} /></div>}
+          <div style={{ width: 24, height: 24, borderRadius: "50%", background: step === 4 ? "var(--rw-accent)" : "var(--rw-page-border)", color: step === 4 ? "var(--rw-accent-text)" : "var(--rw-page-text-mute)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>4</div>
+          <div style={{ flex: 1, background: "var(--rw-page-hover-bg)", padding: 12, borderRadius: 8, border: step === 4 ? "1px solid var(--rw-accent)" : "1px solid transparent" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--rw-page-text)" }}>Track your progress over time.</p>
+            {step === 4 && <div style={{ marginTop: 8, height: 6, background: "var(--rw-page-border)", borderRadius: 3, width: "100%", overflow: "hidden" }}><div style={{ height: "100%", width: "100%", background: "var(--rw-accent)", animation: "progressFill 1s ease" }} /></div>}
           </div>
         </div>
       </div>
@@ -1062,7 +1062,7 @@ const BottomNav = ({ current, total, onGo }) => (
   <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0 14px", background: "var(--rw-app-bg)" }}>
     {Array.from({ length: total }).map((_, i) => (
       <button key={i} onClick={() => onGo(i)}
-        style={{ width: i === current ? 22 : 7, height: 7, borderRadius: 4, background: i === current ? T.accent : "var(--rw-border)", border: "none", cursor: "pointer", padding: 0, transition: "all .3s cubic-bezier(.4,0,.2,1)", minWidth: 7 }} />
+        style={{ width: i === current ? 22 : 7, height: 7, borderRadius: 4, background: i === current ? T.accent : "var(--rw-page-border)", border: "none", cursor: "pointer", padding: 0, transition: "all .3s cubic-bezier(.4,0,.2,1)", minWidth: 7 }} />
     ))}
   </div>
 );
@@ -1117,8 +1117,8 @@ const BookContainer = ({ onUploadClick }) => {
       <div style={{ position: "absolute", inset: 0, background: "var(--rw-app-bg)", overflow: "hidden" }}>
         {idx === 0 && (
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
-            {Array.from({ length: 32 }).map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${3 + i * 3.1}%`, height: "0.5px", background: "var(--rw-border)", opacity: 0.5 }} />)}
-            <div style={{ position: "absolute", left: 44, top: 0, bottom: 0, width: "0.5px", background: "var(--rw-border)", opacity: 0.65 }} />
+            {Array.from({ length: 32 }).map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${3 + i * 3.1}%`, height: "0.5px", background: "var(--rw-page-border)", opacity: 0.5 }} />)}
+            <div style={{ position: "absolute", left: 44, top: 0, bottom: 0, width: "0.5px", background: "var(--rw-page-border)", opacity: 0.65 }} />
           </div>
         )}
         <div style={{ position: "relative", zIndex: 1, height: "100%" }}>
@@ -1172,13 +1172,13 @@ const BookContainer = ({ onUploadClick }) => {
         onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
 
         {/* Depth layers */}
-        <div style={{ position: "absolute", inset: 0, transform: "translateX(6px) translateY(9px)", background: "var(--rw-border)", opacity: 0.35, filter: "blur(6px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", inset: 0, transform: "translateX(3px) translateY(4px)", background: "var(--rw-border)", opacity: 0.2, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", inset: 0, background: "var(--rw-hover-bg)", border: "1px solid var(--rw-border)", transform: "translate(2px,2px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", inset: 0, background: "var(--rw-card-bg)", border: "1px solid var(--rw-border)", transform: "translate(1px,1px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, transform: "translateX(6px) translateY(9px)", background: "var(--rw-page-border)", opacity: 0.35, filter: "blur(6px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, transform: "translateX(3px) translateY(4px)", background: "var(--rw-page-border)", opacity: 0.2, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, background: "var(--rw-page-hover-bg)", border: "1px solid var(--rw-page-border)", transform: "translate(2px,2px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", transform: "translate(1px,1px)", pointerEvents: "none" }} />
 
         {/* Book frame */}
-        <div style={{ position: "absolute", inset: 0, border: "1px solid var(--rw-border)", overflow: "hidden", boxShadow: "inset 3px 0 6px rgba(0,0,0,.03)" }}>
+        <div style={{ position: "absolute", inset: 0, border: "1px solid var(--rw-page-border)", overflow: "hidden", boxShadow: "inset 3px 0 6px rgba(0,0,0,.03)" }}>
           {renderPaper(flip ? flip.to : currentPage)}
 
           {/* Shadow the turning page casts onto the page beneath it */}
@@ -1194,19 +1194,19 @@ const BookContainer = ({ onUploadClick }) => {
           {/* Arrow nav */}
           {currentPage > 0 && (
             <div className="rw-zone-left" onClick={() => goTo(currentPage - 1)}>
-              <div className="rw-arrow" style={{ background: "var(--rw-hover-bg)", color: T.textPrim }}>‹</div>
+              <div className="rw-arrow" style={{ background: "var(--rw-page-hover-bg)", color: T.textPrim }}>‹</div>
             </div>
           )}
           {currentPage < total - 1 && (
             <div className="rw-zone-right" onClick={() => goTo(currentPage + 1)}>
-              <div className="rw-arrow" style={{ background: "var(--rw-hover-bg)", color: T.textPrim }}>›</div>
+              <div className="rw-arrow" style={{ background: "var(--rw-page-hover-bg)", color: T.textPrim }}>›</div>
             </div>
           )}
         </div>
 
         {/* Page indicator */}
         <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", pointerEvents: "none", zIndex: 70, animation: showIndicator ? "indicatorFade 1.8s ease forwards" : "none", opacity: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, background: "var(--rw-hover-bg)", backdropFilter: "blur(6px)", border: "1px solid var(--rw-border)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, background: "var(--rw-page-hover-bg)", backdropFilter: "blur(6px)", border: "1px solid var(--rw-page-border)" }}>
             <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, letterSpacing: ".06em", color: T.textSec }}>{currentPage + 1} / {total}</span>
             <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, letterSpacing: ".04em", color: T.accent }}>{PAGE_META[currentPage]?.label}</span>
           </div>
@@ -1295,7 +1295,7 @@ const MobileCarousel = ({ onUploadClick }) => {
               {/* Ruled paper lines only on first page */}
               {idx === 0 && (
                 <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0 }}>
-                  {Array.from({ length: 28 }).map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${4 + i * 3.5}%`, height: "0.5px", background: "var(--rw-border)", opacity: 0.45 }} />)}
+                  {Array.from({ length: 28 }).map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${4 + i * 3.5}%`, height: "0.5px", background: "var(--rw-page-border)", opacity: 0.45 }} />)}
                 </div>
               )}
               <div style={{ position: "relative", zIndex: 1, height: "100%" }}>

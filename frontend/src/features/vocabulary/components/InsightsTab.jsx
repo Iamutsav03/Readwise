@@ -13,13 +13,13 @@ export default function InsightsTab({ stats }) {
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--rw-page-text-mute)" }}>
-          <div style={{ padding: 8, background: "var(--rw-panel-bg)", borderRadius: 8, color: "var(--rw-page-text-sec)" }}>
+          <div style={{ padding: 8, background: "var(--rw-page-hover-bg)", borderRadius: 8, color: "var(--rw-page-text-sec)" }}>
             {icon}
           </div>
           <span style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700 }}>{title}</span>
         </div>
         {badge && (
-          <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 8px", background: "var(--rw-accent-muted)", color: "var(--rw-accent)", borderRadius: 12 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 8px", background: "var(--rw-page-accent-muted)", color: "var(--rw-accent)", borderRadius: 12 }}>
             {badge}
           </span>
         )}
@@ -76,7 +76,7 @@ export default function InsightsTab({ stats }) {
       </div>
 
       <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: isMobileOrSmaller ? "1fr" : "2fr 1fr", gap: 20 }}>
-        <div style={{ background: "var(--rw-panel-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 16, padding: isMobileOrSmaller ? 16 : 20 }}>
+        <div style={{ background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 16, padding: isMobileOrSmaller ? 16 : 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--rw-page-text)", marginBottom: 24 }}>
             <div style={{ padding: 8, background: "var(--rw-page-card-bg)", borderRadius: 8, border: "1px solid var(--rw-page-border)", color: "var(--rw-page-text-sec)" }}>
               <FileText size={20} />
@@ -101,7 +101,7 @@ export default function InsightsTab({ stats }) {
         </div>
 
         <div style={{ background: "var(--rw-page-card-bg)", border: "1px solid var(--rw-page-border)", borderRadius: 16, padding: isMobileOrSmaller ? 16 : 20, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
-          <div style={{ width: 64, height: 64, borderRadius: 32, background: "var(--rw-accent-muted)", color: "var(--rw-accent)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+          <div style={{ width: 64, height: 64, borderRadius: 32, background: "var(--rw-page-accent-muted)", color: "var(--rw-accent)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
             <Target size={32} />
           </div>
           <h3 style={{ margin: "0 0 8px 0", fontSize: 18, fontWeight: 700, color: "var(--rw-page-text)" }}>Weekly Goal</h3>

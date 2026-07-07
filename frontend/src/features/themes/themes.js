@@ -282,6 +282,7 @@ export function buildCSSVariables(theme) {
     '--rw-page-card-bg':     pageCardBg,
     '--rw-page-border':      pageBorder,
     '--rw-page-hover-bg':    pageHoverBg,
+    '--rw-page-accent-muted': isLightApp ? theme.selectionColor : theme.accentMuted,
   };
 }
 

@@ -84,7 +84,7 @@ export default function SavedWordsTab({ vocabulary, isLoading, onRemove, onJumpT
               <span style={{ color: "var(--rw-accent)" }}>Long-Term Memory</span>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 16, textAlign: "left", background: "var(--rw-panel-bg)", padding: isMobileOrSmaller ? 20 : 32, borderRadius: 16, border: "1px solid var(--rw-page-border)" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, textAlign: "left", background: "var(--rw-page-card-bg)", padding: isMobileOrSmaller ? 20 : 32, borderRadius: 16, border: "1px solid var(--rw-page-border)" }}>
               <div style={{ display: "flex", gap: isMobileOrSmaller ? 12 : 16, alignItems: "flex-start" }}><span style={{ fontSize: isMobileOrSmaller ? 18 : 20 }}>📖</span><span style={{ color: "var(--rw-page-text-sec)", lineHeight: 1.5, fontSize: isMobileOrSmaller ? 14 : 16 }}>Save difficult words while reading</span></div>
               <div style={{ display: "flex", gap: isMobileOrSmaller ? 12 : 16, alignItems: "flex-start" }}><span style={{ fontSize: isMobileOrSmaller ? 18 : 20 }}>💡</span><span style={{ color: "var(--rw-page-text-sec)", lineHeight: 1.5, fontSize: isMobileOrSmaller ? 14 : 16 }}>Save Quick Explain responses</span></div>
               <div style={{ display: "flex", gap: isMobileOrSmaller ? 12 : 16, alignItems: "flex-start" }}><span style={{ fontSize: isMobileOrSmaller ? 18 : 20 }}>📚</span><span style={{ color: "var(--rw-page-text-sec)", lineHeight: 1.5, fontSize: isMobileOrSmaller ? 14 : 16 }}>Review them using flashcards</span></div>

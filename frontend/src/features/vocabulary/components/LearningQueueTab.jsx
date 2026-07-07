@@ -41,7 +41,7 @@ export default function LearningQueueTab({ vocabulary, stats, onStartReview }) {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{
-            width: 56, height: 56, borderRadius: 16, background: "var(--rw-hover-bg)",
+            width: 56, height: 56, borderRadius: 16, background: "var(--rw-page-hover-bg)",
             color: color, display: "flex", alignItems: "center", justifyContent: "center"
           }}>
             {icon}
@@ -155,8 +155,8 @@ export default function LearningQueueTab({ vocabulary, stats, onStartReview }) {
       </div>
 
       {dueCount === 0 && newCount === 0 && (
-        <div style={{ textAlign: "center", padding: 40, marginTop: 24, background: "var(--rw-card-bg)", borderRadius: 12, border: "1px dashed var(--rw-border-strong)" }}>
-          <p style={{ margin: 0, color: "var(--rw-text-secondary)", fontSize: 15 }}>You're all caught up! Go read something new.</p>
+        <div style={{ textAlign: "center", padding: 40, marginTop: 24, background: "var(--rw-page-card-bg)", borderRadius: 12, border: "1px dashed var(--rw-page-border)" }}>
+          <p style={{ margin: 0, color: "var(--rw-page-text-sec)", fontSize: 15 }}>You're all caught up! Go read something new.</p>
         </div>
       )}
     </div>
