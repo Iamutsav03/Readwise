@@ -36,7 +36,7 @@ const SearchPanel = ({ pageNumber, onJump, inputRef, searchState, mobileMode }) 
             style={{
               width: "100%",
               padding: "10px 36px 10px 36px",
-              background: "rgba(255, 255, 255, 0.04)",
+              background: "var(--rw-card-bg)",
               border: "1px solid var(--rw-border)",
               borderRadius: 8,
               color: "var(--rw-text-primary)",

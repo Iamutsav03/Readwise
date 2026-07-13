@@ -8,12 +8,21 @@ import { fetchAllPDFs, uploadPDF, updatePdfLastOpened } from "../utils/api";
 import { deletePdf, toggleFavorite, renamePdf } from "../services/pdfActions";
 import { usePdfNavigation } from "../hooks/usePdfNavigation";
 import { useBreakpoints } from "../hooks/useBreakpoints";
+import { useAuth } from "../features/auth/useAuth";
+import { useGuestSessionContext } from "../features/auth/GuestSessionContext";
+import PremiumModal from "../components/ui/PremiumModal";
+import AuthPage from "../features/auth/AuthPage";
 
 const Home = ({ selectedPDF, setSelectedPDF }) => {
   const [pdfs, setPdfs] = useState([]);
   const [activeView, setActiveView] = useState("library"); // library, reader, vocabulary
   const [pageNumber, setPageNumber] = useState(1);
   const [numPages, setNumPages] = useState(0);
+  const { user } = useAuth();
+  const { openPremiumModal, canUploadPdf, incrementUploadCount } = useGuestSessionContext();
+  // Auth modal: shown as overlay when guest clicks a locked action
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalDefaultTab, setAuthModalDefaultTab] = useState("signup"); // 'signup' | 'login'
   const [scale, setScale] = useState(() => {
     const saved = localStorage.getItem("rw_scale");
     return saved ? parseFloat(saved) : 1;
@@ -39,16 +48,26 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
     fetchAllPDFs().then(setPdfs).catch(console.error);
   }, []);
 
-  // ── Upload ──────────────────────────────────────────────────────────────────
+  // ── Upload with guest limit check ───────────────────────────────────────────
   const handleUploadSuccess = useCallback((newPDF) => {
     setPdfs((prev) => [newPDF, ...prev]);
     openPdf(newPDF);
     setPageNumber(1); setNumPages(0);
-  }, [openPdf]);
+    if (!user) incrementUploadCount();
+  }, [openPdf, user, incrementUploadCount]);
+
+  const checkUploadAllowed = useCallback(() => {
+    if (!user && !canUploadPdf) {
+      openPremiumModal("upload-limit");
+      return false;
+    }
+    return true;
+  }, [user, canUploadPdf, openPremiumModal]);
 
   const handleFileInputChange = useCallback((e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!checkUploadAllowed()) { e.target.value = null; return; }
     if (file.type !== "application/pdf") {
       alert("Please select a valid PDF file.");
       return;
@@ -59,7 +78,7 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
       .then((data) => handleUploadSuccess(data.pdf))
       .catch(() => alert("Upload failed. Make sure the backend is running."))
       .finally(() => { if (fileInputRef.current) fileInputRef.current.value = null; });
-  }, [handleUploadSuccess]);
+  }, [handleUploadSuccess, checkUploadAllowed]);
 
   const handleGlobalDragEnter = useCallback((e) => {
     e.preventDefault();
@@ -92,6 +111,7 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
     
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
+    if (!checkUploadAllowed()) return;
     if (file.type !== "application/pdf") {
       alert("Only PDF files are supported.");
       return;
@@ -104,7 +124,7 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
         console.error("Home upload error:", err);
         alert(`Upload failed: ${err.message || "Unknown error"}`);
       })
-  }, [handleUploadSuccess]);
+  }, [handleUploadSuccess, checkUploadAllowed]);
 
   // ── Select / open a PDF (also updates lastOpenedAt) ─────────────────────────
   const handleSelectPdf = useCallback((pdf) => {
@@ -282,15 +302,20 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
         </div>
       )}
 
-      {/* ── Vocabulary Vault ──────────────────────────────────────────────────── */}
+      {/* ── Vocabulary Vault (blocked for guests) ─────────────────────────────── */}
       {activeView === "vocabulary" && (
-        <div style={{ flex: 1, overflow: "auto", padding: "20px" }}>
-          <VocabularyVault 
-            pdfs={pdfs} 
-            onJumpToSource={handleJumpToSource}
-            onBack={handleGoBack}
-          />
-        </div>
+        user ? (
+          <div style={{ flex: 1, overflow: "auto", padding: "20px" }}>
+            <VocabularyVault 
+              pdfs={pdfs} 
+              onJumpToSource={handleJumpToSource}
+              onBack={handleGoBack}
+            />
+          </div>
+        ) : (
+          // Redirect guest away and open modal
+          (() => { goBackToLibrary(); openPremiumModal("vocabulary-vault"); return null; })()
+        )
       )}
 
       {/* ── Library / Home Mode ─────────────────────────────────────────────── */}
@@ -318,7 +343,11 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
           selectedPDF={selectedPDF}
           onUploadSuccess={handleUploadSuccess}
           onSelect={handleSelectPdf}
-          onOpenVault={() => { openVault(); if (isMobileOrSmaller) setIsSidebarOpen(false); }}
+          onOpenVault={() => {
+            if (!user) { openPremiumModal("vocabulary-vault"); return; }
+            openVault();
+            if (isMobileOrSmaller) setIsSidebarOpen(false);
+          }}
           onRemovePdf={handleDeletePdf}
           onFavorite={handleFavorite}
           onRename={handleRename}
@@ -346,6 +375,21 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
           />
         </main>
       </div>
+
+      {/* ── Global Freemium Components ──────────────────────────────────────── */}
+      <PremiumModal
+        onSignup={() => { setAuthModalDefaultTab("signup"); setAuthModalOpen(true); }}
+        onSignin={() => { setAuthModalDefaultTab("login"); setAuthModalOpen(true); }}
+      />
+
+      {/* ── Inline Auth Modal ──────────────────────────────────────────────── */}
+      {authModalOpen && (
+        <AuthPage
+          defaultTab={authModalDefaultTab}
+          onClose={() => setAuthModalOpen(false)}
+          onSuccess={() => setAuthModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

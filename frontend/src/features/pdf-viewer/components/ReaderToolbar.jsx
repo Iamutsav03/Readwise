@@ -6,13 +6,17 @@
 //   - Expanded overflow sheet with reading preferences
 
 import React from "react";
+import UsageIndicator from "./UsageIndicator";
 import {
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut, MoreVertical,
   Maximize2, Maximize, Sparkles, Search, Edit2, Highlighter,
   Bookmark as BookmarkIcon, Palette, Lock, UploadCloud, FileX,
-  BookOpen, Layout, Settings, Type, AlignJustify, Minus, Plus,
+  Settings, Type, Check, CheckCircle2, Layout, AlignLeft,
+  X, BookOpen, Download, AlignJustify, Minus, Plus,
   Sun, Zap,
 } from "lucide-react";
+import { useAuth } from "../../../features/auth/useAuth";
+import { useGuestSessionContext } from "../../../features/auth/GuestSessionContext";
 import { BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
 import { BookmarkIcon as BookmarkOutline } from "@heroicons/react/24/outline";
 
@@ -151,10 +155,16 @@ export const ReaderToolbar = ({
   readingSettings,
   setReadingSettings,
 }) => {
+  const { user } = useAuth();
+  const { openPremiumModal } = useGuestSessionContext();
   const isSplitDisabled = isMobile;
 
   const handleModeChange = (mode) => {
     if (mode === "split" && isSplitDisabled) return;
+    if (mode === "split" && !user) {
+      openPremiumModal("split-view");
+      return;
+    }
     setViewMode(mode);
   };
 
@@ -451,6 +461,7 @@ export const ReaderToolbar = ({
               <ToolbarIconBtn onClick={onUploadClick} title="Upload new PDF"><UploadCloud size={16} /></ToolbarIconBtn>
               <ToolbarIconBtn onClick={onRemove} title="Close document" danger><FileX size={16} /></ToolbarIconBtn>
               <ToolbarIconBtn onClick={() => { setIsFocusMode(true); setShowFocusHint(true); setActiveTab(null); }} title="Focus Mode"><Lock size={16} /></ToolbarIconBtn>
+              <UsageIndicator />
             </div>
           </>
         )}

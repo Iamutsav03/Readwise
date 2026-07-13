@@ -14,8 +14,9 @@ import readingProgressStore from "../utils/readingProgressStore";
 import AppearanceModal from "../theme/AppearanceModal";
 import { useTheme } from "../theme/useTheme";
 import { useBreakpoints } from "../hooks/useBreakpoints";
-import { BookOpen, FileText, FolderOpen, Library, Palette, Paperclip, Keyboard, LogOut, User } from "lucide-react";
+import { BookOpen, FileText, FolderOpen, Library, Palette, Paperclip, Keyboard, LogOut, User, Lock } from "lucide-react";
 import { useAuth } from "../features/auth/useAuth";
+import { useGuestSessionContext } from "../features/auth/GuestSessionContext";
 
 // ── Time helper ────────────────────────────────────────────────────────────────
 function timeAgo(dateStr) {
@@ -52,6 +53,7 @@ const Sidebar = ({
   const { activeTheme } = useTheme();
   const { isMobileOrSmaller, isTablet } = useBreakpoints();
   const { user, logout } = useAuth();
+  const { guestHighlights, guestVocabulary, guestBookmarks } = useGuestSessionContext();
 
   const { favorites, hasFavorites, totalFavorites } = useFavorites(pdfs);
   const { query, setQuery, filtered } = usePdfLibrarySearch(pdfs);
@@ -423,17 +425,18 @@ const Sidebar = ({
           </div>
         </div>
 
-        {/* ── Vocabulary Vault Button ──────────────────────────────────────── */}
+        {/* ── Vocabulary Vault Button ──────────────────────────────────────────── */}
         <div style={{ padding: "0 20px 12px", flexShrink: 0 }}>
           <button
             onClick={onOpenVault}
+            title={user ? "Open Vocabulary Vault" : "Create a free account to access Vocabulary Vault"}
             style={{
               width: "100%",
               padding: "10px 14px",
-              background: "var(--rw-accent)",
-              border: "none",
+              background: user ? "var(--rw-accent)" : "var(--rw-card-bg)",
+              border: user ? "none" : "1px dashed var(--rw-border)",
               borderRadius: "8px",
-              color: "var(--rw-accent-text)",
+              color: user ? "var(--rw-accent-text)" : "var(--rw-text-muted)",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: "13px",
               fontWeight: 600,
@@ -441,13 +444,26 @@ const Sidebar = ({
               alignItems: "center",
               gap: "8px",
               cursor: "pointer",
-              transition: "transform 0.15s ease",
+              transition: "transform 0.15s ease, opacity 0.15s",
             }}
             onMouseEnter={e => e.currentTarget.style.transform = "translateY(-1px)"}
             onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
           >
             <BookOpen size={16} />
-            <span>Vocabulary Vault</span>
+            <span style={{ flex: 1, textAlign: "left" }}>Vocabulary Vault</span>
+            {!user && (
+              <Lock size={12} style={{ opacity: 0.6 }} />
+            )}
+            {!user && guestVocabulary.length > 0 && (
+              <span style={{
+                background: "var(--rw-accent)",
+                color: "var(--rw-accent-text)",
+                borderRadius: 10,
+                padding: "1px 6px",
+                fontSize: 11,
+                fontWeight: 700,
+              }}>{guestVocabulary.length}</span>
+            )}
           </button>
         </div>
 

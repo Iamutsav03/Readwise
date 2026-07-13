@@ -16,6 +16,12 @@ httpClient.interceptors.request.use(
     const token = localStorage.getItem("rw_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      // Attach guest ID for unauthenticated requests
+      const guestId = localStorage.getItem("rw_guest_id");
+      if (guestId) {
+        config.headers["X-Guest-Id"] = guestId;
+      }
     }
     return config;
   },
@@ -28,14 +34,20 @@ httpClient.interceptors.response.use(
   (error) => {
     // Normalise error shape so callers always get { message, status }
     const status = error.response?.status;
+    const code   = error.response?.data?.code;
     
-    // Handle 401 globally
+    // Handle 401 globally — clear token and redirect
     if (status === 401) {
       localStorage.removeItem("rw_token");
-      // Force reload to let AuthProvider pick up the cleared token and redirect
       if (window.location.pathname !== "/") {
         window.location.href = "/";
       }
+    }
+
+    // Handle 403 guest limit — broadcast event so PremiumModal can open
+    if (status === 403 && code === "GUEST_LIMIT_REACHED") {
+      const trigger = error.response?.data?.trigger || "default";
+      window.dispatchEvent(new CustomEvent("rw:guest-limit", { detail: { trigger } }));
     }
 
     const message =
@@ -45,6 +57,7 @@ httpClient.interceptors.response.use(
       "An unexpected error occurred.";
     const normalised = new Error(message);
     normalised.status = status;
+    normalised.code   = code;
     normalised.original = error;
     return Promise.reject(normalised);
   }

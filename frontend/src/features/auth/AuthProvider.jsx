@@ -1,5 +1,6 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useCallback } from "react";
 import { API_BASE_URL } from "../../config";
+import { useGuestSessionContext } from "./GuestSessionContext";
 
 export const AuthContext = createContext(null);
 
@@ -7,6 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem("rw_token"));
   const [isLoading, setIsLoading] = useState(true);
+  const { migrateToAccount } = useGuestSessionContext();
 
   // Validate token on mount
   useEffect(() => {
@@ -53,6 +55,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("rw_token", data.token);
     setToken(data.token);
     setUser(data.user);
+    
+    // Migrate guest data after successful login
+    await migrateToAccount(data.token);
+    
     return data;
   };
 
@@ -69,6 +75,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("rw_token", data.token);
     setToken(data.token);
     setUser(data.user);
+    
+    // Migrate guest data after successful signup
+    await migrateToAccount(data.token);
+    
     return data;
   };
 

@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "./useAuth";
-import { BookOpen, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
+import { BookOpen, AlertCircle, Loader2, Eye, EyeOff, X } from "lucide-react";
 
-export default function AuthPage() {
+export default function AuthPage({ defaultTab = "login", onClose, onSuccess }) {
   const { login, signup } = useAuth();
   
-  const [isLogin, setIsLogin] = useState(true);
+  const isModalMode = !!onClose; // Modal overlay when onClose is provided
+  const [isLogin, setIsLogin] = useState(defaultTab === "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -13,6 +14,9 @@ export default function AuthPage() {
   
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Sync tab if defaultTab changes from parent
+  useEffect(() => { setIsLogin(defaultTab === "login"); }, [defaultTab]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,6 +35,7 @@ export default function AuthPage() {
       } else {
         await signup(email, password);
       }
+      onSuccess?.(); // Close modal overlay on success
     } catch (err) {
       setError(err.message || "An error occurred. Please try again.");
     } finally {
@@ -40,14 +45,22 @@ export default function AuthPage() {
 
   return (
     <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "var(--rw-app-bg)",
+      minHeight: isModalMode ? "unset" : "100vh",
+      ...(isModalMode ? {
+        position: "fixed", inset: 0, zIndex: 99999,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(0,0,0,0.7)",
+        backdropFilter: "blur(6px)",
+        padding: "20px",
+      } : {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--rw-app-bg)",
+        padding: "20px",
+      }),
       fontFamily: "'DM Sans', sans-serif",
       color: "var(--rw-text-primary)",
-      padding: "20px"
     }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
@@ -225,7 +238,25 @@ export default function AuthPage() {
         }
       `}</style>
 
-      <div className="auth-container">
+      <div className="auth-container" style={{ position: "relative" }}>
+        {/* Close button for modal mode */}
+        {isModalMode && (
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute", top: 12, right: 12,
+              width: 32, height: 32,
+              background: "var(--rw-hover-bg)",
+              border: "1px solid var(--rw-border)",
+              borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", color: "var(--rw-text-muted)",
+            }}
+            aria-label="Close"
+          >
+            <X size={14} />
+          </button>
+        )}
         <div className="auth-logo">
           <div className="auth-logo-icon">
             <BookOpen size={20} />

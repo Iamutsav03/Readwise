@@ -9,7 +9,7 @@ const HighlightPanel = ({ highlights = [], onJump, onDelete, onFocus, mobileMode
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        background: "#111",
+        background: "transparent",
       }}
     >
       {/* Header */}

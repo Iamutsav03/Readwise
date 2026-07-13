@@ -10,6 +10,8 @@ import { HIGHLIGHT_COLORS } from "../../../utils/highlightHelpers";
 import { BookOpen, Zap, Sparkles, Copy, Palette, FileText, StickyNote, Globe, ExternalLink, Bookmark } from "lucide-react";
 import { useBreakpoints } from "../../../hooks/useBreakpoints";
 import MobileBottomSheet from "../../../components/MobileBottomSheet";
+import { useAuth } from "../../../features/auth/useAuth";
+import { useGuestSessionContext } from "../../../features/auth/GuestSessionContext";
 
 // Count words in a string
 function countWords(text) {
@@ -28,6 +30,8 @@ const SelectionToolbar = ({
   const toolbarRef = useRef(null);
   const [showPalette, setShowPalette] = useState(false);
   const { isMobileOrSmaller } = useBreakpoints();
+  const { user } = useAuth();
+  const { canQuickExplain, canDeepExplain, incrementQuickExplain, incrementDeepExplain, openPremiumModal } = useGuestSessionContext();
 
   const wordCount = countWords(selectionText || "");
   const showSummary = wordCount >= 15;
@@ -70,6 +74,18 @@ const SelectionToolbar = ({
 
   const handleAction = (e, type) => {
     e.stopPropagation();
+    // Guest limit checks
+    if (!user) {
+      if (type === "quick_explain") {
+        if (!canQuickExplain) { openPremiumModal("quick-explain-limit"); return; }
+        incrementQuickExplain();
+      } else if (type === "deep_explain" || type === "summary") {
+        if (!canDeepExplain) { openPremiumModal("deep-explain-limit"); return; }
+        incrementDeepExplain();
+      } else if (type === "note") {
+        openPremiumModal("notes"); return;
+      }
+    }
     onAction(type);
   };
 

@@ -16,4 +16,7 @@ router.post("/login", authLimiter, authController.login);
 // GET /api/auth/me
 router.get("/me", protect, authController.getMe);
 
+// POST /api/auth/migrate
+router.post("/migrate", protect, authController.migrateGuest);
+
 module.exports = router;

@@ -21,6 +21,12 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
+    // ── Usage Tracking (for limits & merging guest usage) ──────────
+    usage: {
+      quickExplain: { type: Number, default: 0 },
+      deepExplain: { type: Number, default: 0 }
+    },
+
     // ── Password Reset (architecture-ready, flow can be wired later) ──────────
     resetPasswordToken: {
       type: String,

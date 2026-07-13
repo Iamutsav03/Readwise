@@ -36,7 +36,8 @@ const uploadPDF = async (req, res) => {
       fileName: req.file.filename,
       fileSize: req.file.size,
       filePath: req.file.path,
-      userId: req.user.id,
+      userId: req.user ? req.user.id : undefined,
+      guestId: req.guestId ? req.guestId : undefined,
     });
 
     // Fire-and-forget: don't block the HTTP response
@@ -66,7 +67,7 @@ const uploadPDF = async (req, res) => {
 const getAllPDFs = async (req, res) => {
   try {
     const pdfs = await PDF.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(req.user.id) } },
+      { $match: req.user ? { userId: new mongoose.Types.ObjectId(req.user.id) } : { guestId: req.guestId } },
       { $addFields: { sortKey: { $ifNull: ["$lastOpenedAt", "$createdAt"] } } },
       { $sort: { sortKey: -1 } },
     ]);
@@ -85,7 +86,8 @@ const getAllPDFs = async (req, res) => {
  */
 const viewPDF = async (req, res) => {
   try {
-    const pdf = await PDF.findOne({ fileName: req.params.filename, userId: req.user.id });
+    const match = req.user ? { userId: req.user.id } : { guestId: req.guestId };
+    const pdf = await PDF.findOne({ fileName: req.params.filename, ...match });
     if (!pdf) {
       return res.status(403).json({ message: "Forbidden or file not found." });
     }
