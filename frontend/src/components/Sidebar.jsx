@@ -53,7 +53,7 @@ const Sidebar = ({
   const { activeTheme } = useTheme();
   const { isMobileOrSmaller, isTablet } = useBreakpoints();
   const { user, logout } = useAuth();
-  const { guestHighlights, guestVocabulary, guestBookmarks } = useGuestSessionContext();
+  const { guestHighlights, guestVocabulary, guestBookmarks, openPremiumModal } = useGuestSessionContext();
 
   const { favorites, hasFavorites, totalFavorites } = useFavorites(pdfs);
   const { query, setQuery, filtered } = usePdfLibrarySearch(pdfs);
@@ -496,48 +496,80 @@ const Sidebar = ({
         </div>
 
         {/* ── User Profile & Logout ───────────────────────────────── */}
-        <div style={{
-          padding: "12px 20px 16px",
-          borderTop: "1px solid var(--rw-border)",
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}>
-          {!isTablet && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, overflow: "hidden" }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: "50%",
-                background: "var(--rw-accent-muted)", color: "var(--rw-accent)",
-                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
-              }}>
-                <User size={14} />
+        {user ? (
+          <div style={{
+            padding: "12px 20px 16px",
+            borderTop: "1px solid var(--rw-border)",
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}>
+            {!isTablet && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, overflow: "hidden" }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: "50%",
+                  background: "var(--rw-accent-muted)", color: "var(--rw-accent)",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                }}>
+                  <User size={14} />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: "var(--rw-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {user.email}
+                  </span>
+                  <span style={{ fontSize: 10, color: "var(--rw-text-muted)" }}>Free Plan</span>
+                </div>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: "var(--rw-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {user?.email}
-                </span>
-                <span style={{ fontSize: 10, color: "var(--rw-text-muted)" }}>Free Plan</span>
-              </div>
-            </div>
-          )}
-          
-          <button
-            onClick={logout}
-            title="Sign out"
-            style={{
-              background: "transparent", border: "none", cursor: "pointer",
-              color: "var(--rw-text-muted)", padding: isTablet ? 8 : 4,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              borderRadius: 6, transition: "background 0.2s, color 0.2s",
-              margin: isTablet ? "0 auto" : 0
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "var(--rw-text-muted)"; e.currentTarget.style.background = "transparent"; }}
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
+            )}
+            
+            <button
+              onClick={logout}
+              title="Sign out"
+              style={{
+                background: "transparent", border: "none", cursor: "pointer",
+                color: "var(--rw-text-muted)", padding: isTablet ? 8 : 4,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                borderRadius: 6, transition: "background 0.2s, color 0.2s",
+                margin: isTablet ? "0 auto" : 0
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "var(--rw-text-muted)"; e.currentTarget.style.background = "transparent"; }}
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        ) : (
+          <div style={{
+            padding: "12px 20px 16px",
+            borderTop: "1px solid var(--rw-border)",
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <button
+              onClick={() => openPremiumModal("login")}
+              style={{
+                width: "100%",
+                padding: "10px 14px",
+                background: "var(--rw-accent)",
+                color: "var(--rw-accent-text)",
+                border: "none",
+                borderRadius: "8px",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "opacity 0.15s ease",
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = 0.9}
+              onMouseLeave={e => e.currentTarget.style.opacity = 1}
+            >
+              Sign In / Sign Up
+            </button>
+          </div>
+        )}
       </aside>
 
       <AppearanceModal 
