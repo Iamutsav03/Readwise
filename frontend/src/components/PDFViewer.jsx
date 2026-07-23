@@ -186,6 +186,90 @@ const PDFViewer = forwardRef(function PDFViewer({
     };
   }, [onScaleChange]);
 
+  // Watermark selection cleanup
+  // Watermark selection cleanup
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const processSpans = (spans) => {
+      spans.forEach(span => {
+        // Skip if already processed
+        if (span.classList.contains("ignored-watermark")) return;
+
+        const transform = span.style.transform || "";
+        const isRotateStr = transform.includes('rotate') || transform.includes('skew');
+        
+        const matrixMatch = transform.match(/matrix\(([^)]+)\)/);
+        let isRotatedMatrix = false;
+        let scaleY = 1;
+        
+        if (matrixMatch) {
+          const vals = matrixMatch[1].split(',').map(v => parseFloat(v));
+          if (vals.length >= 6) {
+            if (Math.abs(vals[1]) > 0.05 || Math.abs(vals[2]) > 0.05) {
+              isRotatedMatrix = true;
+            }
+            scaleY = Math.abs(vals[3]) || 1;
+          }
+        }
+        
+        let fontSize = 0;
+        const fsStr = span.style.fontSize || "0";
+        const fsMatches = fsStr.match(/([\d.]+)/g);
+        if (fsMatches && fsMatches.length > 0) {
+          fontSize = Math.max(...fsMatches.map(v => parseFloat(v)));
+        }
+        
+        const effectiveSize = fontSize * scaleY;
+        const isHuge = effectiveSize > 45;
+
+        // Aggressively target known watermark strings
+        const text = span.textContent?.trim().toLowerCase() || "";
+        const isWatermarkText = text === "help" || text === "confidential" || text === "draft";
+
+        if (isRotatedMatrix || isRotateStr || isHuge || isWatermarkText) {
+          span.style.pointerEvents = "none";
+          span.style.userSelect = "none";
+          span.style.color = "transparent"; // Ensure it stays hidden visually if it wasn't already
+          span.classList.add("ignored-watermark");
+        }
+      });
+    };
+
+    // Run on mutations
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1) {
+            if (node.classList?.contains('react-pdf__Page__textContent')) {
+              processSpans(node.querySelectorAll('span'));
+            } else if (node.tagName === 'SPAN' && node.parentElement?.classList.contains('react-pdf__Page__textContent')) {
+              processSpans([node]);
+            } else if (node.querySelector) {
+              const textLayers = node.querySelectorAll('.react-pdf__Page__textContent');
+              textLayers.forEach(layer => processSpans(layer.querySelectorAll('span')));
+            }
+          }
+        });
+      });
+    });
+
+    observer.observe(container, { childList: true, subtree: true });
+
+    // Fallback interval for large screens where react-pdf might delay style application
+    const interval = setInterval(() => {
+      if (!containerRef.current) return;
+      const textLayers = containerRef.current.querySelectorAll('.react-pdf__Page__textContent');
+      textLayers.forEach(layer => processSpans(layer.querySelectorAll('span:not(.ignored-watermark)')));
+    }, 1500);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(interval);
+    };
+  }, []);
+
   // Adjacent page numbers for preloading
   const prevPreloadPage = pageNumber > 1 ? pageNumber - 1 : null;
   const nextPreloadPage = numPages && pageNumber < numPages ? pageNumber + 1 : null;
