@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 const MAX_SELECTION_LENGTH = 1500;
-const SELECTION_DEBOUNCE_MS = 150;
+const SELECTION_DEBOUNCE_MS = 800;
 
 /**
  * Detects text selection within a specific container (the scroll host).

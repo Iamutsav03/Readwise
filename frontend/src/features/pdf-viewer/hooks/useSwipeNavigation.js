@@ -33,27 +33,7 @@ export function useSwipeNavigation({
   numPages = 1,
 }) {
   const touch = useRef(null); // { x, y, time }
-  const peekApplied = useRef(false);
 
-  const applyPeek = useCallback((direction) => {
-    if (!containerRef.current || peekApplied.current) return;
-    peekApplied.current = true;
-    const el = containerRef.current;
-    el.style.transition = "transform 0.12s ease-out, opacity 0.12s ease-out";
-    el.style.transform = direction === "left"
-      ? "translateX(-8px)"
-      : "translateX(8px)";
-    el.style.opacity = "0.92";
-  }, [containerRef]);
-
-  const resetPeek = useCallback(() => {
-    if (!containerRef.current || !peekApplied.current) return;
-    peekApplied.current = false;
-    const el = containerRef.current;
-    el.style.transition = "transform 0.18s ease-out, opacity 0.18s ease-out";
-    el.style.transform = "";
-    el.style.opacity = "";
-  }, [containerRef]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -78,22 +58,11 @@ export function useSwipeNavigation({
       // Cancel if motion is primarily vertical
       if (Math.abs(deltaY) > Math.abs(deltaX) * (1 / VERTICAL_RATIO)) {
         touch.current = null;
-        resetPeek();
         return;
-      }
-
-      // Show peek effect after 15px to give visual feedback
-      if (Math.abs(deltaX) > 15) {
-        if (deltaX < 0 && pageNumber < numPages) {
-          applyPeek("left");   // going forward
-        } else if (deltaX > 0 && pageNumber > 1) {
-          applyPeek("right");  // going backward
-        }
       }
     };
 
     const onTouchEnd = (e) => {
-      resetPeek();
       if (!touch.current || isBlocked) {
         touch.current = null;
         return;
@@ -132,7 +101,6 @@ export function useSwipeNavigation({
     };
 
     const onTouchCancel = () => {
-      resetPeek();
       touch.current = null;
     };
 
@@ -146,7 +114,6 @@ export function useSwipeNavigation({
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
       el.removeEventListener("touchcancel", onTouchCancel);
-      resetPeek();
     };
-  }, [enabled, isBlocked, onPrev, onNext, pageNumber, numPages, applyPeek, resetPeek, containerRef]);
+  }, [enabled, isBlocked, onPrev, onNext, pageNumber, numPages, containerRef]);
 }

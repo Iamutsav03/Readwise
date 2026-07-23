@@ -129,6 +129,63 @@ const PDFViewer = forwardRef(function PDFViewer({
     };
   }, [onScaleChange]);
 
+  // Mobile Pinch-to-Zoom
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let initialDistance = null;
+
+    const getDistance = (touches) => {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const onTouchStart = (e) => {
+      if (e.touches.length === 2) {
+        initialDistance = getDistance(e.touches);
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (e.touches.length === 2 && initialDistance) {
+        if (e.cancelable) e.preventDefault(); // prevent native browser zoom
+        
+        const currentDistance = getDistance(e.touches);
+        const distanceRatio = currentDistance / initialDistance;
+        
+        currentCssScaleRef.current = Math.max(0.5, Math.min(distanceRatio, 4.0));
+        setCssScale(currentCssScaleRef.current);
+      }
+    };
+
+    const onTouchEnd = (e) => {
+      if (initialDistance && e.touches.length < 2) {
+        // Pinch ended, commit the scale!
+        if (currentCssScaleRef.current !== 1) {
+          const finalRatio = currentCssScaleRef.current;
+          onScaleChange((s) => parseFloat(Math.max(s * finalRatio, 0.5).toFixed(3)));
+        }
+        initialDistance = null;
+        currentCssScaleRef.current = 1;
+        setCssScale(1);
+      }
+    };
+
+    container.addEventListener("touchstart", onTouchStart, { passive: false });
+    container.addEventListener("touchmove", onTouchMove, { passive: false });
+    container.addEventListener("touchend", onTouchEnd);
+    container.addEventListener("touchcancel", onTouchEnd);
+
+    return () => {
+      container.removeEventListener("touchstart", onTouchStart);
+      container.removeEventListener("touchmove", onTouchMove);
+      container.removeEventListener("touchend", onTouchEnd);
+      container.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, [onScaleChange]);
+
   // Adjacent page numbers for preloading
   const prevPreloadPage = pageNumber > 1 ? pageNumber - 1 : null;
   const nextPreloadPage = numPages && pageNumber < numPages ? pageNumber + 1 : null;
