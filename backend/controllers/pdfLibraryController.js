@@ -40,6 +40,19 @@ const uploadPDF = async (req, res) => {
       guestId: req.guestId ? req.guestId : undefined,
     });
 
+    // Upload to GridFS for persistent storage
+    try {
+      const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'pdfs' });
+      const readStream = fs.createReadStream(req.file.path);
+      const uploadStream = bucket.openUploadStream(req.file.filename);
+      readStream.pipe(uploadStream);
+      
+      uploadStream.on('error', (err) => console.error("GridFS Upload Error:", err));
+      uploadStream.on('finish', () => console.log(`✅ Saved ${req.file.filename} to GridFS`));
+    } catch (gErr) {
+      console.error("Failed to initialize GridFS upload:", gErr.message);
+    }
+
     // Fire-and-forget: don't block the HTTP response
     extractPagesText(req.file.path)
       .then((result) => saveExtractedPages(newPDF._id, result))
@@ -93,10 +106,27 @@ const viewPDF = async (req, res) => {
     }
 
     const filePath = path.join(__dirname, "../uploads", req.params.filename);
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: "File not found on disk." });
+    if (fs.existsSync(filePath)) {
+      return res.sendFile(filePath);
     }
-    res.sendFile(filePath);
+
+    // Try GridFS if not on disk (persists across Render restarts)
+    try {
+      const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'pdfs' });
+      const files = await bucket.find({ filename: req.params.filename }).toArray();
+      if (!files || files.length === 0) {
+        return res.status(404).json({ message: "File not found on disk or database." });
+      }
+      res.set('Content-Type', 'application/pdf');
+      const downloadStream = bucket.openDownloadStreamByName(req.params.filename);
+      downloadStream.on('error', () => {
+        res.status(404).end();
+      });
+      return downloadStream.pipe(res);
+    } catch (gErr) {
+      console.error("GridFS View error:", gErr.message);
+      return res.status(500).json({ message: "Server error fetching file from DB." });
+    }
   } catch (error) {
     console.error("[PDFLibrary] View error:", error.message);
     res.status(500).json({ message: "Server error viewing PDF." });
@@ -189,6 +219,17 @@ const deletePDF = async (req, res) => {
     // 1. Remove file from disk
     if (fs.existsSync(pdf.filePath)) {
       fs.unlinkSync(pdf.filePath);
+    }
+
+    // Remove from GridFS
+    try {
+      const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'pdfs' });
+      const files = await bucket.find({ filename: pdf.fileName }).toArray();
+      for (const file of files) {
+        await bucket.delete(file._id);
+      }
+    } catch (gErr) {
+      console.error("GridFS Delete Error:", gErr.message);
     }
 
     // 2. Core cascade deletes
