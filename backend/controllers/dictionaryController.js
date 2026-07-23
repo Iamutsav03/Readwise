@@ -244,26 +244,26 @@ exports.quickExplain = async (req, res) => {
     if (!text) {
       return res.status(400).json({ success: false, error: "Text is required" });
     }
-
     const trimmed = text.trim();
     console.log(`[DICT] AI QUICK EXPLAIN HIT: "${trimmed.substring(0, 50)}..."`);
 
-    const prompt = `You are an expert teacher.
-Provide a quick, simple explanation of the following text for a beginner. 
-Keep it concise (1-3 sentences max).
+    const prompt = `You are an expert teacher explaining concepts to a beginner.
 
-Text:
+Text selected by the user:
 "${trimmed}"
 
 Return ONLY valid JSON with no markdown formatting. The JSON must exactly match this structure:
 {
-  "meaning": "Your short explanation here",
-  "example": "A clear example using the context to give the idea for better understanding"
+  "meaning": "A concise, plain-language explanation in 1-3 sentences. No textbook jargon.",
+  "contextExample": "A short example that directly uses or relates to the selected text and its real-world context (as if from the same topic).",
+  "generalExample": "A simple everyday example that illustrates the same concept from scratch, as if explaining to someone who knows nothing about the topic."
 }
 
 Rules:
-- Never use textbook language.
-- Keep response concise and easy.`;
+- meaning: Keep it short, simple, and jargon-free.
+- contextExample: Must be relevant to the actual subject/domain of the selected text.
+- generalExample: Must be a relatable real-world analogy or everyday scenario.
+- Never repeat the same wording across the three fields.`;
 
     const aiResult = await geminiService.generateAnswer(prompt, []);
     
@@ -286,6 +286,8 @@ Rules:
       success: true,
       word: trimmed.length > 30 ? trimmed.substring(0, 30) + "..." : trimmed,
       meaning: parsedResult.meaning,
+      contextExample: parsedResult.contextExample,
+      generalExample: parsedResult.generalExample,
       source: "ai",
     });
 

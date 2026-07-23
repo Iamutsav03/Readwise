@@ -51,19 +51,39 @@ export function useHighlights(pdfId) {
     return index;
   }, [highlights]);
 
+  // Define removeHighlight FIRST so addHighlight can reference it
+  const removeHighlight = useCallback(async (id) => {
+    const highlightToRemove = highlights.find((h) => h._id === id);
+    if (!highlightToRemove) return;
+
+    setHighlights((prev) => prev.filter((h) => h._id !== id));
+
+    try {
+      await apiDeleteHighlight(id);
+      return highlightToRemove;
+    } catch (err) {
+      console.error("Failed to delete highlight:", err);
+      setHighlights((prev) => [...prev, highlightToRemove]);
+      throw err;
+    }
+  }, [highlights]);
+
   const addHighlight = useCallback(async (pageNumber, selectedText, color, rects, textQuote, startOffset, endOffset) => {
-    // Check for exact matching existing highlight on this page
+    // Check for an existing highlight covering the same text/offsets on this page
+    // and remove it first so we don't stack highlights on top of each other.
     const existingList = highlightsByPage[pageNumber] || [];
-    const existing = existingList.find(h => 
+    const existing = existingList.find(h =>
       (h.startOffset !== undefined && startOffset !== undefined && h.startOffset === startOffset && h.endOffset === endOffset) ||
       (h.selectedText === selectedText && (!h.startOffset || !startOffset))
     );
-    
+
     if (existing) {
+      // Remove the old highlight from state immediately and from the server
+      setHighlights((prev) => prev.filter((h) => h._id !== existing._id));
       try {
-        await removeHighlight(existing._id);
+        await apiDeleteHighlight(existing._id);
       } catch (err) {
-        console.error("Failed to remove old highlight during replace", err);
+        console.error("Failed to remove old highlight during replace:", err);
       }
     }
 
@@ -83,23 +103,7 @@ export function useHighlights(pdfId) {
       setHighlights((prev) => prev.filter((h) => h._id !== tempId));
       throw err;
     }
-  }, [pdfId, highlightsByPage, removeHighlight]);
-
-  const removeHighlight = useCallback(async (id) => {
-    const highlightToRemove = highlights.find((h) => h._id === id);
-    if (!highlightToRemove) return;
-
-    setHighlights((prev) => prev.filter((h) => h._id !== id));
-
-    try {
-      await apiDeleteHighlight(id);
-      return highlightToRemove;
-    } catch (err) {
-      console.error("Failed to delete highlight:", err);
-      setHighlights((prev) => [...prev, highlightToRemove]);
-      throw err;
-    }
-  }, [highlights]);
+  }, [pdfId, highlightsByPage]);
 
   const highlightsForPage = useCallback((pageNumber) => {
     return highlightsByPage[pageNumber] || [];

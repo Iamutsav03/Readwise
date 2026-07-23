@@ -42,8 +42,11 @@ const styles = {
     background: "var(--rw-popup-bg)",
     border: "1px solid var(--rw-border)",
     borderRadius: "12px",
-    padding: "16px",
-    width: "280px",
+    padding: "14px",
+    width: "360px",
+    maxWidth: "calc(100vw - 24px)",
+    maxHeight: "calc(100vh - 24px)",
+    overflowY: "auto",
     boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.1)",
     fontFamily: "var(--rw-font-family)",
   },
@@ -174,32 +177,27 @@ export default function DictionaryPopup({
   useLayoutEffect(() => {
     if (!position || !popupRef.current) return;
     
-    // Position object typically contains bounding rect top/left/width/height from selection
-    // Note: The SelectionToolbar creates 'position' as { top, left, width }.
-    // Because it's a portal to document.body, we use absolute coordinates based on the window.
-    
     const popupRect = popupRef.current.getBoundingClientRect();
     const margin = 10;
-    
-    let left = position.left + (position.width || 0) / 2;
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+
+    // Horizontal: centre on selection, clamp to viewport edges
+    let left = position.left + (position.width || 0) / 2 - popupRect.width / 2;
+    if (left + popupRect.width + margin > vw) left = vw - popupRect.width - margin;
+    if (left < margin) left = margin;
+
+    // Vertical: try below selection first
     let top = position.top + margin;
 
-    // Shift left if overflowing right edge
-    if (left + popupRect.width + margin > window.innerWidth) {
-      left = window.innerWidth - popupRect.width - margin;
-    }
-    // Prevent shifting too far left
-    if (left < margin) {
-      left = margin;
+    // If it overflows bottom, try above the selection
+    if (top + popupRect.height + margin > vh) {
+      top = position.top - popupRect.height - margin;
     }
 
-    // Shift above if overflowing bottom edge
-    if (top + popupRect.height + margin > window.innerHeight) {
-      top = position.top - popupRect.height - margin;
-      // If it still overflows top, stick it to the bottom
-      if (top < margin) {
-        top = window.innerHeight - popupRect.height - margin;
-      }
+    // If it still overflows top, clamp to top edge
+    if (top < margin) {
+      top = margin;
     }
 
     setAdjustedPos({ top, left });
@@ -297,8 +295,24 @@ export default function DictionaryPopup({
               <p style={styles.content}>{result.meaning}</p>
             </div>
 
-            {/* Example */}
-            {result.example && (
+            {/* Context Example */}
+            {result.contextExample && (
+              <div style={styles.section}>
+                <p style={styles.label}>📌 Context Example</p>
+                <p style={styles.example}>"{result.contextExample}"</p>
+              </div>
+            )}
+
+            {/* General Example */}
+            {result.generalExample && (
+              <div style={styles.section}>
+                <p style={styles.label}>💡 Everyday Example</p>
+                <p style={styles.example}>"{result.generalExample}"</p>
+              </div>
+            )}
+
+            {/* Legacy single example fallback */}
+            {!result.contextExample && !result.generalExample && result.example && (
               <div style={styles.section}>
                 <p style={styles.label}>Example</p>
                 <p style={styles.example}>"{result.example}"</p>

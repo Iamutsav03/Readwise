@@ -7,7 +7,7 @@ import useAiChat from "../hooks/useAiChat";
 import ChatMessage from "./ChatMessage";
 import StudyToolsSection from "./StudyToolsSection";
 import StudyToolConfig from "./StudyToolConfig";
-import { Sparkles, Trash2, AlertTriangle, Send } from "lucide-react";
+import { Sparkles, Trash2, AlertTriangle, Send, X } from "lucide-react";
 
 // ── Loading dots animation ────────────────────────────────────────────────────
 function ThinkingIndicator() {
