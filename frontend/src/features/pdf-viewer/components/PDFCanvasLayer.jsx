@@ -83,39 +83,44 @@ const PDFCanvasLayer = ({
     willChange: "opacity, transform",
   };
 
+  const isMobile = window.innerWidth <= 768; // simple check without hook
+
   if (isPrev && transitionDir === 1) {
     // Exiting page going left (forward navigation)
     if (isCurrentRendered) {
-      className += " on-top page-exit-left";
+      className += " on-top";
+      if (!isMobile) className += " page-exit-left";
     } else {
-      // Keep it visible while new page renders (double-buffer: no flash)
       className += " on-top";
     }
     style.zIndex = 2;
-    style.opacity = isCurrentRendered ? undefined : 1;
+    style.opacity = isCurrentRendered ? (isMobile ? 0 : undefined) : 1;
   } else if (isCurrent && transitionDir === 1) {
     // Entering from the right
     if (isCurrentRendered) {
-      className += " on-top page-enter-right";
+      className += " on-top";
+      if (!isMobile) className += " page-enter-right";
     } else {
-      className += " page-pre-enter-right";
+      if (!isMobile) className += " page-pre-enter-right";
     }
     style.zIndex = 1;
   } else if (isPrev && transitionDir === -1) {
     // Exiting page going right (backward navigation)
     if (isCurrentRendered) {
-      className += " on-top page-exit-right";
+      className += " on-top";
+      if (!isMobile) className += " page-exit-right";
     } else {
       className += " on-top";
     }
     style.zIndex = 2;
-    style.opacity = isCurrentRendered ? undefined : 1;
+    style.opacity = isCurrentRendered ? (isMobile ? 0 : undefined) : 1;
   } else if (isCurrent && transitionDir === -1) {
     // Entering from the left
     if (isCurrentRendered) {
-      className += " on-top page-enter-left";
+      className += " on-top";
+      if (!isMobile) className += " page-enter-left";
     } else {
-      className += " page-pre-enter-left";
+      if (!isMobile) className += " page-pre-enter-left";
     }
     style.zIndex = 2;
   } else {

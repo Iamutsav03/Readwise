@@ -311,7 +311,7 @@ const PDFViewer = forwardRef(function PDFViewer({
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
       `}</style>
 
-      <div style={{ transform: `scale(${cssScale})`, transformOrigin: "center top", willChange: "transform", transition: cssScale === 1 ? "transform 0.15s ease-out" : "none" }}>
+      <div style={{ transform: `scale(${cssScale})`, transformOrigin: "center top", willChange: "transform" }}>
         <Document
           file={fileObj}
           onLoadSuccess={onDocumentLoadSuccess}

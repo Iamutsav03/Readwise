@@ -16,7 +16,7 @@ import { useFocusTrap } from "../../hooks/useFocusTrap";
  * @param {Function} [onHeightChange]
  * @param {boolean}  [fullScreen=false]
  */
-const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScreen = false }) => {
+const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScreen = false, hasBackdrop = true }) => {
   const initialHeight = fullScreen ? 95 : 50;
   const [heightPct, setHeightPct] = useState(initialHeight);
   const [isDragging, setIsDragging] = useState(false);
@@ -27,7 +27,8 @@ const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScr
   const startHeightRef = useRef(initialHeight);
   const containerRef = useRef(null);
 
-  useFocusTrap(isOpen, containerRef, onClose);
+  // Only trap focus if there is a backdrop (otherwise it blocks background interaction)
+  useFocusTrap(isOpen && hasBackdrop, containerRef, onClose);
 
   useEffect(() => {
     if (isOpen) {
@@ -76,8 +77,10 @@ const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScr
   if (!shouldRender) return null;
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, pointerEvents: isOpen ? "auto" : "none" }}>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "var(--rw-overlay)", opacity: isAnimating ? 1 : 0, transition: "opacity 0.3s ease", zIndex: 9999, pointerEvents: "auto" }} />
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, pointerEvents: "none" }}>
+      {hasBackdrop && (
+        <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "var(--rw-overlay)", opacity: isAnimating ? 1 : 0, transition: "opacity 0.3s ease", zIndex: 9999, pointerEvents: "auto" }} />
+      )}
       <div
         ref={containerRef}
         role="dialog"
@@ -92,7 +95,7 @@ const BottomSheet = ({ isOpen, onClose, title, children, onHeightChange, fullScr
         display: "flex", flexDirection: "column",
         transform: isAnimating ? "translateY(0)" : "translateY(100%)",
         transition: isDragging ? "none" : `transform var(--anim-sheet, 250ms) cubic-bezier(0.4,0,0.2,1), height var(--anim-sheet, 250ms) cubic-bezier(0.4,0,0.2,1)`,
-        overflow: "hidden", zIndex: 10000,
+        overflow: "hidden", zIndex: 10000, pointerEvents: "auto",
       }}>
         <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
           style={{ width: "100%", height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "grab", touchAction: "none", flexShrink: 0 }}>

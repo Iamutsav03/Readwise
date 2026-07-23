@@ -264,6 +264,7 @@ const SelectionToolbar = ({
       fullScreen={false}
       initialSnap={40}
       snapPoints={[30, 40, 70]}
+      hasBackdrop={false}
     >
       <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
         {/* Selected text preview */}
