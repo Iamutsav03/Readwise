@@ -73,6 +73,16 @@ export default function AuthPage({ defaultTab = "login", onClose, onSuccess }) {
           border-radius: 16px;
           padding: 40px;
           box-shadow: var(--rw-shadow);
+          max-height: 90vh;
+          overflow-y: auto;
+          position: relative;
+        }
+        @media (max-width: 480px) {
+          .auth-container {
+            padding: 24px;
+            border-radius: 12px;
+          }
+        }
           animation: fade-in-up 0.5s ease-out forwards;
         }
 

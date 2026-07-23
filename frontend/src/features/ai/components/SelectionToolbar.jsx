@@ -89,13 +89,6 @@ const SelectionToolbar = ({
     onAction(type);
   };
 
-  const handleGoogleSearch = (e) => {
-    e?.stopPropagation();
-    const q = encodeURIComponent(selectionText);
-    window.open(`https://www.google.com/search?q=${q}`, "_blank", "noopener,noreferrer");
-    onClose();
-  };
-
   const handleOpenBrowser = (e) => {
     e?.stopPropagation();
     const q = encodeURIComponent(selectionText);
@@ -231,9 +224,17 @@ const SelectionToolbar = ({
               </button>
 
               {/* Google Search */}
-              <button className="sel-btn" style={btnStyle} onClick={handleGoogleSearch} title="Google Search">
+              <a
+                className="sel-btn"
+                style={{ ...btnStyle, textDecoration: 'none' }}
+                href={`https://www.google.com/search?q=${encodeURIComponent(selectionText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                title="Google Search"
+              >
                 <Globe size={16} />
-              </button>
+              </a>
 
               {divider}
 
@@ -338,7 +339,15 @@ const SelectionToolbar = ({
 
         {/* ── SECONDARY ACTIONS (2-column grid) ── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <SecondaryBtn icon={<Globe size={16} />} label="Google Search" onClick={handleGoogleSearch} />
+          <a
+            href={`https://www.google.com/search?q=${encodeURIComponent(selectionText)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
+            style={{ textDecoration: 'none', display: 'block', width: '100%' }}
+          >
+            <SecondaryBtn icon={<Globe size={16} />} label="Google Search" />
+          </a>
           <SecondaryBtn icon={<ExternalLink size={16} />} label="Open Browser" onClick={handleOpenBrowser} />
           <SecondaryBtn icon={<StickyNote size={16} />} label="Add Note" onClick={(e) => { handleAction(e, "note"); }} />
           <SecondaryBtn icon={<Copy size={16} />} label="Copy" onClick={(e) => { handleCopy(e); }} />

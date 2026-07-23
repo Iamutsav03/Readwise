@@ -34,7 +34,7 @@ exports.testGemini = async (req, res) => {
  */
 exports.explainSelection = async (req, res) => {
   try {
-    const { pdfId, pageNumber, selectedText, retryMessageId } = req.body;
+    const { pdfId, pageNumber, selectedText, customPrompt, retryMessageId } = req.body;
 
     if (!pdfId || !mongoose.Types.ObjectId.isValid(pdfId)) {
       return res.status(400).json({ success: false, error: "Valid pdfId is required." });
@@ -47,7 +47,7 @@ exports.explainSelection = async (req, res) => {
     const featureType = "explain-selection";
 
     // Build prompt directly from selected text — no history, no RAG
-    const prompt = buildPrompt(featureType, trimmedText, "Explain this text");
+    const prompt = buildPrompt(featureType, trimmedText, customPrompt || "Explain this text");
 
     // Save or recover placeholder messages
     let userMsg, assistantMsg;

@@ -52,6 +52,21 @@ export function useHighlights(pdfId) {
   }, [highlights]);
 
   const addHighlight = useCallback(async (pageNumber, selectedText, color, rects, textQuote, startOffset, endOffset) => {
+    // Check for exact matching existing highlight on this page
+    const existingList = highlightsByPage[pageNumber] || [];
+    const existing = existingList.find(h => 
+      (h.startOffset !== undefined && startOffset !== undefined && h.startOffset === startOffset && h.endOffset === endOffset) ||
+      (h.selectedText === selectedText && (!h.startOffset || !startOffset))
+    );
+    
+    if (existing) {
+      try {
+        await removeHighlight(existing._id);
+      } catch (err) {
+        console.error("Failed to remove old highlight during replace", err);
+      }
+    }
+
     const tempId = `temp_${Date.now()}`;
     const newHighlight = {
       _id: tempId, pdfId, pageNumber, selectedText, color, rects, textQuote, startOffset, endOffset, createdAt: new Date().toISOString(),
@@ -68,7 +83,7 @@ export function useHighlights(pdfId) {
       setHighlights((prev) => prev.filter((h) => h._id !== tempId));
       throw err;
     }
-  }, [pdfId]);
+  }, [pdfId, highlightsByPage, removeHighlight]);
 
   const removeHighlight = useCallback(async (id) => {
     const highlightToRemove = highlights.find((h) => h._id === id);

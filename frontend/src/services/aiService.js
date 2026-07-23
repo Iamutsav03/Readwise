@@ -62,6 +62,7 @@ export const sendExplainSelection = async (
   pdfId,
   pageNumber,
   selectedText,
+  customPrompt = null,
   retryMessageId = null
 ) => {
   const response = await fetch(`${BASE}/explain-selection`, {
@@ -70,7 +71,7 @@ export const sendExplainSelection = async (
       "Content-Type": "application/json",
       "Authorization": `Bearer ${localStorage.getItem("rw_token")}`
     },
-    body: JSON.stringify({ pdfId, pageNumber, selectedText, retryMessageId }),
+    body: JSON.stringify({ pdfId, pageNumber, selectedText, customPrompt, retryMessageId }),
   });
 
   if (!response.ok) {

@@ -112,13 +112,13 @@ export default function useAiChat(pdfId) {
    * Handle an explain selection request
    */
   const explainSelection = useCallback(
-    async (selectedText, pageNumber) => {
+    async (selectedText, pageNumber, customPrompt) => {
       if (!pdfId || !selectedText.trim() || isLoading || isRetrying) return;
 
       const tempUserMsg = {
         _id: Date.now().toString(),
         role: "user",
-        content: selectedText,
+        content: customPrompt ? `[Deep Explain] ${customPrompt}\n\n"${selectedText}"` : `Please explain this in detail:\n"${selectedText}"`,
         featureType: "explain-selection",
         createdAt: new Date().toISOString(),
         status: "completed",
@@ -128,7 +128,7 @@ export default function useAiChat(pdfId) {
       setIsLoading(true);
 
       try {
-        const data = await sendExplainSelection(pdfId, pageNumber, selectedText);
+        const data = await sendExplainSelection(pdfId, pageNumber, selectedText, customPrompt);
         if (data.success) {
           setMessages((prev) => {
             const filtered = prev.filter((m) => m._id !== tempUserMsg._id);

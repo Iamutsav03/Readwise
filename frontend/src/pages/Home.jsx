@@ -157,7 +157,8 @@ const Home = ({ selectedPDF, setSelectedPDF }) => {
   const handleDeletePdf = useCallback(async (pdfId) => {
     try {
       await deletePdf(pdfId);
-      setPdfs((prev) => prev.filter((p) => p._id !== pdfId));
+      const data = await fetchAllPDFs();
+      setPdfs(data);
       if (selectedPDF?._id === pdfId) closePdf();
     } catch (err) {
       console.error(err);

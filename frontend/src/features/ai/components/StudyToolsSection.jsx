@@ -53,9 +53,14 @@ export default function StudyToolsSection({
 }) {
   // Expanded when there are no messages yet; collapses after first interaction
   const [expanded, setExpanded] = useState(true);
+  const [hasAutoCollapsed, setHasAutoCollapsed] = useState(false);
 
-  // When messages arrive, collapse automatically (only on first collapse)
-  const wasCollapsed = hasMessages && expanded === true && expanded !== "user-toggled";
+  React.useEffect(() => {
+    if (hasMessages && expanded && !hasAutoCollapsed) {
+      setExpanded(false);
+      setHasAutoCollapsed(true);
+    }
+  }, [hasMessages, expanded, hasAutoCollapsed]);
 
   return (
     <div

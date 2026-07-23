@@ -110,6 +110,7 @@ export default function AiPanel({
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const [activeTool, setActiveTool] = useState(null);
+  const [pendingDeepExplain, setPendingDeepExplain] = useState(null);
 
   // Auto-scroll to bottom whenever new messages arrive
   useEffect(() => {
@@ -131,8 +132,9 @@ export default function AiPanel({
         "chat"
       );
     } else if (mode === "deep") {
-      // Deep Explain: full contextual analysis via dedicated endpoint
-      explainSelection(text, pageNum);
+      // Deep Explain: store pending context to allow user to add custom prompt
+      setPendingDeepExplain({ text, pageNum });
+      if (inputRef.current) inputRef.current.focus();
     } else {
       // quick_explain (default): brief, plain-language explanation
       sendMessage(
@@ -147,11 +149,19 @@ export default function AiPanel({
   const handleSend = useCallback(
     (text, featureType = "chat", options = {}) => {
       const msg = (text ?? input).trim();
+
+      if (pendingDeepExplain && !text) {
+        explainSelection(pendingDeepExplain.text, pendingDeepExplain.pageNum, msg || null);
+        setPendingDeepExplain(null);
+        setInput("");
+        return;
+      }
+
       if (!msg || isLoading) return;
       setInput("");
       sendMessage(msg, featureType, options);
     },
-    [input, isLoading, sendMessage]
+    [input, isLoading, sendMessage, pendingDeepExplain, explainSelection]
   );
 
   const handleGenerateStudyTool = useCallback((config) => {
@@ -319,6 +329,32 @@ export default function AiPanel({
         </div>
       )}
 
+      {/* ── Pending Deep Explain Context ──────────────────────────── */}
+      {pendingDeepExplain && (
+        <div style={{
+          margin: "0 12px 6px", padding: "10px", background: "var(--rw-card-bg)",
+          border: "1px solid var(--rw-accent)", borderRadius: 8,
+          display: "flex", flexDirection: "column", gap: 6,
+          animation: "fadeInUp 0.2s ease"
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--rw-accent)", display: "flex", alignItems: "center", gap: 4 }}>
+              <Sparkles size={12} /> Deep Explain
+            </span>
+            <button 
+              onClick={() => setPendingDeepExplain(null)}
+              style={{ background: "transparent", border: "none", color: "var(--rw-text-muted)", cursor: "pointer", padding: 0 }}
+            ><X size={14} /></button>
+          </div>
+          <div style={{ fontSize: 11, color: "var(--rw-text-secondary)", fontStyle: "italic", borderLeft: "2px solid var(--rw-border)", paddingLeft: 6, maxHeight: 60, overflow: "hidden", textOverflow: "ellipsis" }}>
+            "{pendingDeepExplain.text}"
+          </div>
+          <div style={{ fontSize: 11, color: "var(--rw-text-primary)", marginTop: 4 }}>
+            Add an optional prompt below, or click Send to explain directly.
+          </div>
+        </div>
+      )}
+
       {/* ── Fixed input bar ─────────────────────────────────────────── */}
       <div
         style={{
@@ -367,15 +403,15 @@ export default function AiPanel({
           />
           <button
             onClick={() => handleSend()}
-            disabled={!input.trim() || isLoading}
+            disabled={( !pendingDeepExplain && !input.trim() ) || isLoading}
             style={{
               flexShrink: 0, width: 30, height: 30, borderRadius: 8,
-              background: input.trim() && !isLoading
+              background: (pendingDeepExplain || input.trim()) && !isLoading
                 ? "linear-gradient(135deg, var(--rw-accent), var(--rw-accent-hover))"
                 : "var(--rw-hover-bg)",
-              border: "none", cursor: input.trim() && !isLoading ? "pointer" : "not-allowed",
+              border: "none", cursor: (pendingDeepExplain || input.trim()) && !isLoading ? "pointer" : "not-allowed",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 14, color: input.trim() && !isLoading ? "var(--rw-panel-bg)" : "var(--rw-text-muted)",
+              fontSize: 14, color: (pendingDeepExplain || input.trim()) && !isLoading ? "var(--rw-panel-bg)" : "var(--rw-text-muted)",
               transition: "background 0.2s, color 0.2s",
               marginBottom: 1,
             }}

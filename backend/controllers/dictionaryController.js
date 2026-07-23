@@ -257,7 +257,8 @@ Text:
 
 Return ONLY valid JSON with no markdown formatting. The JSON must exactly match this structure:
 {
-  "meaning": "Your short explanation here"
+  "meaning": "Your short explanation here",
+  "example": "A clear example using the context to give the idea for better understanding"
 }
 
 Rules:
