@@ -70,9 +70,52 @@ const TextBlock = React.memo(({ block, pageNum, highlights }) => {
  * Includes text blocks, highlights, and a page-level notes card for page notes.
  */
 const PageBlock = React.memo(({ page, highlights, pageNotes, fontSize, lineSpacing }) => {
-  const textHighlights = React.useMemo(() => highlights.filter(
-    (h) => h.pageNumber === page.pageNumber && h.startOffset !== undefined
-  ), [highlights, page.pageNumber]);
+  const textHighlights = React.useMemo(() => {
+    const pageHighlights = highlights.filter(h => h.pageNumber === page.pageNumber);
+    
+    return pageHighlights.map(h => {
+      // If the highlight has offsets (e.g. made in Reading Mode), use them directly
+      if (h.startOffset !== undefined && h.startOffset !== null) return h;
+      
+      // If made in PDF Mode, it only has selectedText. We must dynamically map it to this page's text block.
+      if (h.selectedText && page.text) {
+        const source = page.text;
+        const search = h.selectedText;
+        const sourceClean = source.replace(/\s+/g, '');
+        const searchClean = search.replace(/\s+/g, '');
+        
+        const cleanIdx = sourceClean.indexOf(searchClean);
+        if (cleanIdx !== -1) {
+          let realIdx = 0;
+          let cleanCounter = 0;
+          for (let i = 0; i < source.length; i++) {
+            if (!/\s/.test(source[i])) {
+              if (cleanCounter === cleanIdx) {
+                realIdx = i;
+                break;
+              }
+              cleanCounter++;
+            }
+          }
+          
+          let realEndIdx = realIdx;
+          let matchLength = 0;
+          for (let i = realIdx; i < source.length; i++) {
+            if (!/\s/.test(source[i])) {
+              matchLength++;
+            }
+            if (matchLength === searchClean.length) {
+              realEndIdx = i + 1;
+              break;
+            }
+          }
+          
+          return { ...h, startOffset: realIdx, endOffset: realEndIdx };
+        }
+      }
+      return h;
+    }).filter(h => h.startOffset !== undefined && h.startOffset !== null);
+  }, [highlights, page.pageNumber, page.text]);
 
   return (
     <div

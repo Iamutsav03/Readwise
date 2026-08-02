@@ -101,15 +101,14 @@ export function useTextSelection(containerRef) {
 
     if (startBlock && endBlock) {
       const getOffsetWithinBlock = (blockNode, targetContainer, targetOffset) => {
-        let offset = 0;
-        const walk = document.createTreeWalker(blockNode, NodeFilter.SHOW_TEXT, null, false);
-        let curr = walk.nextNode();
-        while (curr) {
-          if (curr === targetContainer) return offset + targetOffset;
-          offset += curr.textContent.length;
-          curr = walk.nextNode();
+        try {
+          const tempRange = document.createRange();
+          tempRange.selectNodeContents(blockNode);
+          tempRange.setEnd(targetContainer, targetOffset);
+          return tempRange.toString().length;
+        } catch (e) {
+          return 0;
         }
-        return offset;
       };
 
       const blockStart = parseInt(startBlock.getAttribute("data-start-offset") || "0", 10);
