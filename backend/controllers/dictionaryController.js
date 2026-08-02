@@ -76,18 +76,27 @@ exports.lookupWord = async (req, res) => {
     }
 
     // 2. Fetch from Dictionary API
-    const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(normalized)}`);
+    let response;
+    try {
+      response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(normalized)}`);
+    } catch (fetchErr) {
+      console.warn(`[DICT] Fetch from api.dictionaryapi.dev failed for "${normalized}":`, fetchErr);
+      return res.status(200).json({ success: false, needsAIFallback: true });
+    }
     
     if (!response.ok) {
-      if (response.status === 404) {
-        // For single words: if technical, use AI; otherwise also use AI (no dead ends)
-        console.log(`[DICT] DICTIONARY 404 for "${normalized}" → AI fallback`);
-        return res.status(200).json({ success: false, needsAIFallback: true });
-      }
-      throw new Error(`Dictionary API error: ${response.statusText}`);
+      console.warn(`[DICT] Dictionary API returned status ${response.status} for "${normalized}" → AI fallback`);
+      return res.status(200).json({ success: false, needsAIFallback: true });
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonErr) {
+      console.warn(`[DICT] Failed to parse Dictionary API response for "${normalized}":`, jsonErr);
+      return res.status(200).json({ success: false, needsAIFallback: true });
+    }
+
     if (!data || !data.length) {
       console.log(`[DICT] DICTIONARY EMPTY for "${normalized}" → AI fallback`);
       return res.status(200).json({ success: false, needsAIFallback: true });
