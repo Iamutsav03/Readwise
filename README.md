@@ -1,223 +1,296 @@
 # 📖 ReadWise
 
-> Transform PDFs into an intelligent reading and knowledge workspace.
+> **Transform PDFs into an intelligent reading and knowledge workspace.**
 
-ReadWise is a modern PDF reading platform built with React, Node.js, Express, and MongoDB. It helps users read, search, annotate, bookmark, and organize information from PDFs in a clean and distraction-free environment.
+ReadWise is a modern, full-stack PDF reading and learning platform designed to turn static documents into an interactive knowledge workspace.
 
-Designed for students, developers, researchers, and lifelong learners, ReadWise combines the simplicity of a PDF reader with the power of a knowledge management tool.
+Instead of switching between a PDF reader, dictionary, notes app, search engine, and AI assistant, ReadWise brings these capabilities together in a single reading experience.
+
+Built for **students, developers, researchers, and lifelong learners**, ReadWise combines a smooth PDF reader with highlighting, annotations, search, vocabulary tools, AI assistance, and persistent knowledge management.
 
 ---
 
 ## ✨ Features
 
-### 📄 PDF Management
+### 📄 PDF Library
 
-* Upload PDFs
-* Recent documents panel
-* Delete documents
+* Upload and manage PDF documents
 * Persistent document library
+* Recent documents
+* Delete documents
 * Fast document switching
+* Persistent document data
 
-### 📚 PDF Reading Experience
+### 📚 Advanced PDF Reader
 
-* Smooth PDF rendering
+* Smooth PDF rendering with PDF.js
 * Previous / Next page navigation
-* Jump to page
-* Fit-to-screen mode
-* Fit-to-width mode
+* Jump to specific pages
+* Fit-to-screen
+* Fit-to-width
 * Zoom controls
 * Reading progress tracking
 * Remember last reading position
+* Swipe navigation
+* Focus mode
+* Reading settings
+* Keyboard shortcuts
+* Smooth page transitions
 
 ### 🔍 Full-Text Search
 
-* Automatic text extraction during upload
-* MongoDB-powered indexing
-* Search entire PDFs instantly
-* Match count per page
+* Automatic PDF text extraction
+* Search across document content
+* Page-level search results
+* Match counts
 * Context snippets
-* Jump directly to search results
+* Jump directly to matching pages
+* MongoDB-backed document text indexing
 
-### ✨ Highlight System
+### ✨ Highlights
 
-* Multi-color highlighting
+* Multi-color highlights
 * Persistent highlights
 * Highlight manager
 * Highlight navigation
+* Page-linked highlights
+* Highlight positioning directly over PDF text
 * Undo / Redo support
 
-### 📝 Notes System
+### 📝 Notes & Annotations
 
 * Margin notes
-* Rich text editing
+* Rich-text notes
 * Color-coded notes
 * Auto-save
 * Resizable notes
 * Draggable notes
 * Page-linked annotations
 * Persistent MongoDB storage
+* Notes management through the reader sidebar
 
-### 🔖 Productivity Tools
+### 🔖 Reading & Productivity Tools
 
 * Bookmarks
-* Keyboard shortcuts
 * Reading session continuity
 * Quick document navigation
+* Keyboard shortcuts
+* Reader toolbar
+* Reader sidebar
+* Focus mode
+* Distraction-free Reading Mode
+
+### 📖 Reading Mode
+
+Read extracted document content separately from the PDF canvas using a clean, semantic reading interface.
+
+* Structured text rendering
+* Paragraph and heading-based content
+* Independent reading experience
+* Reading settings
+* Highlight support
+
+### 🤖 AI-Assisted Reading
+
+ReadWise integrates AI directly into the reading workflow instead of treating it as a separate chatbot.
+
+* Select text and ask for an explanation
+* Quick Explain
+* Deep Explain
+* AI Chat
+* Context-aware explanations
+* PDF-aware AI responses
+* AI selection toolbar
+* Streaming AI responses
+* Backend-controlled AI usage limits
+
+### 📚 Vocabulary & Learning
+
+* Dictionary definitions
+* Save unfamiliar words
+* Vocabulary management
+* Vocabulary review workflow
+* Flashcard-oriented learning
+
+### 👤 Guest & User Accounts
+
+ReadWise supports a guest-first experience so users can try the application before creating an account.
+
+* Guest sessions using UUIDs
+* JWT-based authentication
+* Usage limits for guest users
+* Account registration
+* Guest-to-user data migration
+* Persistent user data
+
+Users can start reading without immediately creating an account and migrate their existing documents and activity when they register.
 
 ---
 
-## 🚀 Upcoming Features
+## ⚙️ Technical Highlights
 
-### 🤖 AI-Powered Reading
-
-* PDF Chat
-* Ask questions about documents
-* AI-generated summaries
-* Chapter summaries
-* Concept explanations
-* Semantic search
-
-### 🧠 Learning Tools
-
-* Flashcard generation
-* Quiz generation
-* Revision mode
-* Smart highlights
-* Knowledge graph
-
-### 📂 Knowledge Management
-
-* Cross-document search
-* Document collections
-* Tagging system
-* Workspace organization
-* Export notes and highlights
-
----
-
-## 🛠 Tech Stack
+ReadWise follows a **decoupled React + Node.js architecture** with clear separation between UI state, server state, PDF rendering, and backend business logic.
 
 ### Frontend
 
-* React
-* React PDF
-* JavaScript
-* CSS
+* React SPA
+* React PDF / PDF.js
+* Context API
+* React Query
+* Axios
+* Feature-based architecture
+* Component-based reader architecture
 
 ### Backend
 
 * Node.js
 * Express.js
+* REST APIs
+* Authentication middleware
+* Guest authentication middleware
+* Controller / Service separation
+* PDF processing services
+* AI orchestration
 
 ### Database
 
 * MongoDB
 * Mongoose
+* Persistent PDFs, highlights, notes, vocabulary, and user data
+* MongoDB text indexing
+* Dictionary caching
 
 ### PDF Processing
 
 * PDF.js
+* React PDF
 * Multer
+* PDF text extraction
+* Canvas-based rendering
+* Asynchronous PDF text layer
+* Custom highlight positioning
+
+### AI Architecture
+
+AI requests are handled through the backend rather than directly from the browser.
+
+This allows ReadWise to:
+
+* Keep LLM credentials server-side
+* Inject relevant PDF context into AI prompts
+* Enforce usage limits
+* Control AI costs
+* Centralize AI orchestration
 
 ---
 
-## ⚙️ Installation
+## 🏗️ Reader Architecture
 
-### Clone Repository
+The reader is intentionally split into independent rendering and interaction layers rather than being implemented as one large component.
 
-```bash
-git clone https://github.com/your-username/readwise.git
-cd readwise
+```text
+ReaderLayout
+├── ReaderToolbar
+├── ReaderSidebar
+└── ReaderContent
+    ├── PDFViewer
+    │   ├── PDFCanvasLayer
+    │   └── PDFHighlightLayer
+    └── ReadingMode
 ```
 
-### Backend Setup
+`ReaderLayout` acts as the primary state owner, while specialized components isolate PDF rendering, gestures, highlights, notes, and reading-mode behavior.
 
-```bash
-cd backend
-npm install
-```
-
-Create a `.env` file:
-
-```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-```
-
-Start backend:
-
-```bash
-npm run dev
-```
-
-### Frontend Setup
-
-```bash
-cd frontend
-npm install
-npm start
-```
+The PDF viewer also uses a page-stack approach for smoother page transitions and keeps rendering-heavy state inside the PDF subsystem to reduce unnecessary React re-renders.
 
 ---
 
-## 🌐 Environment Variables
+## 🔄 How ReadWise Works
 
-Backend:
-
-```env
-PORT=5000
-MONGO_URI=
+```text
+PDF Upload
+    ↓
+Backend Processing
+    ↓
+PDF Text Extraction
+    ↓
+MongoDB
+    ↓
+ReadWise Reader
+    ↓
+┌─────────────────────────────┐
+│ Read / Search / Highlight   │
+│ Notes / Vocabulary / AI     │
+└─────────────────────────────┘
 ```
 
-Frontend:
-
-```env
-REACT_APP_API_BASE_URL=your_api_url
-```
+When a user selects content for an AI operation, the request is sent to the backend where relevant document context can be retrieved before communicating with the external LLM service.
 
 ---
 
 ## 🎯 Vision
 
-Most PDF readers focus only on displaying documents.
+Traditional PDF readers primarily focus on displaying documents.
 
-ReadWise aims to become a complete learning and knowledge platform where users can:
+ReadWise aims to turn the PDF itself into an **interactive learning and knowledge workspace** where users can:
 
-* Read
-* Search
-* Highlight
-* Annotate
-* Summarize
-* Learn
-* Revisit knowledge
+* **Read**
+* **Search**
+* **Highlight**
+* **Annotate**
+* **Understand**
+* **Save knowledge**
+* **Learn**
+* **Revisit information**
 
-all from a single workspace.
+without constantly leaving the document.
+
+---
+
+## 🚧 Roadmap
+
+The project is actively evolving toward a more complete AI-powered knowledge platform.
+
+Planned capabilities include:
+
+* AI-generated document summaries
+* Chapter summaries
+* Semantic search
+* Cross-document search
+* Flashcard generation
+* Quiz generation
+* Revision mode
+* Smart highlights
+* Knowledge graphs
+* Document collections
+* Tagging and workspace organization
+* Export notes and highlights
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer          | Technologies             |
+| -------------- | ------------------------ |
+| Frontend       | React, JavaScript, CSS   |
+| PDF Rendering  | React PDF, PDF.js        |
+| State          | Context API, React Query |
+| HTTP           | Axios                    |
+| Backend        | Node.js, Express.js      |
+| Database       | MongoDB, Mongoose        |
+| File Upload    | Multer                   |
+| AI             | External LLM API         |
+| Authentication | JWT + Guest UUID         |
 
 ---
 
 ## 📌 Current Status
 
-Active development.
+**Active Development**
 
-Recently completed:
+ReadWise has evolved from a basic PDF reader into a full-stack reading and knowledge workspace with persistent document data, search, annotations, vocabulary tools, AI-assisted reading, guest authentication, and a layered PDF rendering architecture.
 
-* PDF Search Engine
-* Highlight Manager
-* Keyboard Shortcuts
-* Bookmarks
-* Reading Progress Tracking
-* MongoDB Text Indexing
-
-Currently building:
-
-* Advanced Notes System
-
-Next:
-
-* AI Summaries
-* PDF Chat
-* Flashcards
-* Semantic Search
+More features and architectural improvements are currently being developed.
 
 ---
 
@@ -227,4 +300,6 @@ MIT License
 
 ---
 
-Built with ❤️ for readers, learners, developers, and knowledge workers.
+<p align="center">
+  Built with ❤️ for readers, learners, developers, and knowledge workers.
+</p>
